@@ -1,0 +1,1 @@
+Repository for Vinnova project about Group OSCORE and joining a group using ACE.
