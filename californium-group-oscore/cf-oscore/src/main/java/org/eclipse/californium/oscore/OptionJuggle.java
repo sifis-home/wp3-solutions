@@ -14,6 +14,7 @@
  *    Joakim Brorsson
  *    Ludwig Seitz (RISE SICS)
  *    Tobias Andersson (RISE SICS)
+ *    Rikard Höglund (RISE)
  *    
  ******************************************************************************/
 package org.eclipse.californium.oscore;
@@ -87,6 +88,7 @@ public class OptionJuggle {
 		boolean hasProxyScheme = options.hasProxyScheme();
 		boolean hasMaxAge = options.hasMaxAge();
 		boolean hasObserve = options.hasObserve();
+		boolean hasEdhoc = options.hasEdhoc(); // EDHOC
 
 		OptionSet ret = new OptionSet();
 
@@ -127,6 +129,11 @@ public class OptionJuggle {
 			ret.setOscore(oscore);
 		}
 
+		// EDHOC
+		if (hasEdhoc) {
+			ret.setEdhoc(true);
+		}
+
 		return ret;
 	}
 
@@ -147,6 +154,7 @@ public class OptionJuggle {
 			case OptionNumberRegistry.URI_PORT:
 			case OptionNumberRegistry.PROXY_SCHEME:
 			case OptionNumberRegistry.OSCORE:
+			case OptionNumberRegistry.EDHOC: // EDHOC
 				// do not encrypt
 				break;
 			case OptionNumberRegistry.PROXY_URI:
@@ -266,6 +274,7 @@ public class OptionJuggle {
 		Map<String, String> userContext = request.getUserContext();
 
 		Request newRequest = new Request(code);
+
 		newRequest.setOptions(options);
 		newRequest.setPayload(payload);
 		newRequest.setToken(token);
@@ -298,6 +307,7 @@ public class OptionJuggle {
 		Long rtt = response.getApplicationRttNanos();
 
 		Response newResponse = new Response(code);
+
 		newResponse.setOptions(options);
 		newResponse.setPayload(payload);
 		newResponse.setToken(token);
@@ -332,6 +342,8 @@ public class OptionJuggle {
 		return eOptions;
 	}
 
+	// FIXME: For below use instead OscoreOptionDecoder/Encoder
+
 	/**
 	 * Retrieve RID value from an OSCORE option.
 	 * 
@@ -342,30 +354,30 @@ public class OptionJuggle {
 		if (oscoreOption.length == 0) {
 			return null;
 		}
-	
+
 		// Parse the flag byte
 		byte flagByte = oscoreOption[0];
 		int n = flagByte & 0x07;
 		int k = flagByte & 0x08;
 		int h = flagByte & 0x10;
-	
+
 		byte[] kid = null;
 		int index = 1;
-	
+
 		// Partial IV
 		index += n;
-	
+
 		// KID Context
 		if (h != 0) {
 			int s = oscoreOption[index];
 			index += s + 1;
 		}
-	
+
 		// KID
 		if (k != 0) {
 			kid = Arrays.copyOfRange(oscoreOption, index, oscoreOption.length);
 		}
-	
+
 		return kid;
 	}
 
@@ -421,7 +433,7 @@ public class OptionJuggle {
 
 		// Parsing Partial IV
 		if (n > 0) {
-				partialIV = Arrays.copyOfRange(oscoreOption, index, index + n);
+			partialIV = Arrays.copyOfRange(oscoreOption, index, index + n);
 		} else {
 			return -1;
 		}
