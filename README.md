@@ -1,1 +1,1 @@
-Repository for Vinnova project about Group OSCORE and joining a group using ACE.
+Joint codebase for SIFIS-HOME including ACE, Group Joining (and associated things), EDHOC, OSCORE and Group OSCORE.
