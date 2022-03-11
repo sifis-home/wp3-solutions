@@ -22,7 +22,7 @@ Note that mySQL is needed for the ACE parts to run correctly. To install it use:
 apt-get install mysql-server
 
 Then place a file under ace/db.pwd with the database root password.
-Also place a file under vinnova-prototype/db.pwd with the database root password.
+
 
 *Updating the JCE (Java Cryptography Extensions)
 
@@ -30,6 +30,7 @@ If some of the JUnit tests fail due to "invalid key size" you may need to update
 
 In such case follow these instructons:
 https://www.andreafortuna.org/2016/06/08/java-tips-how-to-fix-the-invalidkeyexception-illegal-key-size-or-default-parameters-runtime/
+
 
 *Support for Base64
 
