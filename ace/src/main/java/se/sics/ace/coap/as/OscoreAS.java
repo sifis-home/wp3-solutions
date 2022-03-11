@@ -270,7 +270,6 @@ public class OscoreAS extends CoapServer implements AutoCloseable {
     		senderId = null;
     		contextId = null;
     		
-    		System.out.println("ident "  + identity);
     		int index = identity.indexOf(":");
     		
     		if (index != -1) {

@@ -5,6 +5,7 @@
 2. Start Eclipse, then import the following projects:
 californium-group-oscore
 ace
+vinnova-prototype
 
 3. To "ace" add the following folders to the build path:
 californium-core

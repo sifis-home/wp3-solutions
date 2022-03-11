@@ -225,8 +225,7 @@ public class UtilTest {
 	public void testEncryptDecryptAlgs() throws CoseException {
 
 		AlgorithmID[] algorithms = new AlgorithmID[] { AlgorithmID.AES_CCM_16_64_128, AlgorithmID.AES_CCM_16_128_128,
-				AlgorithmID.AES_CCM_64_64_128, AlgorithmID.AES_CCM_64_128_128, AlgorithmID.AES_GCM_128,
-				AlgorithmID.AES_GCM_192, AlgorithmID.AES_GCM_256 };
+				AlgorithmID.AES_CCM_64_64_128, AlgorithmID.AES_CCM_64_128_128 };
 
 		Random rand = new Random();
 

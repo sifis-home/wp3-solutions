@@ -107,5 +107,4 @@ public class EdhocCoapStackFactory implements CoapStackFactory {
 		EdhocCoapStackFactory.OSCORE_REPLAY_WINDOW = OSCORE_REPLAY_WINDOW;
 		EdhocCoapStackFactory.MAX_UNFRAGMENTED_SIZE = MAX_UNFRAGMENTED_SIZE;
 	}
-
 }

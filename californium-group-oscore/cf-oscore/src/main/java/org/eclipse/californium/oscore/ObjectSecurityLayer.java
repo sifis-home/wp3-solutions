@@ -29,7 +29,7 @@ import org.eclipse.californium.core.coap.OptionSet;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.coap.Token;
-import org.eclipse.californium.core.Utils;
+
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.network.Exchange;
 import org.eclipse.californium.core.network.stack.AbstractLayer;
@@ -282,7 +282,7 @@ public class ObjectSecurityLayer extends AbstractLayer {
 			// Retrieve the OSCORE context associated with this RID and ID Context
 			byte[] rid = OptionJuggle.getRid(request.getOptions().getOscore());
 			byte[] IDContext = OptionJuggle.getIDContext(request.getOptions().getOscore());
-
+			
 			OSCoreCtx ctx = null;
 			try {
 				ctx = ctxDb.getContext(rid, IDContext);

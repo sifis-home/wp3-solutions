@@ -200,7 +200,7 @@ public class EdhocLayer extends AbstractLayer {
 		LOGGER.warn("Receiving request through EDHOC layer");
 
 		if (request.getOptions().hasEdhoc()) {
-			System.out.println("Request has EDHOC option");
+			
 			if (!request.getOptions().hasOscore()) {
     			String responseString = new String("Received a request including the EDHOC option but"
                         + " not including the OSCORE option\n");
@@ -460,6 +460,7 @@ public class EdhocLayer extends AbstractLayer {
 	 * @return the OSCORE Context used to protect the exchange (if any)
 	 */
 	private OSCoreCtx getContextForOutgoing(Exchange e) {
+		
 		String uri = e.getRequest().getURI();
 		if (uri == null) {
 			return null;

@@ -178,7 +178,7 @@
 		<module>demo-certs</module>
 		<module>cf-oscore</module>
 		<module>cf-pubsub</module>
-		<module>cf-edhoc</module> <!-- Rikard: Added EDHOC as module -->
+                <module>cf-edhoc</module> <!-- Rikard: Added EDHOC as module -->
 	</modules>
 
 	<build>

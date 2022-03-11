@@ -354,30 +354,30 @@ public class OptionJuggle {
 		if (oscoreOption.length == 0) {
 			return null;
 		}
-
+	
 		// Parse the flag byte
 		byte flagByte = oscoreOption[0];
 		int n = flagByte & 0x07;
 		int k = flagByte & 0x08;
 		int h = flagByte & 0x10;
-
+	
 		byte[] kid = null;
 		int index = 1;
-
+	
 		// Partial IV
 		index += n;
-
+	
 		// KID Context
 		if (h != 0) {
 			int s = oscoreOption[index];
 			index += s + 1;
 		}
-
+	
 		// KID
 		if (k != 0) {
 			kid = Arrays.copyOfRange(oscoreOption, index, oscoreOption.length);
 		}
-
+	
 		return kid;
 	}
 
@@ -433,7 +433,7 @@ public class OptionJuggle {
 
 		// Parsing Partial IV
 		if (n > 0) {
-			partialIV = Arrays.copyOfRange(oscoreOption, index, index + n);
+				partialIV = Arrays.copyOfRange(oscoreOption, index, index + n);
 		} else {
 			return -1;
 		}
