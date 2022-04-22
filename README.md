@@ -20,14 +20,14 @@ Joint codebase for SIFIS-HOME including ACE, EDHOC, OSCORE, Group OSCORE, and Gr
 
 To add dependencies:
 
-Right click project->Properties->Java Build Path->Add...
+*Right click project->Properties->Java Build Path->Add...*
 
 
 ### MySQL installation
 
 Note that mySQL is needed for the ACE parts to run correctly. To install it use:
 ```
-apt-get install mysql-server
+sudo apt-get install mysql-server
 ```
 
 Then place a file under ace/db.pwd with the database root password.
