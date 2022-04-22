@@ -35,15 +35,4 @@ jobs:
       - name: Build for Eclipse
         run: |
           ./config.sh
-          
-      - name: Run JUnit tests for ACE
-        run: |
-          cd ace
-          mvn test
-        
-      - name: Run JUnit tests for Californium
-        run: |
-          cd californium-group-oscore
-          mvn test
-        
-           
+
