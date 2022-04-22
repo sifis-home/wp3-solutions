@@ -7,16 +7,19 @@ Joint codebase for SIFIS-HOME including ACE, EDHOC, OSCORE, Group OSCORE, and Gr
 1. Run the `config.sh` script
 
 2. Start Eclipse, then import the following projects:
-californium-group-oscore
-ace
+  
+    - californium-group-oscore 
+    - ace
 
 3. To "ace" add the following folders to the build path:
-californium-core
-element-connector
-oscore-cf
-scandium
+
+    - californium-core
+    - element-connector
+    - oscore-cf
+    - scandium
 
 To add dependencies:
+
 Right click project->Properties->Java Build Path->Add...
 
 
