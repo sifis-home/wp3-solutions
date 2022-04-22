@@ -40,5 +40,5 @@ jobs:
       - name: Run integration tests on Californium-Group
         run: |
            cd californium-group-oscore 
-           mvn clean compile
+           mvn eclipse:eclipse
            
