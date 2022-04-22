@@ -32,7 +32,18 @@ jobs:
           java-version: ${{ matrix.java-version }}
           architecture: x64
 
-      - name: Run JUnit tests
+      - name: Build for Eclipse
         run: |
           ./config.sh
+          
+      - name: Run JUnit tests for ACE
+        run: |
+          cd ace
+          mvn test
+        
+      - name: Run JUnit tests for Californium
+        run: |
+          cd californium-group-oscore
+          mvn test
+        
            
