@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 
 import org.eclipse.californium.core.CoapResource;
@@ -115,17 +115,17 @@ public class EdhocServer extends CoapServer {
 	
 	// Long-term public keys of authorized peers
 	// The map label is a CBOR Map used as ID_CRED_X
-	private static Map<CBORObject, OneKey> peerPublicKeys = new HashMap<CBORObject, OneKey>();
+	private static HashMap<CBORObject, OneKey> peerPublicKeys = new HashMap<CBORObject, OneKey>();
 	
 	// CRED of the long-term public keys of authorized peers
 	// The map label is a CBOR Map used as ID_CRED_X
 	// The map value is a CBOR byte string, with value the serialization of CRED
 	// (i.e. what the other peer stores as CRED in its Session)
-	private static Map<CBORObject, CBORObject> peerCredentials = new HashMap<CBORObject, CBORObject>();
+	private static HashMap<CBORObject, CBORObject> peerCredentials = new HashMap<CBORObject, CBORObject>();
 
 	// Existing EDHOC Sessions, including completed ones
 	// The map label is C_X, i.e. the connection identifier offered to the other peer, as a CBOR integer or byte string
-	private static Map<CBORObject, EdhocSession> edhocSessions = new HashMap<CBORObject, EdhocSession>();
+	private static HashMap<CBORObject, EdhocSession> edhocSessions = new HashMap<CBORObject, EdhocSession>();
 	
 	// Each element is a used Connection Identifier offered to the other peers.
 	// Connection Identifiers are stored as CBOR integers (if numeric) or as CBOR byte strings (if binary)
@@ -135,7 +135,7 @@ public class EdhocServer extends CoapServer {
 	private static List<Integer> supportedCiphersuites = new ArrayList<Integer>();
 	
 	// The collection of application profiles - The lookup key is the full URI of the EDHOC resource
-	private static Map<String, AppProfile> appProfiles = new HashMap<String, AppProfile>();
+	private static HashMap<String, AppProfile> appProfiles = new HashMap<String, AppProfile>();
 	
 	// The database of OSCORE Security Contexts
 	private final static HashMapCtxDB db = new HashMapCtxDB();

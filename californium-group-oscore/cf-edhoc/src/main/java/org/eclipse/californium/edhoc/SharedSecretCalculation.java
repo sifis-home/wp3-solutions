@@ -33,7 +33,7 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.EllipticCurve;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.Base64;
+
 
 import javax.crypto.KeyAgreement;
 
@@ -53,7 +53,6 @@ import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.KeyKeys;
 import org.eclipse.californium.cose.OneKey;
-import org.junit.Test;
 
 import com.upokecenter.cbor.CBORObject;
 
@@ -953,7 +952,7 @@ public class SharedSecretCalculation {
 	 */
 	private static void runTests() throws Exception {
 		Provider EdDSA = new EdDSASecurityProvider();
-		Security.insertProviderAt(EdDSA, 0);
+		Security.insertProviderAt(EdDSA, 1);
 
 		/* Start tests */
 

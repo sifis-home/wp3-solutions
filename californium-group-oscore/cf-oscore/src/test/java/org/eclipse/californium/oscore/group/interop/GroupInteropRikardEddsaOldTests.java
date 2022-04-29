@@ -109,7 +109,7 @@ public class GroupInteropRikardEddsaOldTests {
 	public void testEDDSAKeys() throws Exception {
 		// Install EdDSA cryptographic provider
 		Provider EdDSA = new EdDSASecurityProvider();
-		Security.insertProviderAt(EdDSA, 0);
+		Security.insertProviderAt(EdDSA, 1);
 
 		OneKey senderKey = OneKeyDecoder.parseDiagnostic(senderFullKeyEddsa);
 		OneKey recipient1Key = OneKeyDecoder.parseDiagnostic(recipient1PublicKeyEddsa);
@@ -335,7 +335,7 @@ public class GroupInteropRikardEddsaOldTests {
 
 		// Install EdDSA cryptographic provider
 		Provider EdDSA = new EdDSASecurityProvider();
-		Security.insertProviderAt(EdDSA, 0);
+		Security.insertProviderAt(EdDSA, 1);
 
 		GroupCtx groupCtxEddsa = new GroupCtx(master_secret, master_salt, alg, kdf, context_id, AlgorithmID.EDDSA, null);
 

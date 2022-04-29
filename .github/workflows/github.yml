@@ -36,3 +36,7 @@ jobs:
         run: |
           ./config.sh
 
+      - name: Californium JUnit tests
+        run: |
+          ./test-californium.sh
+

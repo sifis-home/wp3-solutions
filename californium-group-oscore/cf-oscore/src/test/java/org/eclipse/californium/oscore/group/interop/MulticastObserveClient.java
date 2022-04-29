@@ -25,7 +25,7 @@ import java.net.InetAddress;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Random;
-import javax.xml.bind.DatatypeConverter;
+
 
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapHandler;
@@ -39,6 +39,7 @@ import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.californium.elements.config.Configuration.DefinitionsProvider;
 import org.eclipse.californium.elements.exception.ConnectorException;
+import org.eclipse.californium.elements.util.Base64;
 import org.eclipse.californium.elements.util.Bytes;
 import org.eclipse.californium.oscore.HashMapCtxDB;
 import org.eclipse.californium.oscore.OSCoreCoapStackFactory;
@@ -164,15 +165,15 @@ public class MulticastObserveClient {
 
 			// Install cryptographic providers
 			Provider EdDSA = new EdDSASecurityProvider();
-			Security.insertProviderAt(EdDSA, 0);
+			Security.insertProviderAt(EdDSA, 1);
 
 			// Add private & public keys for sender & receiver(s)
 			sid_private_key = new OneKey(
-					CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary((sid_private_key_string))));
+					CBORObject.DecodeFromBytes(Base64.decode((sid_private_key_string))));
 			rid1_public_key = new OneKey(
-					CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary((rid1_public_key_string))));
+					CBORObject.DecodeFromBytes(Base64.decode((rid1_public_key_string))));
 			rid2_public_key = new OneKey(
-					CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary((rid2_public_key_string))));
+					CBORObject.DecodeFromBytes(Base64.decode((rid2_public_key_string))));
 
 			GroupCtx commonCtx = new GroupCtx(master_secret, master_salt, alg, kdf, group_identifier, algCountersign, null);
 

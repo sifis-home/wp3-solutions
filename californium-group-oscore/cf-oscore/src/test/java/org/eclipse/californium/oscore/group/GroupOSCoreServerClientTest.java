@@ -25,10 +25,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
-import javax.xml.bind.DatatypeConverter;
+
 
 import org.eclipse.californium.TestTools;
 import org.eclipse.californium.core.CoapClient;
@@ -53,6 +54,7 @@ import org.eclipse.californium.cose.OneKey;
 import org.eclipse.californium.elements.EndpointContext;
 import org.eclipse.californium.elements.MapBasedEndpointContext;
 import org.eclipse.californium.elements.rule.TestNameLoggerRule;
+import org.eclipse.californium.elements.util.Base64;
 import org.eclipse.californium.elements.util.Bytes;
 import org.eclipse.californium.elements.util.StringUtil;
 import org.eclipse.californium.oscore.HashMapCtxDB;
@@ -61,6 +63,7 @@ import org.eclipse.californium.oscore.OSCoreEndpointContextInfo;
 import org.eclipse.californium.oscore.OSException;
 import org.eclipse.californium.rule.CoapNetworkRule;
 import org.eclipse.californium.rule.CoapThreadsRule;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -131,7 +134,7 @@ public class GroupOSCoreServerClientTest {
 
 	// Key for the GM
 	private static String gmPublicKeyString = "pQF4GmNvYXBzOi8vbXlzaXRlLmV4YW1wbGUuY29tAmxncm91cG1hbmFnZXIDeBpjb2FwczovL2RvbWFpbi5leGFtcGxlLm9yZwQaq5sVTwihAaQDJwEBIAYhWCDN4+/TvD+ZycnuIQQVxsulUGG1BG6WO4pYyRQ6YRZkcg==";
-	private static byte[] gmPublicKey = DatatypeConverter.parseBase64Binary(gmPublicKeyString);
+	private static byte[] gmPublicKey;
 
 	// Keys for client and server (ECDSA full private and public keys)
 	private static String clientKeyString = "pgECI1gg2qPzgLjNqAaJWnjh9trtVjX2Gp2mbzyAQLSJt9LD2j8iWCDe8qCLkQ59ZOIwmFVk2oGtfoz4epMe/Fg2nvKQwkQ+XiFYIKb0PXRXX/6hU45EpcXUAQPufU03fkYA+W6gPoiZ+d0YIAEDJg==";
@@ -141,10 +144,12 @@ public class GroupOSCoreServerClientTest {
 
 	static Random rand;
 	private String uri;
+	private static CoapServer server;
 
 	@Before
-	public void init() {
+	public void init() throws IOException {
 		EndpointManager.clear();
+		gmPublicKey = Base64.decode(gmPublicKeyString);
 	}
 
 	// Use the OSCORE stack factory
@@ -152,6 +157,11 @@ public class GroupOSCoreServerClientTest {
 	public static void setStackFactory() {
 		OSCoreCoapStackFactory.useAsDefault(null); // TODO: Better way?
 		rand = new Random();
+	}
+
+	@AfterClass
+	public static void shutdownServer() {
+		server.destroy();
 	}
 
 	/* --- Client tests follow --- */
@@ -353,7 +363,7 @@ public class GroupOSCoreServerClientTest {
 		// the server group context. Now it should work successfully.
 
 		OneKey clientPublicKey = new OneKey(
-				CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(clientKeyString))).PublicKey();
+				CBORObject.DecodeFromBytes(Base64.decode(clientKeyString))).PublicKey();
 		commonCtx.addPublicKeyForRID(new byte[] { 0x25 }, clientPublicKey);
 
 		response = client.advanced(request);
@@ -430,7 +440,7 @@ public class GroupOSCoreServerClientTest {
 		// the client group context. Now it should work successfully.
 
 		OneKey serverPublicKey = new OneKey(
-				CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(serverKeyString))).PublicKey();
+				CBORObject.DecodeFromBytes(Base64.decode(serverKeyString))).PublicKey();
 		commonCtx.addPublicKeyForRID(new byte[] { 0x77 }, serverPublicKey);
 
 		// create request
@@ -725,8 +735,9 @@ public class GroupOSCoreServerClientTest {
 	 * 
 	 * @throws OSException on failure to create the contexts
 	 * @throws CoseException on failure to create the contexts
+	 * @throws IOException on test failure
 	 */
-	public void setClientContext() throws OSException, CoseException {
+	public void setClientContext() throws OSException, CoseException, IOException {
 		// Set up OSCORE context information for request (client)
 		byte[] sid = new byte[] { 0x25 };
 		byte[] rid1 = new byte[] { 0x77 };
@@ -736,11 +747,11 @@ public class GroupOSCoreServerClientTest {
 				gmPublicKey);
 
 		OneKey clientFullKey = new OneKey(
-				CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(clientKeyString)));
+				CBORObject.DecodeFromBytes(Base64.decode(clientKeyString)));
 		commonCtx.addSenderCtx(sid, clientFullKey);
 
 		OneKey serverPublicKey = new OneKey(
-				CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(serverKeyString))).PublicKey();
+				CBORObject.DecodeFromBytes(Base64.decode(serverKeyString))).PublicKey();
 		commonCtx.addRecipientCtx(rid1, REPLAY_WINDOW, serverPublicKey);
 		commonCtx.addRecipientCtx(rid2, REPLAY_WINDOW, null);
 
@@ -757,9 +768,10 @@ public class GroupOSCoreServerClientTest {
 	 * 
 	 * @throws OSException on failure to create the contexts
 	 * @throws CoseException on failure to create the contexts
+	 * @throws IOException on test failure
 	 */
 	public void setServerContext(boolean responsePartialIV, boolean pairwiseResponse)
-			throws OSException, CoseException {
+			throws OSException, CoseException, IOException {
 		// Set up OSCORE context information for response (server)
 
 		byte[] sid = new byte[] { 0x77 };
@@ -769,11 +781,11 @@ public class GroupOSCoreServerClientTest {
 				gmPublicKey);
 
 		OneKey serverFullKey = new OneKey(
-				CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(serverKeyString)));
+				CBORObject.DecodeFromBytes(Base64.decode(serverKeyString)));
 		commonCtx.addSenderCtx(sid, serverFullKey);
 
 		OneKey clientPublicKey = new OneKey(
-				CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(clientKeyString))).PublicKey();
+				CBORObject.DecodeFromBytes(Base64.decode(clientKeyString))).PublicKey();
 		commonCtx.addRecipientCtx(rid, REPLAY_WINDOW, clientPublicKey);
 
 		commonCtx.setResponsesIncludePartialIV(responsePartialIV);
@@ -782,7 +794,7 @@ public class GroupOSCoreServerClientTest {
 		dbServer.addContext(clientHostAdd, commonCtx);
 	}
 
-	public void createServer(boolean responsePartialIV) throws OSException, CoseException {
+	public void createServer(boolean responsePartialIV) throws OSException, CoseException, IOException {
 		createServer(responsePartialIV, false);
 	}
 
@@ -794,8 +806,10 @@ public class GroupOSCoreServerClientTest {
 	 * 
 	 * @throws OSException on test failure
 	 * @throws CoseException on test failure
+	 * @throws IOException on test failure
 	 */
-	public void createServer(boolean responsePartialIV, boolean pairwiseResponse) throws OSException, CoseException {
+	public void createServer(boolean responsePartialIV, boolean pairwiseResponse)
+			throws OSException, CoseException, IOException {
 		// Do not create server if it is already running
 		if (serverEndpoint != null) {
 			// TODO: Check if this ever happens
@@ -809,8 +823,9 @@ public class GroupOSCoreServerClientTest {
 		builder.setCustomCoapStackArgument(dbServer);
 		builder.setInetSocketAddress(TestTools.LOCALHOST_EPHEMERAL);
 		serverEndpoint = builder.build();
-		CoapServer server = new CoapServer();
+		server = new CoapServer();
 		server.addEndpoint(serverEndpoint);
+		cleanup.add(serverEndpoint);
 
 		/** --- Resources for tests follow --- **/
 

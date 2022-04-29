@@ -20,7 +20,7 @@ package org.eclipse.californium.edhoc;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 
 import org.eclipse.californium.cose.AlgorithmID;
@@ -997,9 +997,9 @@ public class Util {
      * @param usedConnectionIds   The collection of already allocated Connection Identifiers
 	 */
 	public static void purgeSession(EdhocSession session, CBORObject connectionIdentifier,
-			                        Map<CBORObject, EdhocSession> edhocSessions, Set<CBORObject> usedConnectionIds) {
+			HashMap<CBORObject, EdhocSession> edhocSessions, Set<CBORObject> usedConnectionIds) {
 		if (session != null) {
-		    edhocSessions.remove(connectionIdentifier, session);
+			edhocSessions.remove(connectionIdentifier);
 		    Util.releaseConnectionId(connectionIdentifier, usedConnectionIds, session.getOscoreDb());
 		    session.deleteTemporaryMaterial();
 		    session = null;
@@ -1023,7 +1023,7 @@ public class Util {
 	 		}
 	 		else if (keyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
 	    		Provider EdDSA = new EdDSASecurityProvider();
-	        	Security.insertProviderAt(EdDSA, 0);
+	        	Security.insertProviderAt(EdDSA, 1);
 	    		keyPair = OneKey.generateKey(AlgorithmID.EDDSA);
 	    	}
 	 		else if (keyCurve == KeyKeys.OKP_X25519.AsInt32()) {
@@ -1038,7 +1038,7 @@ public class Util {
 		// Print out the base64 serialization of the key pair
 		/*
 		byte[] keyPairBytes = keyPair.EncodeToBytes();
-    	String testKeyBytesBase64 = Base64.getEncoder().encodeToString(keyPairBytes);
+    	String testKeyBytesBase64 = Base64.encodeBytes(keyPairBytes);
     	System.out.println(testKeyBytesBase64);
     	
     	System.out.println(keyCurve);
@@ -1049,7 +1049,7 @@ public class Util {
 		/*
     	OneKey testPublicKey = keyPair.PublicKey();
     	byte[] testPublicKeyBytes = testPublicKey.EncodeToBytes();
-    	String testPublicKeyBytesBase64 = Base64.getEncoder().encodeToString(testPublicKeyBytes);
+    	String testPublicKeyBytesBase64 = Base64.encodeBytes(testPublicKeyBytes);
     	System.out.println(testPublicKeyBytesBase64);
     	
     	System.out.println(keyCurve);

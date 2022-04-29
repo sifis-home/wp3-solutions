@@ -44,3 +44,9 @@ https://www.andreafortuna.org/2016/06/08/java-tips-how-to-fix-the-invalidkeyexce
 ### Support for Base64
 
 Note that at least Java 8 must be used to have support for java.util.Base64
+
+### JUnit tests
+
+To only run the JUnit tests for Californium execute:
+`test-californium.sh`
+

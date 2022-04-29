@@ -21,12 +21,11 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import java.io.File;
+import java.io.IOException;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.Random;
-
-import javax.xml.bind.DatatypeConverter;
 
 import org.eclipse.californium.TestTools;
 import org.eclipse.californium.core.CoapClient;
@@ -52,6 +51,7 @@ import org.eclipse.californium.cose.OneKey;
 import org.eclipse.californium.elements.EndpointContext;
 import org.eclipse.californium.elements.MapBasedEndpointContext;
 import org.eclipse.californium.elements.rule.TestNameLoggerRule;
+import org.eclipse.californium.elements.util.Base64;
 import org.eclipse.californium.elements.util.Bytes;
 import org.eclipse.californium.elements.util.StringUtil;
 import org.eclipse.californium.oscore.HashMapCtxDB;
@@ -128,7 +128,7 @@ public class CountersignAlgorithmsTest {
 
 	// Key for the GM
 	private static String gmPublicKeyString = "pQF4GmNvYXBzOi8vbXlzaXRlLmV4YW1wbGUuY29tAmxncm91cG1hbmFnZXIDeBpjb2FwczovL2RvbWFpbi5leGFtcGxlLm9yZwQaq5sVTwihAaQDJwEBIAYhWCDN4+/TvD+ZycnuIQQVxsulUGG1BG6WO4pYyRQ6YRZkcg==";
-	private static byte[] gmPublicKey = DatatypeConverter.parseBase64Binary(gmPublicKeyString);
+	private static byte[] gmPublicKey;
 
 	// Keys for client and server
 	private static String clientKeyEcdsa256 = "pgECI1gg2qPzgLjNqAaJWnjh9trtVjX2Gp2mbzyAQLSJt9LD2j8iWCDe8qCLkQ59ZOIwmFVk2oGtfoz4epMe/Fg2nvKQwkQ+XiFYIKb0PXRXX/6hU45EpcXUAQPufU03fkYA+W6gPoiZ+d0YIAEDJg==";
@@ -149,8 +149,9 @@ public class CountersignAlgorithmsTest {
 	private String uri;
 
 	@Before
-	public void init() {
+	public void init() throws IOException {
 		EndpointManager.clear();
+		gmPublicKey = Base64.decode(gmPublicKeyString);
 	}
 
 	// Use the OSCORE stack factory
@@ -168,8 +169,8 @@ public class CountersignAlgorithmsTest {
 		String serverKeyString = serverKeyEcdsa256;
 		String clientKeyString = clientKeyEcdsa256;
 
-		OneKey serverKey = new OneKey(CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(serverKeyString)));
-		OneKey clientKey = new OneKey(CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(clientKeyString)));
+		OneKey serverKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(serverKeyString)));
+		OneKey clientKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(clientKeyString)));
 
 		// Check the properties of the decoded keys
 
@@ -194,8 +195,8 @@ public class CountersignAlgorithmsTest {
 		String serverKeyString = clientKeyEcdsa384;
 		String clientKeyString = serverKeyEcdsa384;
 
-		OneKey serverKey = new OneKey(CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(serverKeyString)));
-		OneKey clientKey = new OneKey(CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(clientKeyString)));
+		OneKey serverKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(serverKeyString)));
+		OneKey clientKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(clientKeyString)));
 
 		// Check the properties of the decoded keys
 
@@ -220,8 +221,8 @@ public class CountersignAlgorithmsTest {
 		String serverKeyString = clientKeyEcdsa512;
 		String clientKeyString = serverKeyEcdsa512;
 
-		OneKey serverKey = new OneKey(CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(serverKeyString)));
-		OneKey clientKey = new OneKey(CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(clientKeyString)));
+		OneKey serverKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(serverKeyString)));
+		OneKey clientKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(clientKeyString)));
 
 		// Check the properties of the decoded keys
 
@@ -244,13 +245,13 @@ public class CountersignAlgorithmsTest {
 	public void testEDDSA() throws Exception {
 		// Install EdDSA cryptographic provider
 		Provider EdDSA = new EdDSASecurityProvider();
-		Security.insertProviderAt(EdDSA, 0);
+		Security.insertProviderAt(EdDSA, 1);
 
 		String serverKeyString = clientKeyEddsa;
 		String clientKeyString = serverKeyEddsa;
 
-		OneKey serverKey = new OneKey(CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(serverKeyString)));
-		OneKey clientKey = new OneKey(CBORObject.DecodeFromBytes(DatatypeConverter.parseBase64Binary(clientKeyString)));
+		OneKey serverKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(serverKeyString)));
+		OneKey clientKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(clientKeyString)));
 
 		// Check the properties of the decoded keys
 

@@ -2,12 +2,13 @@ package org.eclipse.californium.oscore;
 
 import java.security.Provider;
 import java.security.Security;
-import java.util.Base64;
+
 
 import net.i2p.crypto.eddsa.EdDSASecurityProvider;
 import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.OneKey;
+import org.eclipse.californium.elements.util.Base64;
 
 /**
  * //TODO: Move/restructure
@@ -20,7 +21,7 @@ public abstract class InstallCryptoProviders {
 
     public static void installProvider() {
 		// Security.insertProviderAt(PROVIDER, 1);
-        Security.insertProviderAt(EdDSA, 0);
+        Security.insertProviderAt(EdDSA, 1);
     }
     
     public static void uninstallProvider() {
@@ -34,12 +35,12 @@ public abstract class InstallCryptoProviders {
     	
     	//Print base64 encoded version with both public & private keys
     	byte[] keyObjectBytes = myKey.AsCBOR().EncodeToBytes();
-    	String base64_encoded = Base64.getEncoder().encodeToString(keyObjectBytes);
+    	String base64_encoded = Base64.encodeBytes(keyObjectBytes);
     	System.out.println("Public & Private: " + base64_encoded);
     	
     	//Print base64 encoded version with only public keys
     	keyObjectBytes = myKey.PublicKey().AsCBOR().EncodeToBytes();
-    	base64_encoded = Base64.getEncoder().encodeToString(keyObjectBytes);
+    	base64_encoded = Base64.encodeBytes(keyObjectBytes);
     	System.out.println("Public only: " + base64_encoded);
 
     }
@@ -48,7 +49,7 @@ public abstract class InstallCryptoProviders {
     public static String getCounterSignKey() throws CoseException {
     	OneKey myKey = OneKey.generateKey(AlgorithmID.EDDSA);
     	byte[] keyObjectBytes = myKey.AsCBOR().EncodeToBytes();
-    	String base64_encoded = Base64.getEncoder().encodeToString(keyObjectBytes);
+    	String base64_encoded = Base64.encodeBytes(keyObjectBytes);
     	
     	return base64_encoded;
 

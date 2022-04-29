@@ -166,7 +166,7 @@ public class GroupOSCOREInteropServerChristian {
 
 		// Install cryptographic providers
 		Provider EdDSA = new EdDSASecurityProvider();
-		Security.insertProviderAt(EdDSA, 0);
+		Security.insertProviderAt(EdDSA, 1);
 
 		// Set sender & receiver keys for countersignatures
 		sid_private_key = OneKeyDecoder.parseDiagnostic(InteropParametersNew.RIKARD_ENTITY_1_KEY_EDDSA);

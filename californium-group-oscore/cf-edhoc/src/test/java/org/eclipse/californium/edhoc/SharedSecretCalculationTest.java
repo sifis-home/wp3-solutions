@@ -19,6 +19,7 @@ package org.eclipse.californium.edhoc;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
@@ -36,13 +37,14 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.EllipticCurve;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.Base64;
+
 
 import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.KeyKeys;
 import org.eclipse.californium.cose.OneKey;
 import org.eclipse.californium.edhoc.SharedSecretCalculation.Tuple;
+import org.eclipse.californium.elements.util.Base64;
 import org.eclipse.californium.elements.util.Bytes;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -93,17 +95,18 @@ public class SharedSecretCalculationTest {
 	@BeforeClass
 	public static void setStackFactory() {
 		Provider EdDSA = new EdDSASecurityProvider();
-		Security.insertProviderAt(EdDSA, 0);
+		Security.insertProviderAt(EdDSA, 1);
 	}
 
 	/**
 	 * Initial testing of calculating ECDSA_256 Y parameter from X.
 	 * 
 	 * @throws CoseException on test failure
+	 * @throws IOException on test failure
 	 */
 	@Test
     @Deprecated
-	public void testEcdsaYFromX() throws CoseException {
+	public void testEcdsaYFromX() throws CoseException, IOException {
 		OneKey ecdd = OneKey.generateKey((AlgorithmID.ECDSA_256));
 		System.out.println(Utils.bytesToHex(ecdd.AsPublicKey().getEncoded()));
 
@@ -169,7 +172,7 @@ public class SharedSecretCalculationTest {
 
 		// Now build keys and try shared secret calc
 		String keyPairBase64 = "pgMmAQIgASFYIPWSTdB9SCF/+CGXpy7gty8qipdR30t6HgdFGQo8ViiAIlggXvJCtXVXBJwmjMa4YdRbcdgjpXqM57S2CZENPrUGQnMjWCDXCb+hy1ybUu18KTAJMvjsmXch4W3Hd7Rw7mTF3ocbLQ==";
-		OneKey privateKey = new OneKey(CBORObject.DecodeFromBytes(Base64.getDecoder().decode(keyPairBase64)));
+		OneKey privateKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(keyPairBase64)));
 		OneKey publicFirstY = SharedSecretCalculation.buildEcdsa256OneKey(null, x.toByteArray(), root1.toByteArray());
 		OneKey publicSecondY = SharedSecretCalculation.buildEcdsa256OneKey(null, x.toByteArray(), root2.toByteArray());
 		System.out.println("publicFirstY " + publicFirstY.AsCBOR().toString());

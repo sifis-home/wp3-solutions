@@ -16,11 +16,12 @@
  ******************************************************************************/
 package org.eclipse.californium.oscore;
 
-import java.util.Base64;
+
 import java.util.Collection;
 
 import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.OneKey;
+import org.eclipse.californium.elements.util.Base64;
 import org.eclipse.californium.oscore.group.GroupCtx;
 import org.eclipse.californium.oscore.group.GroupRecipientCtx;
 import org.eclipse.californium.oscore.group.GroupSenderCtx;
@@ -124,7 +125,7 @@ public class Utility {
 		System.out.print("\tSender Private Key: ");
 		if(sender_private_key != null) {
 			byte[] keyObjectBytes = sender_private_key.AsCBOR().EncodeToBytes();
-			String sender_private_key_base64 = Base64.getEncoder().encodeToString(keyObjectBytes);
+			String sender_private_key_base64 = Base64.encodeBytes(keyObjectBytes);
 			System.out.println(sender_private_key_base64);
 		} else {
 			System.out.println("Null");
@@ -247,7 +248,7 @@ public class Utility {
 		System.out.print("\tRecipient Public Key: ");
 		if(recipient_public_key != null) {
 			byte[] keyObjectBytes = recipient_public_key.AsCBOR().EncodeToBytes();
-			String recipient_public_key_base64 = Base64.getEncoder().encodeToString(keyObjectBytes);
+			String recipient_public_key_base64 = Base64.encodeBytes(keyObjectBytes);
 			System.out.println(recipient_public_key_base64);
 		} else {
 			System.out.println("Null");
