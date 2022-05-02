@@ -12,15 +12,59 @@
   <repositories>
   	<repository>
 	  <id>wso2-nexus</id>
-	<url>http://maven.wso2.org/nexus/content/repositories/releases</url>
+	<url>https://maven.wso2.org/nexus/content/repositories/releases</url>
 	</repository>
 	 <repository>
       <id>repo.eclipse.org</id>
       <name>Californium Repository</name>
       <url>https://repo.eclipse.org/content/repositories/californium/</url>
     </repository>	
+    
+	<repository> <!-- Rikard: Added this -->
+	  <id>wso2-dist</id>
+	<url>https://dist.wso2.org/maven2/</url>
+	</repository>
+	<repository> <!-- Rikard: Added this -->
+	  <id>central</id>
+	<url>https://repo1.maven.org/maven2/</url>
+	</repository>
   </repositories>
   <dependencies>
+  
+        <!-- Rikard: Jar file dependencies from Californium -->
+  	<dependency>
+  	    <groupId>org.eclipse.californium</groupId>
+  	    <artifactId>cf-oscore</artifactId>
+  	    <version>3.1.0</version>
+  	    <scope>system</scope>
+  	    <systemPath>${pom.basedir}/lib/cf-oscore-3.1.0-SNAPSHOT.jar</systemPath>
+  	</dependency>
+  	
+  	<dependency>
+  	    <groupId>org.eclipse.californium</groupId>
+  	    <artifactId>californium-core</artifactId>
+  	    <version>3.1.0</version>
+  	    <scope>system</scope>
+  	    <systemPath>${pom.basedir}/lib/californium-core-3.1.0-SNAPSHOT.jar</systemPath>
+  	</dependency>
+
+  	<dependency>
+  	    <groupId>org.eclipse.californium</groupId>
+  	    <artifactId>element-connector</artifactId>
+  	    <version>3.1.0</version>
+  	    <scope>system</scope>
+  	    <systemPath>${pom.basedir}/lib/element-connector-3.1.0-SNAPSHOT.jar</systemPath>
+  	</dependency>
+
+  	<dependency>
+  	    <groupId>org.eclipse.californium</groupId>
+  	    <artifactId>scandium</artifactId>
+  	    <version>3.1.0</version>
+  	    <scope>system</scope>
+  	    <systemPath>${pom.basedir}/lib/scandium-3.1.0-SNAPSHOT.jar</systemPath>
+  	</dependency>
+       <!-- Rikard: End Jar file dependencies from Californium -->
+
   	<dependency>
   		<groupId>junit</groupId>
   		<artifactId>junit</artifactId>
@@ -109,6 +153,24 @@
 			<configuration>
 				<source>1.8</source>
 				<target>1.8</target>
+			</configuration>
+		</plugin>
+		<!-- Rikard: Works locally but not on Github
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-surefire-plugin</artifactId>
+			<version>2.12.4</version>
+			<configuration>
+				<forkMode>always</forkMode>
+			</configuration>
+		</plugin>  -->
+		<plugin> <!-- Rikard: Working settings for tests on Github -->
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-surefire-plugin</artifactId>
+			<version>3.0.0-M3</version>
+			<configuration>
+				<reuseForks>false</reuseForks>
+				<forkCount>1</forkCount>
 			</configuration>
 		</plugin>
 	</plugins>

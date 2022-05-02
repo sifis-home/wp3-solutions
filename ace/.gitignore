@@ -28,6 +28,7 @@ tmp/
 *.tmp
 *~.nib
 local.properties
+*~
 
 # Maven #
 #########
@@ -77,6 +78,7 @@ Californium.properties
 *.log
 *.sql
 *.sqlite
+mvn_res
 
 # OS generated files #
 ######################
@@ -95,3 +97,8 @@ Desktop.ini
 /nbproject/
 /db.pwd
 /doc/
+
+# Library Jar files from Californium #
+######################
+lib/*
+

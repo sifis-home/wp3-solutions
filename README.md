@@ -47,6 +47,12 @@ Note that at least Java 8 must be used to have support for java.util.Base64
 
 ### JUnit tests
 
-To only run the JUnit tests for Californium execute:
-`test-californium.sh`
+To only run the JUnit tests:
+
+For Californium: `test-californium.sh`
+
+For ACE: `test-ace.sh`
+
+All tests: `test-all.sh`
+
 

@@ -17,7 +17,7 @@ jobs:
           '12.0.x',
           '13.0.x',
           '14.0.x',
-          '15.0.x',
+          #'15.0.x',
         ]
 
     steps:
@@ -36,7 +36,7 @@ jobs:
         run: |
           ./config.sh
 
-      - name: Californium JUnit tests
+      - name: Run Californium & ACE JUnit tests
         run: |
-          ./test-californium.sh
+          ./test-all.sh
 
