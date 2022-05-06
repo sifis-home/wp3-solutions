@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#https://stackoverflow.com/questions/65092032/maven-build-failed-but-exit-code-is-still-0
+# https://stackoverflow.com/questions/65092032/maven-build-failed-but-exit-code-is-still-0
 
 cd californium-group-oscore
 mvn clean install | tee mvn_res

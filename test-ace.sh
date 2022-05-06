@@ -7,7 +7,7 @@ if [ -f "$FILE" ]; then
 else 
     echo "$FILE does not exist."
     cd californium-group-oscore
-    mvn clean install -DskipTests
+    mvn -DskipTests clean install
     cd ..
 fi
 
