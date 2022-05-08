@@ -1,195 +1,190 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>se.sics</groupId>
-  <artifactId>ace</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>ACE library</name>
-  <description>A java library for the ACE IETF WG</description>
-  <organization>
-  	<url>https://www.ri.se</url>
-  	<name>RISE Research Institutes of Sweden AB</name>
-  </organization>
-  <repositories>
-  	<repository>
-	  <id>wso2-nexus</id>
-	<url>https://maven.wso2.org/nexus/content/repositories/releases</url>
-	</repository>
-	 <repository>
-      <id>repo.eclipse.org</id>
-      <name>Californium Repository</name>
-      <url>https://repo.eclipse.org/content/repositories/californium/</url>
-    </repository>	
-    
-	<repository> <!-- Rikard: Added this -->
-	  <id>wso2-dist</id>
-	<url>https://dist.wso2.org/maven2/</url>
-	</repository>
-	<repository> <!-- Rikard: Added this -->
-	  <id>central</id>
-	<url>https://repo1.maven.org/maven2/</url>
-	</repository>
-  </repositories>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>se.sics</groupId>
+	<artifactId>ace</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>ACE library</name>
+	<description>A java library for the ACE IETF WG</description>
+	<organization>
+		<url>https://www.ri.se</url>
+		<name>RISE Research Institutes of Sweden AB</name>
+	</organization>
+	<repositories>
+		<repository>
+			<id>wso2-nexus</id>
+			<url>https://maven.wso2.org/nexus/content/repositories/releases</url>
+		</repository>
+		<repository>
+			<id>repo.eclipse.org</id>
+			<name>Californium Repository</name>
+			<url>https://repo.eclipse.org/content/repositories/californium/</url>
+		</repository>
+		<repository> <!-- Rikard: Added this -->
+			<id>wso2-dist</id>
+			<url>https://dist.wso2.org/maven2/</url>
+		</repository>
+		<repository> <!-- Rikard: Added this -->
+			<id>central</id>
+			<url>https://repo1.maven.org/maven2/</url>
+		</repository>
+	</repositories>
 
-<profiles>
-    <profile>
-        <id>default</id>
-		<activation>
-			<activeByDefault>true</activeByDefault>
-		</activation>
-        <dependencies>
-             <!-- Rikard: Jar file dependencies from Californium -->
-	  	<dependency>
-	  	    <groupId>org.eclipse.californium</groupId>
-	  	    <artifactId>cf-oscore</artifactId>
-	  	    <version>3.1.0</version>
-	  	    <scope>system</scope>
-	  	    <systemPath>${pom.basedir}/lib/cf-oscore-3.1.0-SNAPSHOT.jar</systemPath>
-	  	</dependency>
-	  	
-	  	<dependency>
-	  	    <groupId>org.eclipse.californium</groupId>
-	  	    <artifactId>californium-core</artifactId>
-	  	    <version>3.1.0</version>
-	  	    <scope>system</scope>
-	  	    <systemPath>${pom.basedir}/lib/californium-core-3.1.0-SNAPSHOT.jar</systemPath>
-	  	</dependency>
+	<profiles>
+		<profile>
+			<id>default</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<dependencies>
+				<!-- Rikard: Jar file dependencies from Californium -->
+				<dependency>
+					<groupId>org.eclipse.californium</groupId>
+					<artifactId>cf-oscore</artifactId>
+					<version>3.1.0</version>
+					<scope>system</scope>
+					<systemPath>${pom.basedir}/lib/cf-oscore-3.1.0-SNAPSHOT.jar</systemPath>
+				</dependency>
+				<dependency>
+					<groupId>org.eclipse.californium</groupId>
+					<artifactId>californium-core</artifactId>
+					<version>3.1.0</version>
+					<scope>system</scope>
+					<systemPath>${pom.basedir}/lib/californium-core-3.1.0-SNAPSHOT.jar</systemPath>
+				</dependency>
+				<dependency>
+					<groupId>org.eclipse.californium</groupId>
+					<artifactId>element-connector</artifactId>
+					<version>3.1.0</version>
+					<scope>system</scope>
+					<systemPath>${pom.basedir}/lib/element-connector-3.1.0-SNAPSHOT.jar</systemPath>
+				</dependency>
+				<dependency>
+					<groupId>org.eclipse.californium</groupId>
+					<artifactId>scandium</artifactId>
+					<version>3.1.0</version>
+					<scope>system</scope>
+					<systemPath>${pom.basedir}/lib/scandium-3.1.0-SNAPSHOT.jar</systemPath>
+				</dependency>
+				<!-- Rikard: End Jar file dependencies from Californium -->
+			</dependencies>
+		</profile>
+		<profile>
+			<id>eclipse</id>
+		</profile>
+	</profiles>
 
-	  	<dependency>
-	  	    <groupId>org.eclipse.californium</groupId>
-	  	    <artifactId>element-connector</artifactId>
-	  	    <version>3.1.0</version>
-	  	    <scope>system</scope>
-	  	    <systemPath>${pom.basedir}/lib/element-connector-3.1.0-SNAPSHOT.jar</systemPath>
-	  	</dependency>
-
-	  	<dependency>
-	  	    <groupId>org.eclipse.californium</groupId>
-	  	    <artifactId>scandium</artifactId>
-	  	    <version>3.1.0</version>
-	  	    <scope>system</scope>
-	  	    <systemPath>${pom.basedir}/lib/scandium-3.1.0-SNAPSHOT.jar</systemPath>
-	  	</dependency>
-	       <!-- Rikard: End Jar file dependencies from Californium -->
-        </dependencies>
-    </profile>
-    <profile>
-        <id>eclipse</id>
-    </profile>
-</profiles>
-
-
-  <dependencies>
-  
-       
-
-  	<dependency>
-  		<groupId>junit</groupId>
-  		<artifactId>junit</artifactId>
-  		<version>4.12</version>
-  		<scope>test</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.bouncycastle</groupId>
-  		<artifactId>bcprov-jdk15on</artifactId>
-  		<version>1.54</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.upokecenter</groupId>
-  		<artifactId>cbor</artifactId>
-  		<version>4.3.0</version> <!-- Rikard: Changed version -->
-  	</dependency>
-        <dependency> <!-- Rikard: Added this -->
-	         <groupId>net.i2p.crypto</groupId>
-	         <artifactId>eddsa</artifactId>
-	        <version>0.3.0</version>
-	        <type>jar</type>
-        </dependency>
-  	<dependency>
-  		<groupId>com.github.peteroupc</groupId>
-  		<artifactId>numbers</artifactId>
-  		<version>1.4.3</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.wso2.balana</groupId>
-  		<artifactId>org.wso2.balana</artifactId>
-  		<version>1.1.14</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.json</groupId>
-  		<artifactId>json</artifactId>
-  		<version>20180813</version>
-  	</dependency>
-  	<dependency>
-    	<groupId>mysql</groupId>
-    	<artifactId>mysql-connector-java</artifactId>
-        <version>5.1.47</version>
-    </dependency>
-    <dependency>
-		  <groupId>org.postgresql</groupId>
-		  <artifactId>postgresql</artifactId>
-		  <version>9.3-1104-jdbc4</version>
-    </dependency>
-<!-- Rikard: Disabled these dependencies. They will come from Group OSCORE Californium.
-	<dependency>
-		<groupId>org.eclipse.californium</groupId>
-		<artifactId>californium-core</artifactId>
-		<version>2.6.0</version>
-	</dependency>
-	<dependency>
-		<groupId>org.eclipse.californium</groupId>
-		<artifactId>scandium</artifactId>
-		<version>2.6.0</version>
-	</dependency>
-	<dependency>
-		<groupId>org.eclipse.californium</groupId>
-		<artifactId>cf-oscore</artifactId>
-		<version>2.6.0</version>
-	</dependency>
-	<dependency>
-		<groupId>com.augustcellars.cose</groupId>
-		<artifactId>cose-java</artifactId>
-		<version>1.1.0</version>
-	</dependency>
--->
-	   <dependency>
-       <groupId>org.slf4j</groupId>
-       <artifactId>slf4j-log4j12</artifactId>
-       <version>1.7.5</version>
-   </dependency>
-   <dependency>
-       <groupId>org.slf4j</groupId>
-       <artifactId>slf4j-api</artifactId>
-       <version>1.7.5</version>
-   </dependency> 
-  </dependencies>
-  <build>
-	<plugins>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<configuration>
-				<source>1.8</source>
-				<target>1.8</target>
-			</configuration>
-		</plugin>
-		<!-- Rikard: Works locally but not on Github
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-surefire-plugin</artifactId>
-			<version>2.12.4</version>
-			<configuration>
-				<forkMode>always</forkMode>
-			</configuration>
-		</plugin>  -->
-		<plugin> <!-- Rikard: Working settings for tests on Github -->
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-surefire-plugin</artifactId>
-			<version>3.0.0-M3</version>
-			<configuration>
-				<reuseForks>false</reuseForks>
-				<forkCount>1</forkCount>
-			</configuration>
-		</plugin>
-	</plugins>
-  </build>
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.54</version>
+		</dependency>
+		<dependency>
+			<groupId>com.upokecenter</groupId>
+			<artifactId>cbor</artifactId>
+			<version>4.3.0</version> <!-- Rikard: Changed version -->
+		</dependency>
+		<dependency> <!-- Rikard: Added this -->
+			<groupId>net.i2p.crypto</groupId>
+			<artifactId>eddsa</artifactId>
+			<version>0.3.0</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>com.github.peteroupc</groupId>
+			<artifactId>numbers</artifactId>
+			<version>1.4.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.balana</groupId>
+			<artifactId>org.wso2.balana</artifactId>
+			<version>1.1.14</version>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20180813</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.47</version>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.3-1104-jdbc4</version>
+		</dependency>
+		<!-- Rikard: Disabled these dependencies. They will come from Group OSCORE Californium. 
+		<dependency>
+			<groupId>org.eclipse.californium</groupId>
+			<artifactId>californium-core</artifactId>
+			<version>2.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.californium</groupId>
+			<artifactId>scandium</artifactId>
+			<version>2.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.californium</groupId>
+			<artifactId>cf-oscore</artifactId>
+			<version>2.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.augustcellars.cose</groupId>
+			<artifactId>cose-java</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		-->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.5</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<!-- Rikard: Works locally but not on Github 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12.4</version>
+				<configuration>
+					<forkMode>always</forkMode>
+				</configuration>
+			</plugin>
+			-->
+			<plugin> <!-- Rikard: Working settings for tests on Github -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M3</version>
+				<configuration>
+					<reuseForks>false</reuseForks>
+					<forkCount>1</forkCount>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
