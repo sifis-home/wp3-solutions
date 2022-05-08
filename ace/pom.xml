@@ -29,41 +29,58 @@
 	<url>https://repo1.maven.org/maven2/</url>
 	</repository>
   </repositories>
+
+<profiles>
+    <profile>
+        <id>default</id>
+		<activation>
+			<activeByDefault>true</activeByDefault>
+		</activation>
+        <dependencies>
+             <!-- Rikard: Jar file dependencies from Californium -->
+	  	<dependency>
+	  	    <groupId>org.eclipse.californium</groupId>
+	  	    <artifactId>cf-oscore</artifactId>
+	  	    <version>3.1.0</version>
+	  	    <scope>system</scope>
+	  	    <systemPath>${pom.basedir}/lib/cf-oscore-3.1.0-SNAPSHOT.jar</systemPath>
+	  	</dependency>
+	  	
+	  	<dependency>
+	  	    <groupId>org.eclipse.californium</groupId>
+	  	    <artifactId>californium-core</artifactId>
+	  	    <version>3.1.0</version>
+	  	    <scope>system</scope>
+	  	    <systemPath>${pom.basedir}/lib/californium-core-3.1.0-SNAPSHOT.jar</systemPath>
+	  	</dependency>
+
+	  	<dependency>
+	  	    <groupId>org.eclipse.californium</groupId>
+	  	    <artifactId>element-connector</artifactId>
+	  	    <version>3.1.0</version>
+	  	    <scope>system</scope>
+	  	    <systemPath>${pom.basedir}/lib/element-connector-3.1.0-SNAPSHOT.jar</systemPath>
+	  	</dependency>
+
+	  	<dependency>
+	  	    <groupId>org.eclipse.californium</groupId>
+	  	    <artifactId>scandium</artifactId>
+	  	    <version>3.1.0</version>
+	  	    <scope>system</scope>
+	  	    <systemPath>${pom.basedir}/lib/scandium-3.1.0-SNAPSHOT.jar</systemPath>
+	  	</dependency>
+	       <!-- Rikard: End Jar file dependencies from Californium -->
+        </dependencies>
+    </profile>
+    <profile>
+        <id>eclipse</id>
+    </profile>
+</profiles>
+
+
   <dependencies>
   
-        <!-- Rikard: Jar file dependencies from Californium -->
-  	<dependency>
-  	    <groupId>org.eclipse.californium</groupId>
-  	    <artifactId>cf-oscore</artifactId>
-  	    <version>3.1.0</version>
-  	    <scope>system</scope>
-  	    <systemPath>${pom.basedir}/lib/cf-oscore-3.1.0-SNAPSHOT.jar</systemPath>
-  	</dependency>
-  	
-  	<dependency>
-  	    <groupId>org.eclipse.californium</groupId>
-  	    <artifactId>californium-core</artifactId>
-  	    <version>3.1.0</version>
-  	    <scope>system</scope>
-  	    <systemPath>${pom.basedir}/lib/californium-core-3.1.0-SNAPSHOT.jar</systemPath>
-  	</dependency>
-
-  	<dependency>
-  	    <groupId>org.eclipse.californium</groupId>
-  	    <artifactId>element-connector</artifactId>
-  	    <version>3.1.0</version>
-  	    <scope>system</scope>
-  	    <systemPath>${pom.basedir}/lib/element-connector-3.1.0-SNAPSHOT.jar</systemPath>
-  	</dependency>
-
-  	<dependency>
-  	    <groupId>org.eclipse.californium</groupId>
-  	    <artifactId>scandium</artifactId>
-  	    <version>3.1.0</version>
-  	    <scope>system</scope>
-  	    <systemPath>${pom.basedir}/lib/scandium-3.1.0-SNAPSHOT.jar</systemPath>
-  	</dependency>
-       <!-- Rikard: End Jar file dependencies from Californium -->
+       
 
   	<dependency>
   		<groupId>junit</groupId>

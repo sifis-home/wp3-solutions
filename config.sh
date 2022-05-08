@@ -1,7 +1,7 @@
 #!/bin/sh
 
 cd ace
-mvn eclipse:eclipse
+mvn -P eclipse eclipse:eclipse
 cd ..
 
 cd californium-group-oscore

@@ -2,7 +2,7 @@
 
 Joint codebase for SIFIS-HOME including ACE, EDHOC, OSCORE, Group OSCORE, and Group Joining (plus associated things).
 
-### General steps
+### Building and importing
 
 1. Run the `config.sh` script
 
@@ -21,6 +21,12 @@ Joint codebase for SIFIS-HOME including ACE, EDHOC, OSCORE, Group OSCORE, and Gr
 To add dependencies:
 
 *Right click project->Properties->Java Build Path->Add...*
+
+### Select Maven profile
+
+If you are developing in Eclipse (and possibly other IDEs) choose the "eclipse" Maven profile for ACE:
+*Right click on "ace"->Maven->Select Maven Profile... (CTRL+Alt+P)
+Deactive the "default" profile, and activate the "eclipse" profile.
 
 
 ### MySQL installation
