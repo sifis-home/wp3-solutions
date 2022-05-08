@@ -25,7 +25,9 @@ To add dependencies:
 ### Select Maven profile
 
 If you are developing in Eclipse (and possibly other IDEs) choose the "eclipse" Maven profile for ACE:
-*Right click on "ace"->Maven->Select Maven Profile... (CTRL+Alt+P)
+
+*Right click on "ace"->Maven->Select Maven Profile...* (CTRL+Alt+P)
+
 Deactive the "default" profile, and activate the "eclipse" profile.
 
 
@@ -41,9 +43,8 @@ Then place a file under ace/db.pwd with the database root password.
 
 ### Updating the JCE (Java Cryptography Extensions)
 
-If some of the JUnit tests fail due to "invalid key size" you may need to update the JCE.
+If some of the JUnit tests fail due to "invalid key size" you may need to update the JCE. In such case follow these instructions:
 
-In such case follow these instructions:
 https://www.andreafortuna.org/2016/06/08/java-tips-how-to-fix-the-invalidkeyexception-illegal-key-size-or-default-parameters-runtime/
 
 

@@ -222,7 +222,7 @@ public class TestAuthzInfoGroupOSCORE {
         final byte[] masterSalt =   { (byte) 0x9e, (byte) 0x7c, (byte) 0xa9, (byte) 0x22,
                 					  (byte) 0x23, (byte) 0x78, (byte) 0x63, (byte) 0x40 };
 
-        final AlgorithmID hkdf = AlgorithmID.HKDF_HMAC_SHA_256;
+        final AlgorithmID hkdf = AlgorithmID.HMAC_SHA_256;
         final int pubKeyEnc = Constants.COSE_HEADER_PARAM_CCS;
         
         int mode = Constants.GROUP_OSCORE_GROUP_MODE_ONLY;
@@ -481,7 +481,8 @@ public class TestAuthzInfoGroupOSCORE {
         CBORObject resP = CBORObject.DecodeFromBytes(response.getRawPayload());
         CBORObject cti = resP.get(CBORObject.FromObject(Constants.CTI));
         Assert.assertArrayEquals(cti.GetByteString(), new byte[]{0x01});
-        String kidStr = new RawPublicKeyIdentity(publicKey.AsPublicKey()).getName();
+        String rpk = new RawPublicKeyIdentity(publicKey.AsPublicKey()).getName();
+        String kidStr = Base64.getEncoder().encodeToString(rpk.getBytes());
         assert(1 == TokenRepository.getInstance().canAccess(kidStr, null, "co2", Constants.GET, null));
 
     }

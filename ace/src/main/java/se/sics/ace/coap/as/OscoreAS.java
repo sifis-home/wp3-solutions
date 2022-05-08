@@ -61,7 +61,7 @@ import se.sics.ace.coap.rs.oscoreProfile.OscoreCtxDbSingleton;
  * 
  * alg = AES_CCM_16_64_128
  * salt = null
- * kdf = HKDF_HMAC_SHA_256
+ * kdf = HMAC_SHA_256
  * recipient_replay_window_size = 32
  * id_context = null
  * sender_id = asId
@@ -195,7 +195,7 @@ public class OscoreAS extends CoapServer implements AutoCloseable {
         }
         this.addEndpoint(new CoapEndpoint.Builder()
                 .setCoapStackFactory(new OSCoreCoapStackFactory())
-                .setPort(CoAP.DEFAULT_COAP_PORT)
+                .setPort(port)
                 .setCustomCoapStackArgument(OscoreCtxDbSingleton.getInstance())
                 .build());  
         loadOscoreCtx(db, peerNamesToIdentities, myIdentities);

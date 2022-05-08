@@ -343,7 +343,7 @@ public class TestOscorepRSGroupOSCORE {
 
         ai.processMessage(new LocalMessage(0, null, null, message));
 
-        AsRequestCreationHints archm = new AsRequestCreationHints("coaps://blah/authz-info/", null, false, false);
+        AsRequestCreationHints archm = new AsRequestCreationHints("coap://blah/authz-info/", null, false, false);
         Resource hello = new HelloWorldResource();
         Resource temp = new TempResource();
         Resource authzInfo = new CoapAuthzInfo(ai);
@@ -3199,9 +3199,9 @@ public class TestOscorepRSGroupOSCORE {
 			if (targetedGroup.getMode() != Constants.GROUP_OSCORE_PAIRWISE_MODE_ONLY) {
 				int signKeyCurve = 0;
 	
-                if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_EC2))
+				if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_EC2))
 				    signKeyCurve = publicKey.get(KeyKeys.EC2_Curve).AsInt32();
-                else if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_OKP))
+				else if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_OKP))
 				    signKeyCurve = publicKey.get(KeyKeys.OKP_Curve).AsInt32();
 	
 				// This should never happen, due to the previous sanity checks
@@ -3305,7 +3305,7 @@ public class TestOscorepRSGroupOSCORE {
         final byte[] masterSalt =   { (byte) 0x9e, (byte) 0x7c, (byte) 0xa9, (byte) 0x22,
                 					  (byte) 0x23, (byte) 0x78, (byte) 0x63, (byte) 0x40 };
 
-        final AlgorithmID hkdf = AlgorithmID.HKDF_HMAC_SHA_256;
+        final AlgorithmID hkdf = AlgorithmID.HMAC_SHA_256;
         final int pubKeyEnc = Constants.COSE_HEADER_PARAM_CCS;
         
         AlgorithmID signEncAlg = null;

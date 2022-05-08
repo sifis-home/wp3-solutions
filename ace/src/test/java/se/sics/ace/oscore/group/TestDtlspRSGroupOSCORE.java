@@ -1019,9 +1019,9 @@ public class TestDtlspRSGroupOSCORE {
     			// The group mode is used. The PoP evidence is a signature
     			if (targetedGroup.getMode() != Constants.GROUP_OSCORE_PAIRWISE_MODE_ONLY) {
     			    
-                    if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_EC2))
+    			    if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_EC2))
         			    signKeyCurve = publicKey.get(KeyKeys.EC2_Curve).AsInt32();
-                    else if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_OKP))
+    			    else if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_OKP))
         			    signKeyCurve = publicKey.get(KeyKeys.OKP_Curve).AsInt32();
 
     			    // This should never happen, due to the previous sanity checks
@@ -2952,9 +2952,9 @@ public class TestDtlspRSGroupOSCORE {
 			if (targetedGroup.getMode() != Constants.GROUP_OSCORE_PAIRWISE_MODE_ONLY) {
 			    int signKeyCurve = 0;
 
-                if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_EC2))
+				if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_EC2))
 			        signKeyCurve = publicKey.get(KeyKeys.EC2_Curve).AsInt32();
-                else if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_OKP))
+				else if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_OKP))
 			        signKeyCurve = publicKey.get(KeyKeys.OKP_Curve).AsInt32();
 
 			    // This should never happen, due to the previous sanity checks
@@ -3190,7 +3190,7 @@ public class TestDtlspRSGroupOSCORE {
 	  	final byte[] masterSalt =   { (byte) 0x9e, (byte) 0x7c, (byte) 0xa9, (byte) 0x22,
 	  	                              (byte) 0x23, (byte) 0x78, (byte) 0x63, (byte) 0x40 };
 	
-	  	final AlgorithmID hkdf = AlgorithmID.HKDF_HMAC_SHA_256;
+	  	final AlgorithmID hkdf = AlgorithmID.HMAC_SHA_256;
 	  	final int pubKeyEnc = Constants.COSE_HEADER_PARAM_CCS;
 	        
 	  	// Uncomment to set ECDSA with curve P-256 for countersignatures

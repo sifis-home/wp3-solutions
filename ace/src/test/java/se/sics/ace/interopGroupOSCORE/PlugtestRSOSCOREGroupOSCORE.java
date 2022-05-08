@@ -864,11 +864,10 @@ public class PlugtestRSOSCOREGroupOSCORE {
         	CBORObject clientCred = joinRequest.get(CBORObject.FromObject(Constants.CLIENT_CRED));
         	
         	if (clientCred == null && (roleSet != (1 << Constants.GROUP_OSCORE_MONITOR))) {
+        		// TODO: check if the Group Manager already owns this client's public key.
+        		//       If one is found, use it to build 'clientCred' as a CBOR byte string.
         		
-        		// TODO: check if the Group Manager already owns this client's public key
-        		
-        	}
-        	if (clientCred == null && (roleSet != (1 << Constants.GROUP_OSCORE_MONITOR))) {
+        		// Public key not provided and not found
         		exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
         						 "A public key was neither provided nor found as already stored");
         		return;
@@ -879,9 +878,9 @@ public class PlugtestRSOSCOREGroupOSCORE {
         		OneKey publicKey = null;
         		boolean valid = false;
         		
-        		if (clientCred.getType() != CBORType.ByteString) {
+        		if (clientCred == null || clientCred.getType() != CBORType.ByteString) {
         		    exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
-        		                     "The parameter 'client_cred' must be a CBOR byte string");
+        		                     "The parameter 'client_cred' must be present as a CBOR byte string");
         		    return;
         		}
         		
@@ -2947,9 +2946,9 @@ public class PlugtestRSOSCOREGroupOSCORE {
 			if (targetedGroup.getMode() != Constants.GROUP_OSCORE_PAIRWISE_MODE_ONLY) {
 			    int signKeyCurve = 0;
 
-                if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_EC2))
+			    if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_EC2))
 			        signKeyCurve = publicKey.get(KeyKeys.EC2_Curve).AsInt32();
-                else if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_OKP))
+			    else if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_OKP))
 			        signKeyCurve = publicKey.get(KeyKeys.OKP_Curve).AsInt32();
 
 			    // This should never happen, due to the previous sanity checks
@@ -3179,7 +3178,7 @@ public class PlugtestRSOSCOREGroupOSCORE {
         final byte[] masterSalt =   { (byte) 0x9e, (byte) 0x7c, (byte) 0xa9, (byte) 0x22,
                 					  (byte) 0x23, (byte) 0x78, (byte) 0x63, (byte) 0x40 };
 
-        final AlgorithmID hkdf = AlgorithmID.HKDF_HMAC_SHA_256;
+        final AlgorithmID hkdf = AlgorithmID.HMAC_SHA_256;
         final int pubKeyEnc = Constants.COSE_HEADER_PARAM_CCS;
         
   	    // Uncomment to set ECDSA with curve P-256 for countersignatures

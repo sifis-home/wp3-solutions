@@ -20,7 +20,7 @@ public abstract class InstallCryptoProviders {
     private static final Provider EdDSA = new EdDSASecurityProvider();
 
     public static void installProvider() {
-		// Security.insertProviderAt(PROVIDER, 1);
+		// Security.insertProviderAt(PROVIDER, 2);
         Security.insertProviderAt(EdDSA, 1);
     }
     
