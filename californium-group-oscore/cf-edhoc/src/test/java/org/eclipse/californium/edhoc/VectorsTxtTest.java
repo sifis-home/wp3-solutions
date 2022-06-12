@@ -22,9 +22,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Set;
 
 import org.eclipse.californium.cose.KeyKeys;
@@ -185,10 +187,10 @@ public class VectorsTxtTest {
 	private void testWriteMessage1Vector(int index) {
 
 		// Set up the session to use
-		OneKey ltk = Util.generateKeyPair(KeyKeys.OKP_Ed25519.AsInt32()); // Dummy
+		OneKey identityKey = Util.generateKeyPair(KeyKeys.OKP_Ed25519.AsInt32()); // Dummy
 		boolean initiator = true;
 		int methodCorr = methodCorrList.get(index);
-		CBORObject connectionId = connectionIdList.get(index);
+		byte[] connectionId = connectionIdList.get(index).GetByteString(); // v-14 identifiers
 		List<Integer> cipherSuites = new ArrayList<Integer>();
 		cipherSuites.add(supportedCipherSuitesList.get(index)); // 1 suite only
 		byte[] ead1 = ad1List.get(index);
@@ -199,7 +201,7 @@ public class VectorsTxtTest {
 		// Just for method compatibility; it is not used for EDHOC Message 1
 		byte[] idCredKid = new byte[] {(byte) 0x24};
 		CBORObject idCred = Util.buildIdCredKid(idCredKid);
-		byte[] cred = Util.buildCredRawPublicKey(ltk, "");
+		byte[] cred = Util.buildCredRawPublicKey(identityKey, "");
 
 		// Set the application profile
 		// - Supported authentication methods
@@ -214,9 +216,7 @@ public class VectorsTxtTest {
 		boolean useMessage4 = false;
 		boolean usedForOSCORE = true;
 		boolean supportCombinedRequest = false;
-		int conversionMethodOscoreToEdhoc = Constants.CONVERSION_ID_UNDEFINED;
-		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE,
-											   supportCombinedRequest, conversionMethodOscoreToEdhoc);
+		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
 		
 		// Specify the processor of External Authorization Data
 		KissEDP edp = new KissEDP();
@@ -224,8 +224,19 @@ public class VectorsTxtTest {
 		// Specify the database of OSCORE Security Contexts
 		HashMapCtxDB db = new HashMapCtxDB();
 		
-		EdhocSession session = new EdhocSession(initiator, true, methodCorr, connectionId, ltk,
-				                                idCred, cred, cipherSuites, appProfile, edp, db);
+		HashMap<Integer, HashMap<Integer, OneKey>> keyPairs = new HashMap<Integer, HashMap<Integer, OneKey>>();
+		HashMap<Integer, HashMap<Integer, CBORObject>> creds = new HashMap<Integer, HashMap<Integer, CBORObject>>();
+		HashMap<Integer, HashMap<Integer, CBORObject>> idCreds = new HashMap<Integer, HashMap<Integer, CBORObject>>();
+		
+		keyPairs.get(Integer.valueOf(Constants.SIGNATURE_KEY)).
+				 put(Integer.valueOf(Constants.CURVE_Ed25519), identityKey);
+		creds.get(Integer.valueOf(Constants.SIGNATURE_KEY)).
+			     put(Integer.valueOf(Constants.CURVE_Ed25519), CBORObject.FromObject(cred));
+		idCreds.get(Integer.valueOf(Constants.SIGNATURE_KEY)).
+				 put(Integer.valueOf(Constants.CURVE_Ed25519), idCred);
+		
+		EdhocSession session = new EdhocSession(initiator, true, methodCorr, connectionId, keyPairs,
+				                                idCreds, creds, cipherSuites, appProfile, edp, db);
 
 		// Force a specific ephemeral key
 		byte[] privateEkeyBytes = initiatorEphemeralPrivateList.get(index);
@@ -253,7 +264,7 @@ public class VectorsTxtTest {
 
 		// Print parameters used
 		System.out.println("methodCorr " + methodCorr);
-		System.out.println("connectionId " + Utils.bytesToHex(connectionId.EncodeToBytes()));
+		System.out.println("connectionId " + Utils.bytesToHex(connectionId)); // v-14 identifiers
 		System.out.println("ead1 " + Utils.bytesToHex(ead1));
 		System.out.println("privateEkeyBytes " + Utils.bytesToHex(privateEkeyBytes));
 		System.out.println("publicEkeyBytes " + Utils.bytesToHex(publicEkeyBytes));

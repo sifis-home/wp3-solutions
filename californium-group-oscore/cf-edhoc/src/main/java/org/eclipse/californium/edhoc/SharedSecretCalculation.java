@@ -33,7 +33,7 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.EllipticCurve;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-
+import org.eclipse.californium.elements.util.Base64;
 
 import javax.crypto.KeyAgreement;
 
@@ -778,12 +778,17 @@ public class SharedSecretCalculation {
 	 * @param privateKey the public/private key of the sender
 	 * @param publicKey the public key of the recipient
 	 * 
-	 * @return the shared secret
+	 * @return the shared secret, or null in case of error
 	 */
 	static byte[] generateSharedSecret(OneKey privateKey, OneKey publicKey) {
+
+		if (privateKey == null || publicKey == null) {
+			System.err.println("Public key and/or privat key not found.");
+			return null;
+		}
 		
 		// EC2 keys (P-256)
-
+		
 		CBORObject privateCurve = privateKey.get(KeyKeys.EC2_Curve);
 		CBORObject publicCurve = publicKey.get(KeyKeys.EC2_Curve);
 

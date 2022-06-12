@@ -38,10 +38,20 @@ public static final Charset charset = Charset.forName("UTF-8");
 	
 
 /**
- * Content-Format application/edhoc
+ * Content-Format application/edhoc+cbor-seq
  */
-public static final int APPLICATION_EDHOC = 65000;
+public static final int APPLICATION_EDHOC_CBOR_SEQ = 65000;
 
+/**
+ * Content-Format application/cid-edhoc+cbor-seq
+ */
+public static final int APPLICATION_CID_EDHOC_CBOR_SEQ = 65001;
+
+/**
+ * Key Usage
+ */
+public static final int SIGNATURE_KEY = 0;
+public static final int ECDH_KEY = 1;
 
 /**
  * Key Curve
@@ -105,7 +115,7 @@ public static final int EDHOC_MESSAGE_4 = 4;
  * EDHOC Error Codes
  */
 public static final int ERR_CODE_SUCCESS = 0;
-public static final int ERR_CODE_UNSPECIFIED = 1;
+public static final int ERR_CODE_UNSPECIFIED_ERROR = 1;
 public static final int ERR_CODE_WRONG_SELECTED_CIPHER_SUITE = 2;
 
 
@@ -241,21 +251,46 @@ public static final String[] APP_HASH_ALGS = {
 		"SHA-256",  // cipher suite 3
 };
 
+// v-14
+/**
+ * Labels for EDHOC-KDF
+ * 
+ */
+public static final int KDF_LABEL_KEYSTREAM_2 = 0;
+public static final int KDF_LABEL_SALT_3E2M = 1;
+public static final int KDF_LABEL_MAC_2 = 2;
+public static final int KDF_LABEL_K_3 = 3;
+public static final int KDF_LABEL_IV_3 = 4;
+public static final int KDF_LABEL_SALT_4E3M = 5;
+public static final int KDF_LABEL_MAC_3 = 6;
+public static final int KDF_LABEL_PRK_OUT = 7;
+public static final int KDF_LABEL_K_4 = 8;
+public static final int KDF_LABEL_IV_4 = 9;
+public static final int KDF_LABEL_PRK_EXPORTER = 10;
+public static final int KDF_LABEL_PRK_OUT_KEY_UPDATE = 11;
+
+//v-14
+/**
+ * Labels for EDHOC-Exporter
+ * 
+ */
+public static final int EXPORTER_LABEL_OSCORE_MASTER_SECRET = 0;
+public static final int EXPORTER_LABEL_OSCORE_MASTER_SALT = 1;
 
 /**
  * Temporary keys
  * 
  */
-public static final int EDHOC_K_3AE = 0;  // Key K_3ae for message_3
-public static final int EDHOC_K_4AE  = 1;  // Key K for message_4
+public static final int EDHOC_K_3 = 0;  // Key K_3 for message_3
+public static final int EDHOC_K_4 = 1;  // Key K_4 for message_4
 
 
 /**
  * Temporary IVs
  * 
  */
-public static final int EDHOC_IV_3AE = 1;  // IV_3ae for message_3
-public static final int EDHOC_IV_4AE  = 2;  // IV for message_4
+public static final int EDHOC_IV_3 = 0;  // IV_3 for message_3
+public static final int EDHOC_IV_4 = 1;  // IV_4 for message_4
 
 
 /**
@@ -282,14 +317,6 @@ public static final int EDHOC_SENT_M3   = 8; // After sending EDHOC Message 3
 
 // Responder steps
 public static final int EDHOC_SENT_M4   = 9; // After sending EDHOC Message 4
-
-
-/**
- * Method for converting from OSCORE Recipient/Sender ID to EDHOC Connection Identifier
- * 
- */
-public static final int CONVERSION_ID_UNDEFINED = 0; // Each EDHOC peer can use whatever method
-public static final int CONVERSION_ID_CORE = 1; // Deterministic method defined in draft-ietf-core-oscore-edhoc
 
 }
 

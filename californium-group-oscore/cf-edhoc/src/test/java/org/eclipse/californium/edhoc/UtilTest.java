@@ -25,7 +25,7 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
-
+import org.eclipse.californium.elements.util.Base64;
 import java.util.List;
 import java.util.Random;
 
@@ -34,7 +34,6 @@ import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.EncryptCommon;
 import org.eclipse.californium.cose.KeyKeys;
 import org.eclipse.californium.cose.OneKey;
-import org.eclipse.californium.elements.util.Base64;
 import org.eclipse.californium.elements.util.Bytes;
 import org.junit.Assert;
 import org.junit.Test;
@@ -117,7 +116,7 @@ public class UtilTest {
 	 * Test a signature computation and verification with EdDSA Ed25519.
 	 * 
 	 * @throws CoseException on test failure
-	 * @throws IOException on test failure
+	 * @throws IOException
 	 */
 	@Test
 	public void testComputeVerifySignatureEd25519() throws CoseException, IOException {
@@ -153,7 +152,7 @@ public class UtilTest {
 	 * Test a signature computation and verification with ECDSA_256.
 	 * 
 	 * @throws CoseException on signing or verification failure
-	 * @throws IOException on test failure
+	 * @throws IOException
 	 */
 	@Test
 	public void testComputeVerifySignatureEcdsa256() throws CoseException, IOException {
@@ -228,8 +227,8 @@ public class UtilTest {
 	public void testEncryptDecryptAlgs() throws CoseException {
 
 		AlgorithmID[] algorithms = new AlgorithmID[] { AlgorithmID.AES_CCM_16_64_128, AlgorithmID.AES_CCM_16_128_128,
-				AlgorithmID.AES_CCM_64_64_128, AlgorithmID.AES_CCM_64_128_128, AlgorithmID.AES_GCM_192,
-				AlgorithmID.AES_GCM_256 };
+				AlgorithmID.AES_CCM_64_64_128, AlgorithmID.AES_CCM_64_128_128, AlgorithmID.AES_GCM_128,
+				AlgorithmID.AES_GCM_192, AlgorithmID.AES_GCM_256 };
 
 		Random rand = new Random();
 

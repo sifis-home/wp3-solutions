@@ -37,14 +37,13 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.EllipticCurve;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-
+import org.eclipse.californium.elements.util.Base64;
 
 import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.KeyKeys;
 import org.eclipse.californium.cose.OneKey;
 import org.eclipse.californium.edhoc.SharedSecretCalculation.Tuple;
-import org.eclipse.californium.elements.util.Base64;
 import org.eclipse.californium.elements.util.Bytes;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -102,7 +101,7 @@ public class SharedSecretCalculationTest {
 	 * Initial testing of calculating ECDSA_256 Y parameter from X.
 	 * 
 	 * @throws CoseException on test failure
-	 * @throws IOException on test failure
+	 * @throws IOException
 	 */
 	@Test
     @Deprecated

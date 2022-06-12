@@ -90,8 +90,9 @@ public class EdhocCoapStackFactory implements CoapStackFactory {
 	 * @see CoapEndpoint#setDefaultCoapStackFactory(CoapStackFactory)
 	 */
 	public static void useAsDefault(OSCoreCtxDB defaultCtxDb,
-			HashMap<CBORObject, EdhocSession> edhocSessions, HashMap<CBORObject, OneKey> peerPublicKeys,
-			HashMap<CBORObject, CBORObject> peerCredentials,
+									HashMap<CBORObject, EdhocSession> edhocSessions,
+									HashMap<CBORObject, OneKey> peerPublicKeys,
+									HashMap<CBORObject, CBORObject> peerCredentials,
 									Set<CBORObject> usedConnectionIds,
 									int OSCORE_REPLAY_WINDOW,
 									int MAX_UNFRAGMENTED_SIZE) {
@@ -106,4 +107,5 @@ public class EdhocCoapStackFactory implements CoapStackFactory {
 		EdhocCoapStackFactory.OSCORE_REPLAY_WINDOW = OSCORE_REPLAY_WINDOW;
 		EdhocCoapStackFactory.MAX_UNFRAGMENTED_SIZE = MAX_UNFRAGMENTED_SIZE;
 	}
+
 }
