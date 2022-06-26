@@ -110,8 +110,8 @@ public class CertPathUtilTest {
 				KEY_STORE_PASSWORD, KEY_STORE_PASSWORD).getCertificateChain();
 		assumeThat(server.length, is(2));
 
-		serverLarge = SslContextUtil.loadCredentials(SslContextUtil.CLASSPATH_SCHEME + KEY_STORE_LOCATION, "serverlarge",
-				KEY_STORE_PASSWORD, KEY_STORE_PASSWORD).getCertificateChain();
+		serverLarge = SslContextUtil.loadCredentials(SslContextUtil.CLASSPATH_SCHEME + KEY_STORE_LOCATION,
+				"serverlarge", KEY_STORE_PASSWORD, KEY_STORE_PASSWORD).getCertificateChain();
 		assumeThat(serverLarge.length, is(3));
 
 		clientChainExtUsageList = Arrays.asList(clientChainExtUsage);
@@ -222,9 +222,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server, ca
-	 * Trust: "all"
-	 * Expected result: pass => server, ca
+	 * Certificate-path: server, ca Trust: "all" Expected result: pass =>
+	 * server, ca
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -236,9 +236,8 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server, ca
-	 * Trust: self
-	 * Expected result: fail
+	 * Certificate-path: server, ca Trust: self Expected result: fail
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -251,9 +250,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server, ca
-	 * Trust: root, ca, caalt, carsa, ca2
-	 * Expected result: pass => server, ca, root
+	 * Certificate-path: server, ca Trust: root, ca, caalt, carsa, ca2 Expected
+	 * result: pass => server, ca, root
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -268,9 +267,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server, ca
-	 * Trust: "first match", root, ca, caalt, carsa, ca2
-	 * Expected result: pass => server, ca
+	 * Certificate-path: server, ca Trust: "first match", root, ca, caalt,
+	 * carsa, ca2 Expected result: pass => server, ca
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -283,9 +282,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: serverlarge, ca2, ca
-	 * Trust: root, ca, caalt, carsa, ca2
+	 * Certificate-path: serverlarge, ca2, ca Trust: root, ca, caalt, carsa, ca2
 	 * Expected result: pass => serverlarge, ca2, ca, root
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -299,9 +298,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: serverlarge, ca2, ca
-	 * Trust: "first match", root, ca, caalt, carsa, ca2
-	 * Expected result: pass => serverlarge, ca2
+	 * Certificate-path: serverlarge, ca2, ca Trust: "first match", root, ca,
+	 * caalt, carsa, ca2 Expected result: pass => serverlarge, ca2
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -316,13 +315,10 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: serverlarge, ca2
-	 * 1.
-	 * Trust: "first match", ca, caalt
-	 * Expected result: pass => serverlarge, ca2, ca
-	 * 2.
-	 * Trust: "first match", caalt, ca
-	 * Expected result: pass => serverlarge, ca2, ca
+	 * Certificate-path: serverlarge, ca2 1. Trust: "first match", ca, caalt
+	 * Expected result: pass => serverlarge, ca2, ca 2. Trust: "first match",
+	 * caalt, ca Expected result: pass => serverlarge, ca2, ca
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -347,9 +343,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server, ca
-	 * Trust: "first match", root
-	 * Expected result: pass => server, ca, root
+	 * Certificate-path: server, ca Trust: "first match", root Expected result:
+	 * pass => server, ca, root
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -365,9 +361,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server, ca
-	 * Trust: ca
-	 * Expected result: fail (ca is not self-signed)
+	 * Certificate-path: server, ca Trust: ca Expected result: fail (ca is not
+	 * self-signed)
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -381,9 +377,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server, ca
-	 * Trust: "first match", ca
-	 * Expected result: pass => server ca
+	 * Certificate-path: server, ca Trust: "first match", ca Expected result:
+	 * pass => server ca
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -396,13 +392,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server
-	 * 1.
-	 * Trust: ca, caalt
-	 * Expected result: pass => server, ca
-	 * 2.
-	 * Trust: caalt, ca
-	 * Expected result: pass => server, ca
+	 * Certificate-path: server 1. Trust: ca, caalt Expected result: pass =>
+	 * server, ca 2. Trust: caalt, ca Expected result: pass => server, ca
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -423,13 +415,10 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server
-	 * 1.
-	 * Trust: "first match", ca, caalt
-	 * Expected result: pass => server, ca
-	 * 2.
-	 * Trust: caalt, ca
-	 * Expected result: pass => server, ca
+	 * Certificate-path: server 1. Trust: "first match", ca, caalt Expected
+	 * result: pass => server, ca 2. Trust: caalt, ca Expected result: pass =>
+	 * server, ca
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -450,9 +439,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server, ca
-	 * Trust: server
-	 * Expected result: fail (server is not self-signed)
+	 * Certificate-path: server, ca Trust: server Expected result: fail (server
+	 * is not self-signed)
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -460,33 +449,33 @@ public class CertPathUtilTest {
 		exception.expect(CertPathValidatorException.class);
 		expectTrustAnchorError();
 		X509Certificate[] certificates = TestCertificatesTools.getServerCertificateChain();
-		X509Certificate[] trusts = new X509Certificate[] {certificates[0]};
+		X509Certificate[] trusts = new X509Certificate[] { certificates[0] };
 		CertPath certPath = CertPathUtil.generateCertPath(Arrays.asList(certificates));
 		CertPathUtil.validateCertificatePathWithIssuer(false, certPath, trusts);
 	}
 
 	/**
-	 * Certificate-path: server, ca
-	 * Trust:  "first match", server
-	 * Expected result: pass => server
+	 * Certificate-path: server, ca Trust: "first match", server Expected
+	 * result: pass => server
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
 	public void testServerCertificateTruncatingValidationWithSelfTrust() throws Exception {
 		X509Certificate[] certificates = TestCertificatesTools.getServerCertificateChain();
-		X509Certificate[] trusts = new X509Certificate[] {certificates[0]};
-		X509Certificate[] verfied = new X509Certificate[] {certificates[0]};
+		X509Certificate[] trusts = new X509Certificate[] { certificates[0] };
+		X509Certificate[] verfied = new X509Certificate[] { certificates[0] };
 		CertPath certPath = CertPathUtil.generateCertPath(Arrays.asList(certificates));
 		CertPath verifiedPath = CertPathUtil.validateCertificatePathWithIssuer(true, certPath, trusts);
 		TestCertificatesTools.assertEquals(verfied, verifiedPath.getCertificates());
 	}
 
 	/**
-	 * Certificate-path: clientext, ca, root
-	 * Trust: root, ca, caalt, carsa, ca2
+	 * Certificate-path: clientext, ca, root Trust: root, ca, caalt, carsa, ca2
 	 * Expected result: pass => clientext, ca, root
 	 * 
 	 * (clientext-chain includes root!)
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -498,9 +487,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: server, clientext
-	 * Trust: root, ca, caalt, carsa, ca2
+	 * Certificate-path: server, clientext Trust: root, ca, caalt, carsa, ca2
 	 * Expected result: fail
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -514,9 +503,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: self, ca
-	 * Trust: root, ca, caalt, carsa, ca2
-	 * Expected result: fail
+	 * Certificate-path: self, ca Trust: root, ca, caalt, carsa, ca2 Expected
+	 * result: fail
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -530,9 +519,8 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: self
-	 * Trust: all
-	 * Expected result: pass => self
+	 * Certificate-path: self Trust: all Expected result: pass => self
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -543,9 +531,8 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: self
-	 * Trust: self
-	 * Expected result: pass => self
+	 * Certificate-path: self Trust: self Expected result: pass => self
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
@@ -556,9 +543,9 @@ public class CertPathUtilTest {
 	}
 
 	/**
-	 * Certificate-path: self
-	 * Trust: "first match", self
-	 * Expected result: pass => self
+	 * Certificate-path: self Trust: "first match", self Expected result: pass
+	 * => self
+	 * 
 	 * @throws Exception if an unexpected error occurs
 	 */
 	@Test
