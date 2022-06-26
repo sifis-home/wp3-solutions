@@ -95,5 +95,6 @@ Desktop.ini
 /nbproject/
 /db.pwd
 /doc/
+.lck
 
 nulltokens.json
