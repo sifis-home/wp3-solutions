@@ -1,32 +1,32 @@
 #!/bin/sh
 
 # Build Californium (if needed)
-FILE=californium-group-oscore/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT.jar
+FILE=californium-extended/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT.jar
 if [ -f "$FILE" ]; then
     echo "$FILE exists."
 else 
     echo "$FILE does not exist."
-    cd californium-group-oscore
+    cd californium-extended
     mvn -DskipTests clean install
     cd ..
 fi
 
 # Copy library Jar files from Californium to ACE lib folder
 mkdir ace/lib
-cp californium-group-oscore/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT-sources.jar ace/lib
-cp californium-group-oscore/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT.jar ace/lib
+cp californium-extended/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT-sources.jar ace/lib
+cp californium-extended/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT.jar ace/lib
 
-cp californium-group-oscore/californium-core/target/californium-core-3.1.0-SNAPSHOT.jar ace/lib
-cp californium-group-oscore/californium-core/target/californium-core-3.1.0-SNAPSHOT-sources.jar ace/lib
-cp californium-group-oscore/californium-core/target/californium-core-3.1.0-SNAPSHOT-tests.jar ace/lib
+cp californium-extended/californium-core/target/californium-core-3.1.0-SNAPSHOT.jar ace/lib
+cp californium-extended/californium-core/target/californium-core-3.1.0-SNAPSHOT-sources.jar ace/lib
+cp californium-extended/californium-core/target/californium-core-3.1.0-SNAPSHOT-tests.jar ace/lib
 
-cp californium-group-oscore/scandium-core/target/scandium-3.1.0-SNAPSHOT-sources.jar ace/lib
-cp californium-group-oscore/scandium-core/target/scandium-3.1.0-SNAPSHOT.jar ace/lib
-cp californium-group-oscore/scandium-core/target/scandium-3.1.0-SNAPSHOT-tests.jar ace/lib
+cp californium-extended/scandium-core/target/scandium-3.1.0-SNAPSHOT-sources.jar ace/lib
+cp californium-extended/scandium-core/target/scandium-3.1.0-SNAPSHOT.jar ace/lib
+cp californium-extended/scandium-core/target/scandium-3.1.0-SNAPSHOT-tests.jar ace/lib
 
-cp californium-group-oscore/element-connector/target/element-connector-3.1.0-SNAPSHOT-sources.jar ace/lib
-cp californium-group-oscore/element-connector/target/element-connector-3.1.0-SNAPSHOT-tests.jar ace/lib
-cp californium-group-oscore/element-connector/target/element-connector-3.1.0-SNAPSHOT.jar ace/lib
+cp californium-extended/element-connector/target/element-connector-3.1.0-SNAPSHOT-sources.jar ace/lib
+cp californium-extended/element-connector/target/element-connector-3.1.0-SNAPSHOT-tests.jar ace/lib
+cp californium-extended/element-connector/target/element-connector-3.1.0-SNAPSHOT.jar ace/lib
 
 # Install Mysql server (seems to be already installed in Github test environment)
 echo "mysql-server mysql-server/root_password password root" | sudo debconf-set-selections

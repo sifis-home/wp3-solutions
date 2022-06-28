@@ -8,8 +8,9 @@ Joint codebase for SIFIS-HOME including ACE, EDHOC, OSCORE, Group OSCORE, and Gr
 
 2. Start Eclipse, then import the following projects:
   
-    - californium-group-oscore 
+    - californium-extended
     - ace
+    - group-applications
 
 3. To "ace" add the following folders to the build path:
 
@@ -45,7 +46,7 @@ Note that mySQL is needed for the ACE parts to run correctly. To install it use:
 sudo apt-get install mysql-server
 ```
 
-Then place a file under ace/db.pwd with the database root password.
+Then place a file under ace/db.pwd and group-applications/db.pwd with the database root password.
 
 
 ### Updating the JCE (Java Cryptography Extensions)

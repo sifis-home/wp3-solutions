@@ -4,7 +4,7 @@ cd ace
 mvn -P eclipse eclipse:eclipse
 cd ..
 
-cd californium-group-oscore
+cd californium-extended
 mvn eclipse:eclipse
 cd ..
 
