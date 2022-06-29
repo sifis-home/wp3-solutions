@@ -1,10 +1,25 @@
-storage/
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# emacs files
+*~
+*#
+**/bin/*
 bin/
 run/
 test_out/
 tmp/
-doc/
 .directory
+.gradle
 .loadpath
 .metadata
 *.pydevproject
@@ -14,13 +29,6 @@ doc/
 *~.nib
 local.properties
 *~
-
-# Android #
-###########
-.gradle
-gradle*.properties
-gradlew*
-build/
 
 # Maven #
 #########
@@ -34,7 +42,6 @@ target/
 .settings/
 .externalToolBuilders/
 *.launch
-.recommenders/
 
 # Intellij #
 ############
@@ -67,9 +74,7 @@ target/
 
 # Logs and databases #
 ######################
-Californium*.properties
-UUID.properties
-Proxy.properties
+Californium.properties
 *.log
 *.sql
 *.sqlite
@@ -88,3 +93,12 @@ Icon?
 ehthumbs.db
 Thumbs.db
 Desktop.ini
+
+/nbproject/
+/db.pwd
+/doc/
+
+# Library Jar files from Californium #
+######################
+lib/*
+

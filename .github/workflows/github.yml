@@ -38,5 +38,6 @@ jobs:
 
       - name: Run Californium & ACE JUnit tests
         run: |
-          ./test-all.sh
+          ./test-californium.sh
+          ./test-ace.sh
 

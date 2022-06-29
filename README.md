@@ -62,8 +62,5 @@ To only run the JUnit tests:
 
 For Californium: `test-californium.sh`
 
-For ACE: `test-ace.sh`
-
-All tests: `test-all.sh`
-
+For ACE: `test-ace.sh --skip-mysql-install`
 

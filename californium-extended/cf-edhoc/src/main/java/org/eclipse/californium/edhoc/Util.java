@@ -828,7 +828,7 @@ public class Util {
 			                        HashMap<CBORObject, EdhocSession> edhocSessions, Set<CBORObject> usedConnectionIds) {
 		if (session != null) {
 			CBORObject connectionIdentifierCbor = CBORObject.FromObject(connectionIdentifier);
-		    edhocSessions.remove(connectionIdentifierCbor, session);
+		    edhocSessions.remove(session);
 		    releaseConnectionId(connectionIdentifier, usedConnectionIds, session.getOscoreDb());
 		    session.deleteTemporaryMaterial();
 		    session = null;

@@ -123,28 +123,13 @@
 			<artifactId>postgresql</artifactId>
 			<version>9.3-1104-jdbc4</version>
 		</dependency>
-		<!-- Rikard: Disabled these dependencies. They will come from Group OSCORE Californium. 
-		<dependency>
-			<groupId>org.eclipse.californium</groupId>
-			<artifactId>californium-core</artifactId>
-			<version>2.6.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.californium</groupId>
-			<artifactId>scandium</artifactId>
-			<version>2.6.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.californium</groupId>
-			<artifactId>cf-oscore</artifactId>
-			<version>2.6.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.augustcellars.cose</groupId>
-			<artifactId>cose-java</artifactId>
-			<version>1.1.0</version>
-		</dependency>
-		-->
+		<!-- Rikard: Disabled these dependencies. They will come from Group OSCORE 
+			Californium. <dependency> <groupId>org.eclipse.californium</groupId> <artifactId>californium-core</artifactId> 
+			<version>2.6.0</version> </dependency> <dependency> <groupId>org.eclipse.californium</groupId> 
+			<artifactId>scandium</artifactId> <version>2.6.0</version> </dependency> 
+			<dependency> <groupId>org.eclipse.californium</groupId> <artifactId>cf-oscore</artifactId> 
+			<version>2.6.0</version> </dependency> <dependency> <groupId>com.augustcellars.cose</groupId> 
+			<artifactId>cose-java</artifactId> <version>1.1.0</version> </dependency> -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
@@ -158,6 +143,26 @@
 	</dependencies>
 	<build>
 		<plugins>
+			<plugin> <!-- Rikard: Added Jacoco for code coverage reports -->
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.6</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -166,16 +171,9 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<!-- Rikard: Works locally but not on Github 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.12.4</version>
-				<configuration>
-					<forkMode>always</forkMode>
-				</configuration>
-			</plugin>
-			-->
+			<!-- Rikard: Works locally but not on Github <plugin> <groupId>org.apache.maven.plugins</groupId> 
+				<artifactId>maven-surefire-plugin</artifactId> <version>2.12.4</version> 
+				<configuration> <forkMode>always</forkMode> </configuration> </plugin> -->
 			<plugin> <!-- Rikard: Working settings for tests on Github -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
