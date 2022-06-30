@@ -40,4 +40,14 @@ jobs:
         run: |
           ./test-californium.sh
           ./test-ace.sh
+          ./code-coverage.sh
+
+      - name: Deploy Jacoco code coverage reports to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        if: ${{ matrix.java-version == '15.0.x' && github.ref == 'refs/heads/master' }}
+        with:
+          clean: true
+          folder: jacoco
+          target-folder: reports
+          branch: gh-pages
 

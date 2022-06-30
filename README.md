@@ -64,3 +64,13 @@ For Californium: `test-californium.sh`
 
 For ACE: `test-ace.sh --skip-mysql-install`
 
+
+### Code coverage reports
+
+Automatic code coverage reports are generated with Jacoco and can be found at the following links:
+
+[EDHOC](https://rikard-sics.github.io/sifis-home/reports/edhoc/) (californium-extended/cf-edhoc)
+
+[OSCORE & Group OSCORE](https://rikard-sics.github.io/sifis-home/reports/oscore/) (californium-extended/cf-oscore)
+
+[ACE & Group Joining](https://rikard-sics.github.io/sifis-home/reports/ace/) (ace)
