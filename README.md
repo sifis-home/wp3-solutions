@@ -69,8 +69,9 @@ For ACE: `test-ace.sh --skip-mysql-install`
 
 Automatic code coverage reports are generated with Jacoco and can be found at the following links:
 
-[EDHOC](https://rikard-sics.github.io/sifis-home/reports/edhoc/) (californium-extended/cf-edhoc)
+[EDHOC](https://sifis-home.github.io/wp3-solutions/reports/edhoc/) (californium-extended/cf-edhoc)
 
-[OSCORE & Group OSCORE](https://rikard-sics.github.io/sifis-home/reports/oscore/) (californium-extended/cf-oscore)
+[OSCORE & Group OSCORE](https://sifis-home.github.io/wp3-solutions/reports/oscore/) (californium-extended/cf-oscore)
 
-[ACE & Group Joining](https://rikard-sics.github.io/sifis-home/reports/ace/) (ace)
+[ACE & Group Joining](https://sifis-home.github.io/wp3-solutions/reports/ace/) (ace)
+
