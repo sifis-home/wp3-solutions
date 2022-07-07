@@ -12,6 +12,10 @@ cd group-applications
 mvn eclipse:eclipse
 cd ..
 
+cd edhoc-applications
+mvn eclipse:eclipse
+cd ..
+
 #Check that the ace/db.pwd file exists
 FILE=ace/db.pwd
 if [ ! -f "$FILE" ]; then
