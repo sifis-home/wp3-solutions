@@ -1,6 +1,6 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
 Cf-EDHOC,org.eclipse.californium.edhoc,KissEDP,108,3,8,0,24,1,9,1,5,1
-Cf-EDHOC,org.eclipse.californium.edhoc,Util,1160,765,197,87,282,165,145,33,17,17
+Cf-EDHOC,org.eclipse.californium.edhoc,Util,1169,765,197,87,285,165,146,33,18,17
 Cf-EDHOC,org.eclipse.californium.edhoc,EdhocStack,66,0,0,0,5,0,1,0,1,0
 Cf-EDHOC,org.eclipse.californium.edhoc,EdhocCoapStackFactory,70,0,6,0,18,0,7,0,4,0
 Cf-EDHOC,org.eclipse.californium.edhoc,EdhocEndpointInfo,102,0,0,0,33,0,15,0,15,0
