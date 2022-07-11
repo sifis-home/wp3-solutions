@@ -660,6 +660,7 @@ public class OscoreAsRsClient {
 		}
 		if (gmPublicKeyRetrieved == null) {
 			Assert.fail("Invalid format of Group Manager public key");
+			return null;
 		}
 
 		PublicKey gmPublicKey = gmPublicKeyRetrieved.AsPublicKey();

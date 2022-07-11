@@ -51,6 +51,7 @@ import org.postgresql.core.Utils;
 import com.upokecenter.cbor.CBORObject;
 import se.sics.ace.Constants;
 import se.sics.ace.oscore.GroupOSCOREInputMaterialObjectParameters;
+import se.sics.ace.oscore.OSCOREInputMaterialObjectParameters;
 
 /**
  * Class to hold various utility methods.
@@ -156,22 +157,22 @@ public class Util {
 		System.out.println("KEY map contents: ");
 
 		System.out.print("ms: ");
-		System.out.println(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.ms)));
+		System.out.println(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.ms)));
 
 		System.out.print("id: ");
-		System.out.println(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.id)));
+		System.out.println(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.id)));
 
 		System.out.print("hkdf: ");
-		System.out.println(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.hkdf)));
+		System.out.println(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.hkdf)));
 
 		System.out.print("alg: ");
-		System.out.println(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.alg)));
+		System.out.println(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.alg)));
 
 		System.out.print("salt: ");
-		System.out.println(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.salt)));
+		System.out.println(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.salt)));
 
 		System.out.print("contextId: ");
-		System.out.println(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.contextId)));
+		System.out.println(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.contextId)));
 
 		System.out.print("ecdh_alg: ");
 		System.out.println(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.ecdh_alg)));
@@ -220,11 +221,11 @@ public class Util {
 
 		CBORObject keyMap = joinResponse.get(CBORObject.FromObject(Constants.KEY));
 
-		byte[] ms = keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.ms)).GetByteString();
-		byte[] salt = keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.salt)).GetByteString();
+		byte[] ms = keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.ms)).GetByteString();
+		byte[] salt = keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.salt)).GetByteString();
 		byte[] sid = keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.group_SenderID))
 				.GetByteString();
-		byte[] idContext = keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.contextId))
+		byte[] idContext = keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.contextId))
 				.GetByteString();
 
 		AlgorithmID alg = null;
@@ -232,9 +233,9 @@ public class Util {
 		AlgorithmID algCountersign = null;
 		try {
 			alg = AlgorithmID
-					.FromCBOR(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.alg)));
+					.FromCBOR(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.alg)));
 			kdf = AlgorithmID
-					.FromCBOR(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.hkdf)));
+					.FromCBOR(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.hkdf)));
 			algCountersign = AlgorithmID
 					.FromCBOR(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.sign_alg)));
 		} catch (CoseException e1) {
@@ -321,6 +322,11 @@ public class Util {
 			key = OneKey.generateKey(alg);
 		} catch (CoseException e) {
 			System.err.println("Failed to build COSE key: " + e.toString());
+		}
+
+		if (key == null) {
+			System.err.println("Failed to build COSE key: Key is null");
+			return;
 		}
 
 		String privateKey = "";

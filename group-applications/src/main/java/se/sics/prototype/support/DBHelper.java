@@ -117,8 +117,7 @@ public class DBHelper {
 	 * @throws IOException
 	 */
 	private static void loadRootPassword() throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader("db.pwd"));
-		try {
+		try (BufferedReader br = new BufferedReader(new FileReader("db.pwd"))) {
 			StringBuilder sb = new StringBuilder();
 			String line = br.readLine();
 			while (line != null) {
@@ -127,8 +126,6 @@ public class DBHelper {
 				line = br.readLine();
 			}
 			dbRootPwd = sb.toString().replace(System.getProperty("line.separator"), "");
-		} finally {
-			br.close();
 		}
 	}
 }

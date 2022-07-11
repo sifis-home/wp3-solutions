@@ -235,6 +235,11 @@ public class Adversary {
 			System.exit(0);
 		}
 
+		if (multicastRequest == null || multicastIP == null) {
+			System.err.println("Error in setting up Adversary");
+			return;
+		}
+
 		// URI to perform request against. Need to check for IPv6 to surround it
 		// with []
 		String requestURI;

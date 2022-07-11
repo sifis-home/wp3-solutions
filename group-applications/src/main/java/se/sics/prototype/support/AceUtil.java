@@ -38,9 +38,6 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.upokecenter.cbor.CBORObject;
 
 import se.sics.ace.Constants;
@@ -103,10 +100,8 @@ public class AceUtil {
 		}
 
 		try {
-			if (signCtx != null) {
-				signCtx.update(dataToSign);
-				signature = signCtx.sign();
-			}
+			signCtx.update(dataToSign);
+			signature = signCtx.sign();
 		} catch (SignatureException e) {
 			System.err.println("Failed signature computation: " + e.getMessage());
 			return null;
@@ -257,9 +252,8 @@ public class AceUtil {
 	 * Extract a public key from a CWT Claims Set (CCS) and return it as a
 	 * OneKey object
 	 * 
-	 * @param identityKey The public key as a OneKey object
-	 * @param subjectName The subject name associated to this key, it can be an
-	 *            empty string
+	 * @param ccs input CCS to extract key from
+	 * 
 	 * @return The CCS as a CBOR map, or null in case of errors
 	 */
 	public static OneKey ccsToOneKey(CBORObject ccs) {

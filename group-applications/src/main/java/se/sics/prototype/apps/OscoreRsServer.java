@@ -79,10 +79,8 @@ import se.sics.ace.coap.CoapReq;
 import se.sics.ace.coap.rs.CoapAuthzInfo;
 import se.sics.ace.coap.rs.CoapDeliverer;
 import se.sics.ace.coap.rs.oscoreProfile.OscoreCtxDbSingleton;
-import se.sics.ace.cwt.CWT;
 import se.sics.ace.cwt.CwtCryptoCtx;
 import se.sics.ace.examples.KissTime;
-import se.sics.ace.examples.LocalMessage;
 import se.sics.ace.oscore.GroupInfo;
 import se.sics.ace.oscore.GroupOSCOREInputMaterialObjectParameters;
 import se.sics.ace.oscore.OSCOREInputMaterialObjectParameters;
@@ -369,8 +367,6 @@ public class OscoreRsServer {
 	 * Definition of the group-membership resource for Group OSCORE
 	 */
 	public static class GroupOSCOREJoinResource extends CoapResource {
-
-		private Set<Integer> validRoleCombinations = new HashSet<Integer>();
 
 		/**
 		 * Constructor
@@ -887,7 +883,7 @@ public class OscoreRsServer {
 				OneKey publicKey = null;
 				boolean valid = false;
 
-				if (clientCred.getType() != CBORType.ByteString) {
+				if (clientCred == null || clientCred.getType() != CBORType.ByteString) {
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 							"The parameter 'client_cred' must be a CBOR byte string");
 					return;
@@ -3165,8 +3161,9 @@ public class OscoreRsServer {
 		CBORObject cnf = CBORObject.NewMap();
 		cnf.Add(Constants.COSE_KEY_CBOR, key.AsCBOR());
 		params.put(Constants.CNF, cnf);
-		CWT token = new CWT(params);
-		ai.processMessage(new LocalMessage(0, null, null, token.encode(ctx)));
+		// CWT token = new CWT(params);
+		// ai.processMessage(new LocalMessage(0, null, null,
+		// token.encode(ctx)));
 
 		AsRequestCreationHints asi = new AsRequestCreationHints("coaps://blah/authz-info/", null, false, false);
 		Resource hello = new HelloWorldResource();
