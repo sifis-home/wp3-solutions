@@ -194,15 +194,16 @@ public class Adversary {
 		Request signatureModifiedRequest = null;
 
 		// Allow the user to provide input on what to do
-		Scanner scanner = new Scanner(System.in);
+		String targetGroup;
+		String attackType;
+		try (Scanner scanner = new Scanner(System.in)) {
 
-		System.out.println("Enter group to send to: ");
-		String targetGroup = scanner.next();
+			System.out.println("Enter group to send to: ");
+			targetGroup = scanner.next();
 
-		System.out.println("Enter type of attack (ciphertext/signature/replay): ");
-		String attackType = scanner.next();
-
-		scanner.close();
+			System.out.println("Enter type of attack (ciphertext/signature/replay): ");
+			attackType = scanner.next();
+		}
 
 		// Set multicast IP depending on the user input
 		InetAddress multicastIP = null;
@@ -322,7 +323,7 @@ public class Adversary {
 		public void onLoad(CoapResponse response) {
 			on();
 
-			// System.out.println("Receiving to: "); //TODO
+			// System.out.println("Receiving to: ");
 			System.out.println("Receiving from: " + response.advanced().getSourceContext().getPeerAddress());
 
 			System.out.println(Utils.prettyPrint(response));

@@ -238,8 +238,8 @@ public class OscoreAsRsClient {
 		// rpkData.Add(KeyKeys.KeyType.AsCBOR(), KeyKeys.KeyType_OKP);
 		// rpkData.Add(KeyKeys.Algorithm.AsCBOR(), AlgorithmID.EDDSA.AsCBOR());
 		// rpkData.Add(KeyKeys.OKP_Curve.AsCBOR(), KeyKeys.OKP_Ed25519);
-		// x = CBORObject.FromObject(hexStringToByteArray(c1X_EDDSA));
-		// d = CBORObject.FromObject(hexStringToByteArray(c1D_EDDSA));
+		// x = CBORObject.FromObject(StringUtil.hex2ByteArray(c1X_EDDSA));
+		// d = CBORObject.FromObject(StringUtil.hex2ByteArray(c1D_EDDSA));
 		// rpkData.Add(KeyKeys.OKP_X.AsCBOR(), x);
 		// rpkData.Add(KeyKeys.OKP_D.AsCBOR(), d);
 		// C1keyPair = new OneKey(rpkData);
@@ -530,7 +530,7 @@ public class OscoreAsRsClient {
 				// A CCS including the public key
 				if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
 					System.out.println("Needs further configuration");
-					encodedPublicKey = hexStringToByteArray(
+					encodedPublicKey = StringUtil.hex2ByteArray(
 							"A2026008A101A5010203262001215820E8F9A8D5850A533CDA24B9FA8A1EE293F6A0E1E81E1E560A64FF134D65F7ECEC225820164A6D5D4B97F56D1F60A12811D55DE7A055EBAC6164C9EF9302CBCBFF1F0ABE");
 				}
 				if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
@@ -748,34 +748,4 @@ public class OscoreAsRsClient {
 		}
 	}
 
-	// ---
-
-	/**
-	 * @param str the hex string
-	 * @return the byte array
-	 * @str the hexadecimal string to be converted into a byte array
-	 * 
-	 *      Return the byte array representation of the original string
-	 */
-	public static byte[] hexStringToByteArray(final String str) {
-		int len = str.length();
-		byte[] data = new byte[len / 2];
-
-		// Big-endian
-		for (int i = 0; i < len; i += 2) {
-			data[i / 2] = (byte) ((Character.digit(str.charAt(i), 16) << 4) + Character.digit(str.charAt(i + 1), 16));
-			data[i / 2] = (byte) (data[i / 2] & 0xFF);
-		}
-
-		// Little-endian
-		/*
-		 * for (int i = 0; i < len; i += 2) { data[i / 2] = (byte)
-		 * ((Character.digit(str.charAt(len - 2 - i), 16) << 4) +
-		 * Character.digit(str.charAt(len - 1 - i), 16)); data[i / 2] = (byte)
-		 * (data[i / 2] & 0xFF); }
-		 */
-
-		return data;
-
-	}
 }

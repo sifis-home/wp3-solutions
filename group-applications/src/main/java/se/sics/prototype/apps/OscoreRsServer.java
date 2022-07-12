@@ -71,6 +71,8 @@ import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.KeyKeys;
 import org.eclipse.californium.cose.MessageTag;
 import org.eclipse.californium.cose.OneKey;
+import org.eclipse.californium.elements.util.StringUtil;
+
 import se.sics.ace.AceException;
 import se.sics.ace.COSEparams;
 import se.sics.ace.Constants;
@@ -2415,7 +2417,7 @@ public class OscoreRsServer {
 			// as defined in draft-ace-key-groupcomm-oscore
 			CBORObject myMap = CBORObject.NewMap();
 
-			byte[] senderId = hexStringToByteArray(targetedGroup.getGroupMemberName(subject));
+			byte[] senderId = StringUtil.hex2ByteArray(targetedGroup.getGroupMemberName(subject));
 
 			// Fill the 'key' parameter
 			if (senderId != null) {
@@ -3360,14 +3362,14 @@ public class OscoreRsServer {
 		// (ECDSA_256)
 		if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
 			System.out.println("More config required.");
-			gmKeyPairBytes = hexStringToByteArray(
+			gmKeyPairBytes = StringUtil.hex2ByteArray(
 					"a60102032620012158202236658ca675bb62d7b24623db0453a3b90533b7c3b221cc1c2c73c4e919d540225820770916bc4c97c3c46604f430b06170c7b3d6062633756628c31180fa3bb65a1b2358204a7b844a4c97ef91ed232aa564c9d5d373f2099647f9e9bd3fe6417a0d0f91ad");
 		}
 
 		// The asymmetric key pair and public key of the Group Manager (EDDSA -
 		// Ed25519)
 		if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
-			gmKeyPairBytes = hexStringToByteArray(
+			gmKeyPairBytes = StringUtil.hex2ByteArray(
 					"a5010103272006215820c6ec665e817bd064340e7c24bb93a11e8ec0735ce48790f9c458f7fa340b8ca3235820d0a2ce11b2ba614b048903b72638ef4a3b0af56e1a60c6fb6706b0c1ad8a14fb");
 		}
 
@@ -3395,11 +3397,11 @@ public class OscoreRsServer {
 			// A CCS including the public key
 			if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
 				System.out.println("More config required.");
-				gmPublicKey = hexStringToByteArray(
+				gmPublicKey = StringUtil.hex2ByteArray(
 						"A2026008A101A50102032620012158202236658CA675BB62D7B24623DB0453A3B90533B7C3B221CC1C2C73C4E919D540225820770916BC4C97C3C46604F430B06170C7B3D6062633756628C31180FA3BB65A1B");
 			}
 			if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
-				gmPublicKey = hexStringToByteArray(
+				gmPublicKey = StringUtil.hex2ByteArray(
 						"A2026008A101A4010103272006215820C6EC665E817BD064340E7C24BB93A11E8EC0735CE48790F9C458F7FA340B8CA3");
 			}
 			break;
@@ -3464,11 +3466,11 @@ public class OscoreRsServer {
 			// A CCS including the public key
 			if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
 				System.out.println("More config required.");
-				pubKey1 = hexStringToByteArray(
+				pubKey1 = StringUtil.hex2ByteArray(
 						"A2026008A101A501020326200121582035F3656092E1269AAAEE6262CD1C0D9D38ED78820803305BC8EA41702A50B3AF2258205D31247C2959E7B7D3F62F79622A7082FF01325FC9549E61BB878C2264DF4C4F");
 			}
 			if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
-				pubKey1 = hexStringToByteArray(
+				pubKey1 = StringUtil.hex2ByteArray(
 						"A2026008A101A401010327200621582077EC358C1D344E41EE0E87B8383D23A2099ACD39BDF989CE45B52E887463389B");
 			}
 			break;
@@ -3525,11 +3527,11 @@ public class OscoreRsServer {
 			// A CCS including the public key
 			if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
 				System.out.println("More config required.");
-				pubKey2 = hexStringToByteArray(
+				pubKey2 = StringUtil.hex2ByteArray(
 						"A2026008A101A50102032620012158209DFA6D63FD1515761460B7B02D54F8D7345819D2E5576C160D3148CC7886D5F122582076C81A0C1A872F1730C10317AB4F3616238FB23A08719E8B982B2D9321A2EF7D");
 			}
 			if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
-				pubKey2 = hexStringToByteArray(
+				pubKey2 = StringUtil.hex2ByteArray(
 						"A2026008A101A4010103272006215820105B8C6A8C88019BF0C354592934130BAA8007399CC2AC3BE845884613D5BA2E");
 			}
 			break;
@@ -3590,11 +3592,11 @@ public class OscoreRsServer {
 			// A CCS including the public key
 			if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
 				System.out.println("More config required.");
-				pubKey1 = hexStringToByteArray(
+				pubKey1 = StringUtil.hex2ByteArray(
 						"A2026008A101A501020326200121582035F3656092E1269AAAEE6262CD1C0D9D38ED78820803305BC8EA41702A50B3AF2258205D31247C2959E7B7D3F62F79622A7082FF01325FC9549E61BB878C2264DF4C4F");
 			}
 			if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
-				pubKey1 = hexStringToByteArray(
+				pubKey1 = StringUtil.hex2ByteArray(
 						"A2026008A101A401010327200621582077EC358C1D344E41EE0E87B8383D23A2099ACD39BDF989CE45B52E887463389B");
 			}
 			break;
@@ -3785,37 +3787,6 @@ public class OscoreRsServer {
 		}
 
 		return ret;
-
-	}
-
-	// ---
-
-	/**
-	 * @param str the hex string
-	 * @return the byte array
-	 * @str the hexadecimal string to be converted into a byte array
-	 * 
-	 *      Return the byte array representation of the original string
-	 */
-	public static byte[] hexStringToByteArray(final String str) {
-		int len = str.length();
-		byte[] data = new byte[len / 2];
-
-		// Big-endian
-		for (int i = 0; i < len; i += 2) {
-			data[i / 2] = (byte) ((Character.digit(str.charAt(i), 16) << 4) + Character.digit(str.charAt(i + 1), 16));
-			data[i / 2] = (byte) (data[i / 2] & 0xFF);
-		}
-
-		// Little-endian
-		/*
-		 * for (int i = 0; i < len; i += 2) { data[i / 2] = (byte)
-		 * ((Character.digit(str.charAt(len - 2 - i), 16) << 4) +
-		 * Character.digit(str.charAt(len - 1 - i), 16)); data[i / 2] = (byte)
-		 * (data[i / 2] & 0xFF); }
-		 */
-
-		return data;
 
 	}
 
