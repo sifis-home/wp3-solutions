@@ -31,12 +31,6 @@
  *******************************************************************************/
 package se.sics.prototype.support;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.Signature;
-import java.security.SignatureException;
 import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.KeyKeys;
@@ -45,7 +39,6 @@ import org.eclipse.californium.elements.util.StringUtil;
 import org.eclipse.californium.oscore.OSException;
 import org.eclipse.californium.oscore.group.GroupCtx;
 import org.eclipse.californium.oscore.group.MultiKey;
-import org.junit.Assert;
 import org.postgresql.core.Utils;
 
 import com.upokecenter.cbor.CBORObject;
@@ -59,64 +52,6 @@ import se.sics.ace.oscore.OSCOREInputMaterialObjectParameters;
  *
  */
 public class Util {
-
-	/**
-	 * Compute a signature, using the same algorithm and private key used in the
-	 * OSCORE group to join
-	 * 
-	 * @param privKey private key used to sign
-	 * @param dataToSign content to sign
-	 * @param countersignKeyCurve value of countersignKeyCurve as integer
-	 * @return byte array with signature
-	 * 
-	 */
-	public static byte[] computeSignature(PrivateKey privKey, byte[] dataToSign, int countersignKeyCurve) {
-
-		Signature mySignature = null;
-		byte[] clientSignature = null;
-
-		try {
-			if (countersignKeyCurve == KeyKeys.EC2_P256.AsInt32())
-				mySignature = Signature.getInstance("SHA256withECDSA");
-			else if (countersignKeyCurve == KeyKeys.OKP_Ed25519.AsInt32())
-				mySignature = Signature.getInstance("NonewithEdDSA", "EdDSA");
-			else {
-				// At the moment, only ECDSA (EC2_P256) and EDDSA (Ed25519) are
-				// supported
-				Assert.fail("Unsupported signature algorithm");
-			}
-
-		} catch (NoSuchAlgorithmException e) {
-			System.out.println(e.getMessage());
-			Assert.fail("Unsupported signature algorithm");
-		} catch (NoSuchProviderException e) {
-			System.out.println(e.getMessage());
-			Assert.fail("Unsopported security provider for signature computing");
-		}
-
-		try {
-			if (mySignature != null)
-				mySignature.initSign(privKey);
-			else
-				Assert.fail("Signature algorithm has not been initialized");
-		} catch (InvalidKeyException e) {
-			System.out.println(e.getMessage());
-			Assert.fail("Invalid key excpetion - Invalid private key");
-		}
-
-		try {
-			if (mySignature != null) {
-				mySignature.update(dataToSign);
-				clientSignature = mySignature.sign();
-			}
-		} catch (SignatureException e) {
-			System.out.println(e.getMessage());
-			Assert.fail("Failed signature computation");
-		}
-
-		return clientSignature;
-
-	}
 
 	/**
 	 * Parse a received Group OSCORE join response and print the information in
