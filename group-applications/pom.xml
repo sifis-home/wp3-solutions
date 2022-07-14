@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>se.sics</groupId>
 	<artifactId>group-applications</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<name>Group applications code</name>
 	<description>Group applications</description>
 	<organization>
@@ -12,7 +12,7 @@
 		<url>https://www.ri.se</url>
 	</organization>
 	<repositories>
-		<repository> <!-- Rikard: MQTT library -->
+		<repository> <!-- Rikard: For MQTT library -->
 			<id>Eclipse Paho Repo</id>
 			<url>https://repo.eclipse.org/content/repositories/paho-releases/</url>
 		</repository>
@@ -44,12 +44,14 @@
 			<artifactId>postgresql</artifactId>
 			<version>9.3-1104-jdbc4</version>
 		</dependency>
-		<!-- Rikard: Disabled these dependencies. They will come from Group OSCORE 
-			Californium. <dependency> <groupId>org.eclipse.californium</groupId> <artifactId>californium-core</artifactId> 
-			<version>2.0.0-M13</version> </dependency> <dependency> <groupId>org.eclipse.californium</groupId> 
-			<artifactId>scandium</artifactId> <version>2.0.0-M13</version> </dependency> 
-			<dependency> <groupId>com.augustcellars.cose</groupId> <artifactId>cose-java</artifactId> 
-			<version>0.9.8</version> </dependency> -->
+		<!-- Rikard: Disabled these dependencies. They should instead be imported 
+			from the Californium-extended code (see README). <dependency> <groupId>org.eclipse.californium</groupId> 
+			<artifactId>californium-core</artifactId> <version>3.1.0-SNAPSHOT</version> 
+			</dependency> <dependency> <groupId>org.eclipse.californium</groupId> <artifactId>cf-oscore</artifactId> 
+			<version>3.1.0-SNAPSHOT</version> </dependency> <dependency> <groupId>org.eclipse.californium</groupId> 
+			<artifactId>element-connector</artifactId> <version>3.1.0-SNAPSHOT</version> 
+			</dependency> <dependency> <groupId>org.eclipse.californium</groupId> <artifactId>scandium</artifactId> 
+			<version>3.1.0-SNAPSHOT</version> </dependency> -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
