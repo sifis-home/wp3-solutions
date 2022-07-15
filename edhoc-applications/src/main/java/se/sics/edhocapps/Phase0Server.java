@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 RISE SICS and others.
+ * Copyright (c) 2022 RISE and others.
  * 
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -9,9 +9,11 @@
  *    http://www.eclipse.org/legal/epl-v20.html
  * and the Eclipse Distribution License is available at
  *    http://www.eclipse.org/org/documents/edl-v10.html.
- * 
- * Contributors:
+ *
+ * Contributors: 
  *    Tobias Andersson (RISE SICS)
+ *    Marco Tiloca (RISE)
+ *    Rikard Höglund (RISE)
  *    
  ******************************************************************************/
 package se.sics.edhocapps;
@@ -51,6 +53,12 @@ public class Phase0Server {
 	private final static byte[] rid = new byte[0];
 	private final static int MAX_UNFRAGMENTED_SIZE = 4096;
 
+	/**
+	 * Initiates and starts a simple server which supports OSCORE.
+	 * 
+	 * @param args command line arguments
+	 * @throws OSException on OSCORE processing failure
+	 */
 	public static void main(String[] args) throws OSException {
 
 		// System.out.println("Started Phase 0 server");

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 RISE SICS and others.
+ * Copyright (c) 2022 RISE and others.
  * 
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -9,9 +9,11 @@
  *    http://www.eclipse.org/legal/epl-v20.html
  * and the Eclipse Distribution License is available at
  *    http://www.eclipse.org/org/documents/edl-v10.html.
- * 
- * Contributors:
+
+ * Contributors: 
  *    Tobias Andersson (RISE SICS)
+ *    Marco Tiloca (RISE)
+ *    Rikard Höglund (RISE)
  *    
  ******************************************************************************/
 package se.sics.edhocapps;
@@ -55,14 +57,25 @@ public class Phase0Client {
 	private final static byte[] rid = new byte[] { 0x01 };
 	private final static int MAX_UNFRAGMENTED_SIZE = 4096;
 
+	/**
+	 * Initiates and starts a simple client which supports OSCORE.
+	 * 
+	 * @param args command line arguments
+	 * @throws OSException on OSCORE processing failure
+	 * @throws ConnectorException on OSCORE processing failure
+	 * @throws IOException on OSCORE processing failure
+	 * @throws InterruptedException on OSCORE processing failure
+	 */
 	public static void main(String[] args) throws OSException, ConnectorException, IOException, InterruptedException {
-		OSCoreCtx ctx = new OSCoreCtx(master_secret, true, alg, sid, rid, kdf, 32, master_salt, null, MAX_UNFRAGMENTED_SIZE);
+		OSCoreCtx ctx = new OSCoreCtx(master_secret, true, alg, sid, rid, kdf, 32, master_salt, null,
+				MAX_UNFRAGMENTED_SIZE);
 		db.addContext(uriLocal, ctx);
 
 		OSCoreCoapStackFactory.useAsDefault(db);
 		CoapClient c = new CoapClient(uriLocal + hello1);
 
-		// System.out.println("Phase 0 Client ready to send CoAP request" + "\n");
+		// System.out.println("Phase 0 Client ready to send CoAP request" +
+		// "\n");
 		Support.printPause("Press enter to send CoAP message");
 
 		Request r = new Request(Code.POST);
@@ -100,21 +113,5 @@ public class Phase0Client {
 		scanner.close();
 
 		c.shutdown();
-	}
-
-	private static void printResponse(CoapResponse resp) {
-		if (resp != null) {
-			// System.out.println("RESPONSE CODE: " + resp.getCode().name() + " " + resp.getCode());
-			if (resp.getPayload() != null) {
-				// System.out.print("RESPONSE PAYLOAD: ");
-				for (byte b : resp.getPayload()) {
-					// System.out.print(Integer.toHexString(b & 0xff) + " ");
-				}
-				// System.out.println();
-			}
-			// System.out.println("RESPONSE TEXT: " + resp.getResponseText());
-		} else {
-			// System.out.println("RESPONSE IS NULL");
-		}
 	}
 }
