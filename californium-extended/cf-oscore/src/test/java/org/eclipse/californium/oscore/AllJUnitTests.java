@@ -24,6 +24,7 @@ import org.eclipse.californium.oscore.group.GroupKeyDerivationTest;
 import org.eclipse.californium.oscore.group.GroupModesTest;
 import org.eclipse.californium.oscore.group.GroupModesTestAlt;
 import org.eclipse.californium.oscore.group.GroupOSCoreServerClientTest;
+import org.eclipse.californium.oscore.group.GroupOscoreCtxTest;
 import org.eclipse.californium.oscore.group.KeyRemappingTest;
 import org.eclipse.californium.oscore.group.SharedSecretCalculationTest;
 import org.eclipse.californium.oscore.group.interop.OneKeyDecoderTest;
@@ -42,7 +43,7 @@ import org.junit.runners.Suite.SuiteClasses;
 		OSCoreInnerBlockwiseTest.class, OSCoreOuterBlockwiseTest.class, OSCoreAlgorithmsTest.class,
 		GroupOSCoreServerClientTest.class, KeyRemappingTest.class, SharedSecretCalculationTest.class,
 		GroupEncryptorTest.class, GroupDecryptorTest.class, CountersignAlgorithmsTest.class, GroupModesTest.class,
-		GroupModesTestAlt.class, GroupKeyDerivationTest.class, OneKeyDecoderTest.class })
+		GroupModesTestAlt.class, GroupKeyDerivationTest.class, OneKeyDecoderTest.class, GroupOscoreCtxTest.class })
 public class AllJUnitTests {
 
 }
