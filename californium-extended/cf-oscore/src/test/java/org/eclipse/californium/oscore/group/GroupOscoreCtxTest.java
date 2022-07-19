@@ -5,17 +5,27 @@ import static org.junit.Assert.assertEquals;
 
 import java.security.Provider;
 import java.security.Security;
+import java.util.Arrays;
+
 import org.eclipse.californium.cose.AlgorithmID;
+import org.eclipse.californium.cose.Attribute;
+import org.eclipse.californium.cose.EncryptMessage;
+import org.eclipse.californium.cose.HeaderKeys;
+import org.eclipse.californium.cose.OneKey;
+import org.eclipse.californium.cose.Recipient;
 import org.eclipse.californium.elements.util.StringUtil;
 import org.eclipse.californium.oscore.ByteId;
 import org.eclipse.californium.oscore.HashMapCtxDB;
 import org.eclipse.californium.oscore.OSException;
 import org.junit.Test;
 
+import com.upokecenter.cbor.CBORObject;
+
 import net.i2p.crypto.eddsa.EdDSASecurityProvider;
 
 /**
- * Test class for Group OSCORE context derivation.
+ * Test class for Group OSCORE context derivation. It also tests some of the
+ * functionality from COSE.
  * 
  *
  */
@@ -175,5 +185,79 @@ public class GroupOscoreCtxTest {
 		assertArrayEquals(rid1, commonCtx.getRecipientContexts().get(new ByteId(rid1)).getRecipientId());
 		assertEquals(-1, commonCtx.getRecipientContexts().get(new ByteId(rid1)).getReceiverSeq());
 		assertEquals(64, commonCtx.getRecipientContexts().get(new ByteId(rid1)).getCountersignatureLen());
+	}
+
+	/**
+	 * Test COSE functionality for EncryptMessage, Recipient and OneKey.
+	 * 
+	 * @throws IllegalStateException on test failure
+	 * @throws Exception on test failure
+	 */
+	@Test
+	public void testCose() throws IllegalStateException, Exception {
+
+		/*
+		 * Diagnostic notation of recipientBytes: [h'
+		 * A5666865616465726970726F746563746564636B7479636F6374636B69646A6F75722D7365637265746375736563656E63616B76684A7458495A3275534E356B6251666274544E576267
+		 * ', {"header": "unprotected", "content": "test123"},
+		 * h'656E63727970746564']
+		 * 
+		 * Note that the first byte string is itself a CBOR object.
+		 */
+
+		byte[] recipientBytes = StringUtil.hex2ByteArray(
+				"83584AA5666865616465726970726F746563746564636B7479636F6374636B69646A6F75722D7365637265746375736563656E63616B76684A7458495A3275534E356B6251666274544E576267A2666865616465726B756E70726F74656374656467636F6E74656E74677465737431323349656E63727970746564");
+		CBORObject recipientCbor = CBORObject.DecodeFromBytes(recipientBytes);
+		Recipient recipient = new Recipient();
+		recipient.DecodeFromCBORObject(recipientCbor);
+		CBORObject keyCbor = CBORObject.DecodeFromBytes(StringUtil.hex2ByteArray(
+				"a501022001215820f4bd3ca2cd0134db71d6d42d3c3e5666d4c64ea5dc98f447a717cc781b99698e2258201f0d091f00a4129ee52709921aa340b7caf4d62b8fe15ecc2b4558634fd65fe7235820222d42677a757940fef2b8d9302f6407276a761be7ccfa35340bfaa4ee0f08ae"));
+		OneKey key = new OneKey(keyCbor);
+		recipient.SetKey(key);
+		recipient.SetSenderKey(OneKey.generateKey(AlgorithmID.ECDSA_256));
+		recipient.addAttribute(HeaderKeys.Algorithm, AlgorithmID.ECDH_ES_HKDF_256.AsCBOR(), Attribute.DO_NOT_SEND);
+
+		// Test key rebuilding
+		OneKey newKey = new OneKey(key.AsPublicKey(), key.AsPrivateKey());
+		assertArrayEquals(key.AsCBOR().EncodeToBytes(), newKey.AsCBOR().EncodeToBytes());
+
+		// Test Recipient and EncryptMessage
+		byte[] confidential = "ciphertext".getBytes();
+		byte[] aad = "aad_data".getBytes();
+		byte[] partialIV = StringUtil.hex2ByteArray("01020304050607080910111213");
+		byte[] nonce = StringUtil.hex2ByteArray("11121314151617181920212223");
+		byte[] kid = new byte[] { 0x00 };
+		AlgorithmID alg = AlgorithmID.AES_CCM_16_64_128;
+
+		EncryptMessage enc = new EncryptMessage(false);
+		enc.SetContent(confidential);
+		enc.addAttribute(HeaderKeys.PARTIAL_IV, CBORObject.FromObject(partialIV), Attribute.UNPROTECTED);
+		enc.addAttribute(HeaderKeys.KID, CBORObject.FromObject(kid), Attribute.UNPROTECTED);
+		enc.setExternal(aad);
+		enc.addAttribute(HeaderKeys.IV, CBORObject.FromObject(nonce), Attribute.DO_NOT_SEND);
+		enc.addAttribute(HeaderKeys.Algorithm, alg.AsCBOR(), Attribute.DO_NOT_SEND);
+
+		enc.addRecipient(recipient);
+		enc.encrypt();
+
+		// Check contents after encryption
+		assertArrayEquals(aad, enc.getExternal());
+		assertArrayEquals(confidential, enc.GetContent());
+		assertEquals(18, enc.getEncryptedContent().length);
+		assertArrayEquals(StringUtil.hex2ByteArray(
+				"c083584aa5616b76684a7458495a3275534e356b6251666274544e576267636b69646a6f75722d736563726574636b7479636f63746375736563656e63666865616465726970726f746563746564a320a401022001215820"),
+				Arrays.copyOf(enc.getRecipientList().get(0).EncodeToBytes(), 88));
+		assertEquals(16, enc.getRecipientList().get(0).GetContent().length);
+		assertArrayEquals(StringUtil.hex2ByteArray(""), enc.getRecipientList().get(0).getExternal());
+		assertArrayEquals(StringUtil.hex2ByteArray("a320a401022001215820"),
+				Arrays.copyOf(enc.getRecipientList().get(0).getUnprotectedAttributes().EncodeToBytes(), 10));
+		assertArrayEquals(
+				StringUtil.hex2ByteArray("666865616465726b756e70726f74656374656467636f6e74656e746774657374313233"),
+				Arrays.copyOfRange(enc.getRecipientList().get(0).getUnprotectedAttributes().EncodeToBytes(), 77, 112));
+
+		// Check decrypted contents
+		byte[] decrypted = enc.decrypt(recipient);
+		assertArrayEquals(confidential, decrypted);
+
 	}
 }
