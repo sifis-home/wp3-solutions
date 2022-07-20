@@ -322,35 +322,57 @@ public class SharedSecretCalculationTest {
 
 	@Test
 	public void testCalculateEcdsa384YFromX() throws CoseException {
-		OneKey key = OneKey.generateKey(AlgorithmID.ECDSA_384);
-
-		byte[] x1 = key.get(KeyKeys.EC2_X).GetByteString();
-		byte[] y_correct = key.get(KeyKeys.EC2_Y).GetByteString();
-		byte[] y_first = SharedSecretCalculation.recomputeEcdsa384YFromX(x1, false);
-		byte[] y_second = SharedSecretCalculation.recomputeEcdsa384YFromX(x1, true);
-
-		System.out.println("Calculated Y: " + Utils.bytesToHex(y_first));
-		System.out.println("Calculated Y: " + Utils.bytesToHex(y_second));
-		System.out.println("Real Y: " + Utils.bytesToHex(y_correct));
-		System.out.println("Real X: " + Utils.bytesToHex(x1));
-
-		if (!Arrays.equals(y_first, y_correct) && !Arrays.equals(y_second, y_correct)) {
-			Assert.fail("None of the calculated Y values matched expected Y");
-		}
-
 		//
 		BigInteger x = new BigInteger(Utils.hexToBytes(
-				"c33dff8fb15eeda94a2563b78180cdc6bf75a413668c0b33895e16140e5046fb8854ba1826dc9994d793853476176e21"));
+				"9937e0aae145beb2b05b0296c257688e003d6faef4aa2bfd000338edded1bded62eb1e3c81858fb06b0207b1b1feb1e9"));
 		byte[] y = SharedSecretCalculation.recomputeEcdsa384YFromX(x.toByteArray(), true);
 
 		BigInteger expectedY = new BigInteger(Utils.hexToBytes(
-				"ef79a67b67c5c71b68603f7e319f6579ff7fa17b7277fba2bcae08829a0c90b1bf178170087d0fed7236bad69acb6f5b"));
+				"63f9573ee4cbc782585b97d6ef1b0c5032c08986398a3ddab2ba508d20c0be2d7ae6aca4abe74bd3eae9cc1c8c879741"));
 
 		System.out.println("Y " + Utils.bytesToHex(y));
 		System.out.println("Expected Y " + Utils.bytesToHex(expectedY.toByteArray()));
 
 		Assert.assertArrayEquals(expectedY.toByteArray(), y);
 
+		//
+		x = new BigInteger(Utils.hexToBytes(
+				"f921329182da8d21b4cb562c5e48348d7ad6091a3a274dad59024e1d0e6246093667bb429dcdbe64960559d5975d3d46"));
+		y = SharedSecretCalculation.recomputeEcdsa384YFromX(x.toByteArray(), false);
+
+		expectedY = new BigInteger(Utils.hexToBytes(
+				"ba48f166d9f22257d419b485c5e5272c4fc4f8fc348af602a43a6d119109e5a2bf43c281b5d3099097b102093b6b024e"));
+
+		System.out.println("Y " + Utils.bytesToHex(y));
+		System.out.println("Expected Y " + Utils.bytesToHex(expectedY.toByteArray()));
+
+		Assert.assertArrayEquals(expectedY.toByteArray(), y);
+
+		//
+		x = new BigInteger(Utils.hexToBytes(
+				"bdc6d284a76d98dfbc8ed71a282a6b7fb015b9f5561bb8d35cd2628521ff648269e76c32179a03d5ac97dd7e700c8658"));
+		y = SharedSecretCalculation.recomputeEcdsa384YFromX(x.toByteArray(), true);
+
+		expectedY = new BigInteger(Utils.hexToBytes(
+				"280b5e8579007d2180793e0b7cbe21deb95acb61f2a7714a2036591e7967ea8e791a30835ad0ce3e53a0abd420fc263d"));
+
+		System.out.println("Y " + Utils.bytesToHex(y));
+		System.out.println("Expected Y " + Utils.bytesToHex(expectedY.toByteArray()));
+
+		Assert.assertArrayEquals(expectedY.toByteArray(), y);
+
+		//
+		x = new BigInteger(Utils.hexToBytes(
+				"3057ce9657e5a88cf4078378d1190012219b9aa5ee4a5f8abf90df3b113250cb8b30bd88971b9866467dbf6d766f122a"));
+		y = SharedSecretCalculation.recomputeEcdsa384YFromX(x.toByteArray(), true);
+
+		expectedY = new BigInteger(Utils.hexToBytes(
+				"889dd064b5efedb090ce39c510acf5a8cf1d2d416af07139f3856a70b246443cab879b9bbb0702ca4f668d863dd83601"));
+
+		System.out.println("Y " + Utils.bytesToHex(y));
+		System.out.println("Expected Y " + Utils.bytesToHex(expectedY.toByteArray()));
+
+		Assert.assertArrayEquals(expectedY.toByteArray(), y);
 	}
 
 	/**

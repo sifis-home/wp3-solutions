@@ -127,24 +127,6 @@ public abstract class EncryptCommon extends Message {
 		ProcessCounterSignatures();
 	}
 
-	// FIXME: Remove
-	private byte[] getAADBytesBAD() {
-        CBORObject obj = CBORObject.NewArray();
-        
-        obj.Add(context);
-        
-        if (objProtected.size() == 0) {
-        	obj.Add(CBORObject.FromObject(Bytes.EMPTY));
-        } else {
-        	obj.Add(objProtected.EncodeToBytes());
-        }
-        
-
-        obj.Add(CBORObject.FromObject(externalData));
-        
-        return obj.EncodeToBytes();
-    }
-
 	// Method taken from EncryptCommon in COSE. This will provide the full AAD /
 	// Encrypt0-structure.
 	private byte[] getAADBytes() {

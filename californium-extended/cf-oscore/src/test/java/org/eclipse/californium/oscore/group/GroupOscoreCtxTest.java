@@ -5,7 +5,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.security.Provider;
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.Attribute;
@@ -205,6 +207,10 @@ public class GroupOscoreCtxTest {
 		 * Note that the first byte string is itself a CBOR object.
 		 */
 
+		// Install cryptographic providers
+		Provider EdDSA = new EdDSASecurityProvider();
+		Security.insertProviderAt(EdDSA, 1);
+
 		byte[] recipientBytes = StringUtil.hex2ByteArray(
 				"83584AA5666865616465726970726F746563746564636B7479636F6374636B69646A6F75722D7365637265746375736563656E63616B76684A7458495A3275534E356B6251666274544E576267A2666865616465726B756E70726F74656374656467636F6E74656E74677465737431323349656E63727970746564");
 		CBORObject recipientCbor = CBORObject.DecodeFromBytes(recipientBytes);
@@ -215,7 +221,8 @@ public class GroupOscoreCtxTest {
 		OneKey key = new OneKey(keyCbor);
 		recipient.SetKey(key);
 		recipient.SetSenderKey(OneKey.generateKey(AlgorithmID.ECDSA_256));
-		recipient.addAttribute(HeaderKeys.Algorithm, AlgorithmID.ECDH_ES_HKDF_256.AsCBOR(), Attribute.DO_NOT_SEND);
+		recipient.addAttribute(HeaderKeys.Algorithm, AlgorithmID.ECDH_ES_HKDF_256.AsCBOR(),
+				Attribute.DO_NOT_SEND);
 
 		// Test key rebuilding
 		OneKey newKey = new OneKey(key.AsPublicKey(), key.AsPrivateKey());
@@ -229,7 +236,7 @@ public class GroupOscoreCtxTest {
 		byte[] kid = new byte[] { 0x00 };
 		AlgorithmID alg = AlgorithmID.AES_CCM_16_64_128;
 
-		EncryptMessage enc = new EncryptMessage(false);
+		EncryptMessage enc = new EncryptMessage();
 		enc.SetContent(confidential);
 		enc.addAttribute(HeaderKeys.PARTIAL_IV, CBORObject.FromObject(partialIV), Attribute.UNPROTECTED);
 		enc.addAttribute(HeaderKeys.KID, CBORObject.FromObject(kid), Attribute.UNPROTECTED);
@@ -258,6 +265,41 @@ public class GroupOscoreCtxTest {
 		// Check decrypted contents
 		byte[] decrypted = enc.decrypt(recipient);
 		assertArrayEquals(confidential, decrypted);
+
+		// Try encryption / decryption with multiple algorithms
+		List<AlgorithmID> algsList = new ArrayList<AlgorithmID>();
+		algsList.add(AlgorithmID.ECDH_ES_HKDF_256);
+		algsList.add(AlgorithmID.ECDH_ES_HKDF_512);
+		algsList.add(AlgorithmID.ECDH_SS_HKDF_256);
+		algsList.add(AlgorithmID.ECDH_SS_HKDF_512);
+		algsList.add(AlgorithmID.Direct);
+		algsList.add(AlgorithmID.HKDF_HMAC_SHA_256);
+		algsList.add(AlgorithmID.HKDF_HMAC_SHA_512);
+
+		for (AlgorithmID theAlg : algsList) {
+
+			partialIV = StringUtil.hex2ByteArray("010203040506070809101112");
+			nonce = StringUtil.hex2ByteArray("111213141516171819202122");
+			alg = AlgorithmID.AES_GCM_128;
+			enc.addAttribute(HeaderKeys.Algorithm, alg.AsCBOR(), Attribute.DO_NOT_SEND);
+			enc.addAttribute(HeaderKeys.PARTIAL_IV, CBORObject.FromObject(partialIV), Attribute.UNPROTECTED);
+			enc.addAttribute(HeaderKeys.IV, CBORObject.FromObject(nonce), Attribute.DO_NOT_SEND);
+
+			recipient.addAttribute(HeaderKeys.Algorithm, theAlg.AsCBOR(), Attribute.DO_NOT_SEND);
+
+			if (!theAlg.toString().contains("ECDH")) {
+				keyCbor = CBORObject.DecodeFromBytes(StringUtil.hex2ByteArray(
+						"A5010420509F7227CEBB894A46707F82ACCB6C56E2215820F4BD3CA2CD0134DB71D6D42D3C3E5666D4C64EA5DC98F447A717CC781B99698E2258201F0D091F00A4129EE52709921AA340B7CAF4D62B8FE15ECC2B4558634FD65FE7235820222D42677A757940FEF2B8D9302F6407276A761BE7CCFA35340BFAA4EE0F08AE"));
+				key = new OneKey(keyCbor);
+
+				recipient.SetKey(key);
+				recipient.SetSenderKey(key);
+			}
+
+			enc.encrypt();
+			decrypted = enc.decrypt(recipient);
+			assertArrayEquals(confidential, decrypted);
+		}
 
 	}
 }
