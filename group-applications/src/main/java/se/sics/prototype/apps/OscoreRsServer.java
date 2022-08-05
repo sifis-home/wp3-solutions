@@ -76,6 +76,7 @@ import org.eclipse.californium.elements.util.StringUtil;
 import se.sics.ace.AceException;
 import se.sics.ace.COSEparams;
 import se.sics.ace.Constants;
+import se.sics.ace.Util;
 import se.sics.ace.coap.CoapReq;
 import se.sics.ace.coap.rs.CoapAuthzInfo;
 import se.sics.ace.coap.rs.CoapDeliverer;
@@ -89,7 +90,6 @@ import se.sics.ace.oscore.rs.GroupOSCOREJoinValidator;
 import se.sics.ace.oscore.rs.OscoreAuthzInfoGroupOSCORE;
 import se.sics.ace.rs.AsRequestCreationHints;
 import se.sics.ace.rs.TokenRepository;
-import se.sics.prototype.support.AceUtil;
 import se.sics.prototype.support.KeyStorage;
 
 /**
@@ -724,7 +724,7 @@ public class OscoreRsServer {
 				}
 				Set<Integer> roleIdSet = new HashSet<Integer>();
 				try {
-					roleIdSet = AceUtil.getGroupOSCORERoles(roleSet);
+					roleIdSet = Util.getGroupOSCORERoles(roleSet);
 				} catch (AceException e) {
 					System.err.println(e.getMessage());
 				}
@@ -897,7 +897,7 @@ public class OscoreRsServer {
 					CBORObject ccs = CBORObject.DecodeFromBytes(clientCredBytes);
 					if (ccs.getType() == CBORType.Map) {
 						// Retrieve the public key from the CCS
-						publicKey = AceUtil.ccsToOneKey(ccs);
+						publicKey = Util.ccsToOneKey(ccs);
 						valid = true;
 					} else {
 						Assert.fail("Invalid format of public key");
@@ -1057,7 +1057,7 @@ public class OscoreRsServer {
 					}
 
 					// Invalid Client's PoP signature
-					if (!AceUtil.verifySignature(signKeyCurve, pubKey, popInput, rawClientPopEvidence)) {
+					if (!Util.verifySignature(signKeyCurve, pubKey, popInput, rawClientPopEvidence)) {
 						byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
 						exchange.respond(CoAP.ResponseCode.BAD_REQUEST, errorResponsePayload,
 								Constants.APPLICATION_ACE_CBOR);
@@ -1284,7 +1284,7 @@ public class OscoreRsServer {
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when computing the GM PoP evidence");
 				return;
 			}
-			byte[] gmSignature = AceUtil.computeSignature(signKeyCurve, gmPrivKey, kdcNonce);
+			byte[] gmSignature = Util.computeSignature(signKeyCurve, gmPrivKey, kdcNonce);
 
 			if (gmSignature != null) {
 				joinResponse.Add(Constants.KDC_CRED_VERIFY, gmSignature);
@@ -1878,7 +1878,7 @@ public class OscoreRsServer {
 				signKeyCurve = targetedGroup.getGmKeyPair().get(KeyKeys.OKP_Curve).AsInt32();
 			}
 
-			byte[] gmSignature = AceUtil.computeSignature(signKeyCurve, gmPrivKey, kdcNonce);
+			byte[] gmSignature = Util.computeSignature(signKeyCurve, gmPrivKey, kdcNonce);
 
 			if (gmSignature != null) {
 				myResponse.Add(Constants.KDC_CRED_VERIFY, gmSignature);
@@ -2776,7 +2776,7 @@ public class OscoreRsServer {
 			case Constants.COSE_HEADER_PARAM_CCS:
 				if (clientCred.getType() == CBORType.Map) {
 					// Retrieve the public key from the CCS
-					publicKey = AceUtil.ccsToOneKey(clientCred);
+					publicKey = Util.ccsToOneKey(clientCred);
 					valid = true;
 				} else {
 					Assert.fail("Invalid format of public key");
@@ -2945,7 +2945,7 @@ public class OscoreRsServer {
 				}
 
 				// Invalid Client's PoP signature
-				if (!AceUtil.verifySignature(signKeyCurve, pubKey, popInput, rawClientPopEvidence)) {
+				if (!Util.verifySignature(signKeyCurve, pubKey, popInput, rawClientPopEvidence)) {
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Invalid PoP Signature");
 					return;
 				}
@@ -3386,7 +3386,7 @@ public class OscoreRsServer {
 		 * deterministic // encoding in byte lexicographic order, and it has to
 		 * be adjusted offline switch (pubKeyEnc) { case
 		 * Constants.COSE_HEADER_PARAM_CCS: // A CCS including the public key
-		 * String subjectName = ""; gmPublicKey = AceUtil.oneKeyToCCS(gmKeyPair,
+		 * String subjectName = ""; gmPublicKey = Util.oneKeyToCCS(gmKeyPair,
 		 * subjectName); break; case Constants.COSE_HEADER_PARAM_CWT: // A CWT
 		 * including the public key // case Constants.COSE_HEADER_PARAM_X5CHAIN:
 		 * // A certificate including the public key // }
@@ -3419,7 +3419,7 @@ public class OscoreRsServer {
 		}
 
 		GroupInfo myGroup = new GroupInfo(groupName1, masterSecret, masterSalt, groupIdPrefixSize, groupIdPrefix,
-				groupIdEpoch.length, AceUtil.bytesToInt(groupIdEpoch), prefixMonitorNames, nodeNameSeparator, hkdf,
+				groupIdEpoch.length, Util.bytesToInt(groupIdEpoch), prefixMonitorNames, nodeNameSeparator, hkdf,
 				pubKeyEnc, mode, signEncAlg, signAlg, signParams, alg, ecdhAlg, ecdhParams, null, gmKeyPair,
 				gmPublicKey);
 
@@ -3437,7 +3437,7 @@ public class OscoreRsServer {
 		mySubject = "clientX";
 
 		int roles = 0;
-		roles = AceUtil.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_REQUESTER);
+		roles = Util.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_REQUESTER);
 
 		if (!myGroup.addGroupMember(mySid, myName, roles, mySubject))
 			return;
@@ -3455,7 +3455,7 @@ public class OscoreRsServer {
 		 * OneKey(CBORObject.DecodeFromBytes(coseKeyPub1)); switch (pubKeyEnc) {
 		 * case Constants.COSE_HEADER_PARAM_CCS: // A CCS including the public
 		 * key String subjectName = ""; pubKey1 =
-		 * AceUtil.oneKeyToCCS(coseKeyPub1OneKey, subjectName); break; case
+		 * Util.oneKeyToCCS(coseKeyPub1OneKey, subjectName); break; case
 		 * Constants.COSE_HEADER_PARAM_CWT: // A CWT including the public key //
 		 * pubKey1 = null; break; case Constants.COSE_HEADER_PARAM_X5CHAIN: // A
 		 * certificate including the public key // pubKey1 = null; break; }
@@ -3497,8 +3497,8 @@ public class OscoreRsServer {
 		mySubject = "clientY";
 
 		roles = 0;
-		roles = AceUtil.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_REQUESTER);
-		roles = AceUtil.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_RESPONDER);
+		roles = Util.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_REQUESTER);
+		roles = Util.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_RESPONDER);
 
 		if (!myGroup.addGroupMember(mySid, myName, roles, mySubject))
 			return;
@@ -3516,7 +3516,7 @@ public class OscoreRsServer {
 		 * OneKey(CBORObject.DecodeFromBytes(coseKeyPub2)); switch (pubKeyEnc) {
 		 * case Constants.COSE_HEADER_PARAM_CCS: // A CCS including the public
 		 * key String subjectName = ""; pubKey2 =
-		 * AceUtil.oneKeyToCCS(coseKeyPub2OneKey, subjectName); break; case
+		 * Util.oneKeyToCCS(coseKeyPub2OneKey, subjectName); break; case
 		 * Constants.COSE_HEADER_PARAM_CWT: // A CWT including the public key //
 		 * pubKey2 = null; break; case Constants.COSE_HEADER_PARAM_X5CHAIN: // A
 		 * certificate including the public key // pubKey2 = null; break; }
@@ -3553,7 +3553,7 @@ public class OscoreRsServer {
 		final byte[] groupIdPrefix2 = new byte[] { (byte) 0xbb, (byte) 0xbb, (byte) 0xbb, (byte) 0x57 };
 		byte[] groupIdEpoch2 = new byte[] { (byte) 0xf0, (byte) 0x3a }; // < 4 b
 		GroupInfo myGroup2 = new GroupInfo(groupName2, masterSecret, masterSalt, groupIdPrefixSize, groupIdPrefix2,
-				groupIdEpoch2.length, AceUtil.bytesToInt(groupIdEpoch2), prefixMonitorNames, nodeNameSeparator, hkdf,
+				groupIdEpoch2.length, Util.bytesToInt(groupIdEpoch2), prefixMonitorNames, nodeNameSeparator, hkdf,
 				pubKeyEnc, mode, signEncAlg, signAlg, signParams, alg, ecdhAlg, ecdhParams, null, gmKeyPair,
 				gmPublicKey);
 
@@ -3567,7 +3567,7 @@ public class OscoreRsServer {
 		mySubject = "clientX";
 
 		roles = 0;
-		roles = AceUtil.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_REQUESTER);
+		roles = Util.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_REQUESTER);
 
 		if (!myGroup2.addGroupMember(mySid, myName, roles, mySubject))
 			return;
@@ -3581,7 +3581,7 @@ public class OscoreRsServer {
 		 * OneKey(CBORObject.DecodeFromBytes(coseKeyPub1)); switch (pubKeyEnc) {
 		 * case Constants.COSE_HEADER_PARAM_CCS: // A CCS including the public
 		 * key String subjectName = ""; pubKey1 =
-		 * AceUtil.oneKeyToCCS(coseKeyPub1OneKey, subjectName); break; case
+		 * Util.oneKeyToCCS(coseKeyPub1OneKey, subjectName); break; case
 		 * Constants.COSE_HEADER_PARAM_CWT: // A CWT including the public key //
 		 * pubKey1 = null; break; case Constants.COSE_HEADER_PARAM_X5CHAIN: // A
 		 * certificate including the public key // pubKey1 = null; break; }
@@ -3625,8 +3625,8 @@ public class OscoreRsServer {
 		mySubject = "clientY";
 
 		roles = 0;
-		roles = AceUtil.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_REQUESTER);
-		roles = AceUtil.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_RESPONDER);
+		roles = Util.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_REQUESTER);
+		roles = Util.addGroupOSCORERole(roles, Constants.GROUP_OSCORE_RESPONDER);
 
 		if (!myGroup2.addGroupMember(mySid, myName, roles, mySubject))
 			return;

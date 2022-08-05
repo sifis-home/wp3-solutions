@@ -67,13 +67,13 @@ import com.upokecenter.cbor.CBORObject;
 import com.upokecenter.cbor.CBORType;
 
 import se.sics.ace.Constants;
+import se.sics.ace.Util;
 import se.sics.ace.client.GetToken;
 import se.sics.ace.coap.client.OSCOREProfileRequests;
 import se.sics.ace.coap.client.OSCOREProfileRequestsGroupOSCORE;
 import se.sics.ace.oscore.GroupOSCOREInputMaterialObjectParameters;
-import se.sics.prototype.support.AceUtil;
 import se.sics.prototype.support.KeyStorage;
-import se.sics.prototype.support.Util;
+import se.sics.prototype.support.Tools;
 
 /**
  * A stand-alone application for Client->AS followed by Client->GM communication
@@ -306,8 +306,8 @@ public class OscoreAsRsClient {
 		cborArrayEntry.Add(groupName);
 
 		int myRoles = 0;
-		myRoles = AceUtil.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
-		myRoles = AceUtil.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
 		cborArrayEntry.Add(myRoles);
 
 		cborArrayScope.Add(cborArrayEntry);
@@ -381,8 +381,8 @@ public class OscoreAsRsClient {
 		cborArrayEntry.Add(groupName);
 
 		int myRoles = 0;
-		myRoles = AceUtil.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
-		myRoles = AceUtil.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
 		cborArrayEntry.Add(myRoles);
 
 		cborArrayScope.Add(cborArrayEntry);
@@ -472,8 +472,8 @@ public class OscoreAsRsClient {
 		cborArrayScope.Add(groupName);
 
 		myRoles = 0;
-		myRoles = AceUtil.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
-		myRoles = AceUtil.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
 		cborArrayScope.Add(myRoles);
 
 		byteStringScope = cborArrayScope.EncodeToBytes();
@@ -489,10 +489,10 @@ public class OscoreAsRsClient {
 			// The following is required to retrieve the public keys of both the
 			// already present group members
 			myRoles = 0;
-			myRoles = AceUtil.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
 			getPubKeys.get(1).Add(myRoles);
-			myRoles = AceUtil.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
-			myRoles = AceUtil.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
+			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
 			getPubKeys.get(1).Add(myRoles);
 
 			getPubKeys.Add(CBORObject.NewArray()); // This must be empty
@@ -573,7 +573,7 @@ public class OscoreAsRsClient {
 			offset += serializedGMNonceCBOR.length;
 			System.arraycopy(serializedCNonceCBOR, 0, dataToSign, offset, serializedCNonceCBOR.length);
 
-			byte[] clientSignature = AceUtil.computeSignature(signKeyCurve, privKey, dataToSign);
+			byte[] clientSignature = Util.computeSignature(signKeyCurve, privKey, dataToSign);
 
 			if (clientSignature != null)
 				requestPayload.Add(Constants.CLIENT_CRED_VERIFY, clientSignature);
@@ -637,7 +637,7 @@ public class OscoreAsRsClient {
 			CBORObject ccs = CBORObject.DecodeFromBytes(kdcCredBytes);
 			if (ccs.getType() == CBORType.Map) {
 				// Retrieve the public key from the CCS
-				gmPublicKeyRetrieved = AceUtil.ccsToOneKey(ccs);
+				gmPublicKeyRetrieved = Util.ccsToOneKey(ccs);
 			} else {
 				Assert.fail("Invalid format of Group Manager public key");
 			}
@@ -671,14 +671,14 @@ public class OscoreAsRsClient {
 		byte[] rawGmPopEvidence = gmPopEvidence.GetByteString();
 
 		// Invalid Client's PoP signature
-		if (!AceUtil.verifySignature(signKeyCurve, gmPublicKey, gmNonce, rawGmPopEvidence)) {
+		if (!Util.verifySignature(signKeyCurve, gmPublicKey, gmNonce, rawGmPopEvidence)) {
 			Assert.fail("Invalid GM's PoP evidence");
 		}
 
 		// Final join response parsing and Group Context generation
 
 		// Print the join response
-		Util.printJoinResponse(joinResponse);
+		Tools.printJoinResponse(joinResponse);
 
 		// Pause if this is for server1
 		if (!memberName.toLowerCase().contains("server1")) {
@@ -688,7 +688,7 @@ public class OscoreAsRsClient {
 		}
 
 		MultiKey clientKey = new MultiKey(encodedPublicKey, cKeyPair.get(KeyKeys.OKP_D).GetByteString());
-		GroupCtx groupOscoreCtx = Util.generateGroupOSCOREContext(joinResponse, clientKey);
+		GroupCtx groupOscoreCtx = Tools.generateGroupOSCOREContext(joinResponse, clientKey);
 
 		return groupOscoreCtx;
 	}

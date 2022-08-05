@@ -43,6 +43,7 @@ import org.postgresql.core.Utils;
 
 import com.upokecenter.cbor.CBORObject;
 import se.sics.ace.Constants;
+import se.sics.ace.Util;
 import se.sics.ace.oscore.GroupOSCOREInputMaterialObjectParameters;
 import se.sics.ace.oscore.OSCOREInputMaterialObjectParameters;
 
@@ -51,7 +52,7 @@ import se.sics.ace.oscore.OSCOREInputMaterialObjectParameters;
  * 
  *
  */
-public class Util {
+public class Tools {
 
 	/**
 	 * Parse a received Group OSCORE join response and print the information in
@@ -222,7 +223,7 @@ public class Util {
 	 * shared secret calculation.
 	 * 
 	 * @param privateKey the private key bytes (private scalar here)
-	 * @param publicKey the public key bytes FIXME: Remove?
+	 * @param publicKey the public key bytes
 	 * @return a OneKey representing the input material
 	 */
 	static OneKey buildCurve25519OneKey(byte[] privateKey, byte[] publicKey) {
@@ -276,7 +277,7 @@ public class Util {
 
 		System.out.println("Private key: " + privateKey);
 
-		byte[] ccsBytes = AceUtil.oneKeyToCCS(key, subjectName);
+		byte[] ccsBytes = Util.oneKeyToCCS(key, subjectName);
 		String ccs = StringUtil.byteArray2Hex(ccsBytes);
 
 		System.out.println("CCS: " + ccs);

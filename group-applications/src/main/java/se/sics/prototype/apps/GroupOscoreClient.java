@@ -259,7 +259,7 @@ public class GroupOscoreClient {
 		public void onLoad(CoapResponse response) {
 			on();
 
-			// System.out.println("Receiving to: "); //TODO
+			// System.out.println("Receiving to: ");
 			System.out.println("Receiving from: " + response.advanced().getSourceContext().getPeerAddress());
 
 			System.out.println(Utils.prettyPrint(response));
