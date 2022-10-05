@@ -140,8 +140,8 @@ public class OscoreRSTestServer {
      */
     public static void main(String[] args) throws Exception {
 
-        OscoreCtxDbSingleton.getInstance().purge();
-
+    	OscoreCtxDbSingleton.getInstance().purge();
+    	
         Set<Short> actions = new HashSet<>();
         actions.add(Constants.GET);
         Map<String, Set<Short>> myResource = new HashMap<>();

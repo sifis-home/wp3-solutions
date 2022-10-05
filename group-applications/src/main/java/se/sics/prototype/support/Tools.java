@@ -80,7 +80,7 @@ public class Tools {
 		System.out.println(joinResponse.get(CBORObject.FromObject(Constants.EXP)));
 
 		System.out.print("PUB_KEYS: ");
-		System.out.println(joinResponse.get(CBORObject.FromObject(Constants.PUB_KEYS)));
+		System.out.println(joinResponse.get(CBORObject.FromObject(Constants.CREDS)));
 
 		System.out.print("NUM: ");
 		System.out.println(joinResponse.get(CBORObject.FromObject(Constants.NUM)));
@@ -120,15 +120,15 @@ public class Tools {
 		System.out.println(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.group_SenderID)));
 
 		System.out.print("pub_key_enc: ");
-		System.out.println(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.pub_key_enc)));
+		System.out.println(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.cred_fmt)));
 
 		// Parse the PUB_KEYS parameter
 
 		System.out.println();
 		System.out.println("PUB_KEYS contents: ");
 
-		if (joinResponse.ContainsKey(CBORObject.FromObject(Constants.PUB_KEYS))) {
-			CBORObject coseKeySetArray = joinResponse.get(CBORObject.FromObject(Constants.PUB_KEYS));
+		if (joinResponse.ContainsKey(CBORObject.FromObject(Constants.CREDS))) {
+			CBORObject coseKeySetArray = joinResponse.get(CBORObject.FromObject(Constants.CREDS));
 
 			for (int i = 0; i < coseKeySetArray.size(); i++) {
 
@@ -190,8 +190,8 @@ public class Tools {
 		}
 
 		// Parse public keys and add recipient contexts
-		if (joinResponse.ContainsKey(CBORObject.FromObject(Constants.PUB_KEYS))) {
-			CBORObject coseKeySetArray = joinResponse.get(CBORObject.FromObject(Constants.PUB_KEYS));
+		if (joinResponse.ContainsKey(CBORObject.FromObject(Constants.CREDS))) {
+			CBORObject coseKeySetArray = joinResponse.get(CBORObject.FromObject(Constants.CREDS));
 
 			for (int i = 0; i < coseKeySetArray.size(); i++) {
 

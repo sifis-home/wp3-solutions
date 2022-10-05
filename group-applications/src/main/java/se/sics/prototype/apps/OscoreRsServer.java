@@ -457,7 +457,7 @@ public class OscoreRsServer {
 			myMap.Add(OSCOREInputMaterialObjectParameters.salt, targetedGroup.getMasterSalt());
 			myMap.Add(OSCOREInputMaterialObjectParameters.ms, targetedGroup.getMasterSecret());
 			myMap.Add(OSCOREInputMaterialObjectParameters.contextId, targetedGroup.getGroupId());
-			myMap.Add(GroupOSCOREInputMaterialObjectParameters.pub_key_enc, targetedGroup.getPubKeyEnc());
+			myMap.Add(GroupOSCOREInputMaterialObjectParameters.cred_fmt, targetedGroup.getAuthCredFormat());
 			if (targetedGroup.getMode() != Constants.GROUP_OSCORE_PAIRWISE_MODE_ONLY) {
 				// The group mode is used
 				myMap.Add(GroupOSCOREInputMaterialObjectParameters.sign_enc_alg,
@@ -588,7 +588,7 @@ public class OscoreRsServer {
 					signInfoEntry.Add(arrayElem);
 
 				// 'pub_key_enc' element
-				signInfoEntry.Add(targetedGroup.getPubKeyEnc());
+				signInfoEntry.Add(targetedGroup.getAuthCredFormat());
 				signInfo.Add(signInfoEntry);
 				errorResponseMap.Add(Constants.SIGN_INFO, signInfo);
 			}
@@ -614,7 +614,7 @@ public class OscoreRsServer {
 					ecdhInfoEntry.Add(arrayElem);
 
 				// 'pub_key_enc' element
-				ecdhInfoEntry.Add(targetedGroup.getPubKeyEnc());
+				ecdhInfoEntry.Add(targetedGroup.getAuthCredFormat());
 				ecdhInfo.Add(ecdhInfoEntry);
 				errorResponseMap.Add(Constants.ECDH_INFO, ecdhInfo);
 			}
@@ -774,7 +774,7 @@ public class OscoreRsServer {
 			// Retrieve 'get_pub_keys'
 			// If present, this parameter must be a CBOR array or the CBOR
 			// simple value Null
-			CBORObject getPubKeys = joinRequest.get(CBORObject.FromObject((Constants.GET_PUB_KEYS)));
+			CBORObject getPubKeys = joinRequest.get(CBORObject.FromObject((Constants.GET_CREDS)));
 			if (getPubKeys != null) {
 
 				// Invalid format of 'get_pub_keys'
@@ -892,7 +892,7 @@ public class OscoreRsServer {
 				}
 
 				byte[] clientCredBytes = clientCred.GetByteString();
-				switch (myGroup.getPubKeyEnc()) {
+				switch (myGroup.getAuthCredFormat()) {
 				case Constants.COSE_HEADER_PARAM_CCS:
 					CBORObject ccs = CBORObject.DecodeFromBytes(clientCredBytes);
 					if (ccs.getType() == CBORType.Map) {
@@ -1069,7 +1069,7 @@ public class OscoreRsServer {
 					// TODO
 				}
 
-				if (!myGroup.storePublicKey(senderId, clientCred)) {
+				if (!myGroup.storeAuthCred(senderId, clientCred)) {
 					myGroup.deallocateSenderId(senderId);
 					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when storing the public key");
 					return;
@@ -1119,7 +1119,7 @@ public class OscoreRsServer {
 				// The joining node is not a monitor
 				if (senderId != null) {
 					myGroup.deallocateSenderId(senderId);
-					myGroup.deletePublicKey(senderId);
+					myGroup.deleteAuthCred(senderId);
 				}
 
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when creating the node sub-resource");
@@ -1162,7 +1162,7 @@ public class OscoreRsServer {
 			myMap.Add(OSCOREInputMaterialObjectParameters.salt, targetedGroup.getMasterSalt());
 			myMap.Add(OSCOREInputMaterialObjectParameters.ms, targetedGroup.getMasterSecret());
 			myMap.Add(OSCOREInputMaterialObjectParameters.contextId, targetedGroup.getGroupId());
-			myMap.Add(GroupOSCOREInputMaterialObjectParameters.pub_key_enc, targetedGroup.getPubKeyEnc());
+			myMap.Add(GroupOSCOREInputMaterialObjectParameters.cred_fmt, targetedGroup.getAuthCredFormat());
 			if (targetedGroup.getMode() != Constants.GROUP_OSCORE_PAIRWISE_MODE_ONLY) {
 				// The group mode is used
 				myMap.Add(GroupOSCOREInputMaterialObjectParameters.sign_enc_alg,
@@ -1202,7 +1202,7 @@ public class OscoreRsServer {
 				CBORObject peerRoles = CBORObject.NewArray();
 				CBORObject peerIdentifiers = CBORObject.NewArray();
 
-				Map<CBORObject, CBORObject> publicKeys = myGroup.getPublicKeys();
+				Map<CBORObject, CBORObject> publicKeys = myGroup.getAuthCreds();
 
 				for (CBORObject sid : publicKeys.keySet()) {
 					// This should never happen; silently ignore
@@ -1246,7 +1246,7 @@ public class OscoreRsServer {
 
 				}
 
-				joinResponse.Add(Constants.PUB_KEYS, pubKeysArray);
+				joinResponse.Add(Constants.CREDS, pubKeysArray);
 				joinResponse.Add(Constants.PEER_ROLES, peerRoles);
 				joinResponse.Add(Constants.PEER_IDENTIFIERS, peerIdentifiers);
 
@@ -1272,7 +1272,7 @@ public class OscoreRsServer {
 			new SecureRandom().nextBytes(kdcNonce);
 			joinResponse.Add(Constants.KDC_NONCE, kdcNonce);
 
-			CBORObject publicKey = CBORObject.FromObject(targetedGroup.getGmPublicKey());
+			CBORObject publicKey = CBORObject.FromObject(targetedGroup.getGmAuthCred());
 
 			joinResponse.Add(Constants.KDC_CRED, publicKey);
 
@@ -1409,7 +1409,7 @@ public class OscoreRsServer {
 			CBORObject peerRoles = CBORObject.NewArray();
 			CBORObject peerIdentifiers = CBORObject.NewArray();
 
-			Map<CBORObject, CBORObject> publicKeys = targetedGroup.getPublicKeys();
+			Map<CBORObject, CBORObject> publicKeys = targetedGroup.getAuthCreds();
 
 			for (CBORObject sid : publicKeys.keySet()) {
 
@@ -1429,7 +1429,7 @@ public class OscoreRsServer {
 			}
 
 			myResponse.Add(Constants.NUM, CBORObject.FromObject(targetedGroup.getVersion()));
-			myResponse.Add(Constants.PUB_KEYS, pubKeysArray);
+			myResponse.Add(Constants.CREDS, pubKeysArray);
 			myResponse.Add(Constants.PEER_ROLES, peerRoles);
 			myResponse.Add(Constants.PEER_IDENTIFIERS, peerIdentifiers);
 
@@ -1539,7 +1539,7 @@ public class OscoreRsServer {
 
 			// The CBOR Map must include exactly one element, i.e.
 			// 'get_pub_keys'
-			if ((requestCBOR.size() != 1) || (!requestCBOR.ContainsKey(Constants.GET_PUB_KEYS))) {
+			if ((requestCBOR.size() != 1) || (!requestCBOR.ContainsKey(Constants.GET_CREDS))) {
 				valid = false;
 
 			}
@@ -1552,7 +1552,7 @@ public class OscoreRsServer {
 
 			// Retrieve 'get_pub_keys'
 			// This parameter must be a CBOR array or the CBOR simple value Null
-			CBORObject getPubKeys = requestCBOR.get(CBORObject.FromObject((Constants.GET_PUB_KEYS)));
+			CBORObject getPubKeys = requestCBOR.get(CBORObject.FromObject((Constants.GET_CREDS)));
 
 			// Invalid format of 'get_pub_keys'
 			if (!getPubKeys.getType().equals(CBORType.Array) && !getPubKeys.equals(CBORObject.Null)) {
@@ -1628,7 +1628,7 @@ public class OscoreRsServer {
 			Set<Integer> requestedRoles = new HashSet<Integer>();
 			Set<ByteBuffer> requestedSenderIDs = new HashSet<ByteBuffer>();
 
-			Map<CBORObject, CBORObject> publicKeys = targetedGroup.getPublicKeys();
+			Map<CBORObject, CBORObject> publicKeys = targetedGroup.getAuthCreds();
 
 			// Provide the public keys of all the group members
 			if (getPubKeys.equals(CBORObject.Null)) {
@@ -1736,7 +1736,7 @@ public class OscoreRsServer {
 			}
 
 			myResponse.Add(Constants.NUM, CBORObject.FromObject(targetedGroup.getVersion()));
-			myResponse.Add(Constants.PUB_KEYS, pubKeysArray);
+			myResponse.Add(Constants.CREDS, pubKeysArray);
 			myResponse.Add(Constants.PEER_ROLES, peerRoles);
 			myResponse.Add(Constants.PEER_IDENTIFIERS, peerIdentifiers);
 
@@ -1858,7 +1858,7 @@ public class OscoreRsServer {
 			new SecureRandom().nextBytes(kdcNonce);
 			myResponse.Add(Constants.KDC_NONCE, kdcNonce);
 
-			CBORObject publicKey = CBORObject.FromObject(targetedGroup.getGmPublicKey());
+			CBORObject publicKey = CBORObject.FromObject(targetedGroup.getGmAuthCred());
 
 			myResponse.Add(Constants.KDC_CRED, publicKey);
 
@@ -2006,7 +2006,7 @@ public class OscoreRsServer {
 			// Note that no Sender ID is included
 			myMap.Add(OSCOREInputMaterialObjectParameters.hkdf, targetedGroup.getHkdf().AsCBOR());
 			myMap.Add(OSCOREInputMaterialObjectParameters.contextId, targetedGroup.getGroupId());
-			myMap.Add(GroupOSCOREInputMaterialObjectParameters.pub_key_enc, targetedGroup.getPubKeyEnc());
+			myMap.Add(GroupOSCOREInputMaterialObjectParameters.cred_fmt, targetedGroup.getAuthCredFormat());
 			if (targetedGroup.getMode() != Constants.GROUP_OSCORE_PAIRWISE_MODE_ONLY) {
 				// The group mode is used
 				myMap.Add(GroupOSCOREInputMaterialObjectParameters.sign_enc_alg,
@@ -2428,7 +2428,7 @@ public class OscoreRsServer {
 			myMap.Add(OSCOREInputMaterialObjectParameters.salt, targetedGroup.getMasterSalt());
 			myMap.Add(OSCOREInputMaterialObjectParameters.ms, targetedGroup.getMasterSecret());
 			myMap.Add(OSCOREInputMaterialObjectParameters.contextId, targetedGroup.getGroupId());
-			myMap.Add(GroupOSCOREInputMaterialObjectParameters.pub_key_enc, targetedGroup.getPubKeyEnc());
+			myMap.Add(GroupOSCOREInputMaterialObjectParameters.cred_fmt, targetedGroup.getAuthCredFormat());
 			if (targetedGroup.getMode() != Constants.GROUP_OSCORE_PAIRWISE_MODE_ONLY) {
 				// The group mode is used
 				myMap.Add(GroupOSCOREInputMaterialObjectParameters.sign_enc_alg,
@@ -2554,15 +2554,15 @@ public class OscoreRsServer {
 			targetedGroup.setGroupMemberRoles(senderId, roles);
 			targetedGroup.setSenderIdToIdentity(subject, senderId);
 
-			CBORObject publicKey = targetedGroup.getPublicKey(oldSenderId);
+			CBORObject publicKey = targetedGroup.getAuthCred(oldSenderId);
 
 			// Store this client's public key under the new Sender ID
-			if (!targetedGroup.storePublicKey(senderId, publicKey)) {
+			if (!targetedGroup.storeAuthCred(senderId, publicKey)) {
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when storing the public key");
 				return;
 			}
 			// Delete this client's public key under the old Sender ID
-			targetedGroup.deletePublicKey(oldSenderId);
+			targetedGroup.deleteAuthCred(oldSenderId);
 
 			// Respond to the Key Renewal Request
 
@@ -2772,7 +2772,7 @@ public class OscoreRsServer {
 			OneKey publicKey = null;
 			boolean valid = false;
 
-			switch (targetedGroup.getPubKeyEnc()) {
+			switch (targetedGroup.getAuthCredFormat()) {
 			case Constants.COSE_HEADER_PARAM_CCS:
 				if (clientCred.getType() == CBORType.Map) {
 					// Retrieve the public key from the CCS
@@ -2957,7 +2957,7 @@ public class OscoreRsServer {
 
 			byte[] senderId = targetedGroup.getGroupMemberSenderId(subject).GetByteString();
 
-			if (!targetedGroup.storePublicKey(senderId, clientCred)) {
+			if (!targetedGroup.storeAuthCred(senderId, clientCred)) {
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when storing the public key");
 				return;
 			}
@@ -3487,7 +3487,7 @@ public class OscoreRsServer {
 			break;
 		}
 
-		myGroup.storePublicKey(mySid, CBORObject.FromObject(pubKey1));
+		myGroup.storeAuthCred(mySid, CBORObject.FromObject(pubKey1));
 
 		// Add a group member
 		mySid = idClient3;
@@ -3615,7 +3615,7 @@ public class OscoreRsServer {
 			break;
 		}
 
-		myGroup2.storePublicKey(mySid, CBORObject.FromObject(pubKey1));
+		myGroup2.storeAuthCred(mySid, CBORObject.FromObject(pubKey1));
 
 		// Add a group member
 		mySid = idClient3;
@@ -3633,8 +3633,8 @@ public class OscoreRsServer {
 
 		// ======= End of creating second group for this GM
 
-		myGroup.storePublicKey(mySid, CBORObject.FromObject(pubKey2));
-		myGroup2.storePublicKey(mySid, CBORObject.FromObject(pubKey2));
+		myGroup.storeAuthCred(mySid, CBORObject.FromObject(pubKey2));
+		myGroup2.storeAuthCred(mySid, CBORObject.FromObject(pubKey2));
 
 		// Add this OSCORE group to the set of active groups
 		// If the groupIdPrefix is 4 bytes in size, the map key can be a

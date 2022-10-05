@@ -497,7 +497,7 @@ public class OscoreAsRsClient {
 
 			getPubKeys.Add(CBORObject.NewArray()); // This must be empty
 
-			requestPayload.Add(Constants.GET_PUB_KEYS, getPubKeys);
+			requestPayload.Add(Constants.GET_CREDS, getPubKeys);
 
 		}
 
@@ -623,12 +623,12 @@ public class OscoreAsRsClient {
 		Assert.assertEquals(true, joinResponse.ContainsKey(CBORObject.FromObject(Constants.KEY)));
 		Assert.assertEquals(CBORType.Map, joinResponse.get(CBORObject.FromObject(Constants.KEY)).getType());
 		Assert.assertEquals(true, joinResponse.get(CBORObject.FromObject(Constants.KEY))
-				.ContainsKey(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.pub_key_enc)));
+				.ContainsKey(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.cred_fmt)));
 		Assert.assertEquals(CBORType.Map, joinResponse.get(CBORObject.FromObject(Constants.KEY)).getType());
 		Assert.assertEquals(CBORType.Integer, joinResponse.get(CBORObject.FromObject(Constants.KEY))
-				.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.pub_key_enc)).getType());
+				.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.cred_fmt)).getType());
 		pubKeyEnc = joinResponse.get(CBORObject.FromObject(Constants.KEY))
-				.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.pub_key_enc)).AsInt32();
+				.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.cred_fmt)).AsInt32();
 
 		OneKey gmPublicKeyRetrieved = null;
 		byte[] kdcCredBytes = joinResponse.get(CBORObject.FromObject(Constants.KDC_CRED)).GetByteString();
