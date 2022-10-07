@@ -153,7 +153,16 @@ public class EdhocResource extends CoapResource {
 				break;		
 		}
 		System.out.println("Determined EDHOC message type: " + typeName + "\n");
-		Util.nicePrint(typeName, message);
+		
+        // Since the incoming EDHOC message is transported as a CoAP request,
+		// it is prepended by C_X, which does not have to be printed
+		List<CBORObject> trimmedSequence = new ArrayList<CBORObject>();
+		CBORObject[] objectListRequest = CBORObject.DecodeSequenceFromBytes(message);
+		for (int i = 1; i < objectListRequest.length; i++) {
+			trimmedSequence.add(objectListRequest[i]);
+		}
+		byte[] messageToPrint = Util.buildCBORSequence(trimmedSequence);
+		Util.nicePrint(typeName, messageToPrint);
 
 		
 		/* Start handling EDHOC Message 1 */
@@ -161,7 +170,7 @@ public class EdhocResource extends CoapResource {
 		if (messageType == Constants.EDHOC_MESSAGE_1) {
 			
 			processingResult = MessageProcessor.readMessage1(message, true,
-															 edhocEndpointInfo.getSupportedCiphersuites(),
+															 edhocEndpointInfo.getSupportedCipherSuites(),
 															 appProfile);
 
 			if (processingResult.get(0) == null || processingResult.get(0).getType() != CBORType.ByteString) {
@@ -199,7 +208,7 @@ public class EdhocResource extends CoapResource {
 																	edhocEndpointInfo.getKeyPairs(),
 																    edhocEndpointInfo.getIdCreds(),
 																    edhocEndpointInfo.getCreds(),
-																    edhocEndpointInfo.getSupportedCiphersuites(),
+																    edhocEndpointInfo.getSupportedCipherSuites(),
 																    edhocEndpointInfo.getUsedConnectionIds(),
 																    appProfile, edhocEndpointInfo.getEdp(),
 																    edhocEndpointInfo.getOscoreDb());
@@ -207,7 +216,7 @@ public class EdhocResource extends CoapResource {
 				// Compute the EDHOC Message 2
 				nextMessage = MessageProcessor.writeMessage2(session, ead2);
 
-				byte[] connectionIdentifier = session.getConnectionId(); // v-14 identifiers
+				byte[] connectionIdentifier = session.getConnectionId();
 				
 				// Deallocate the assigned Connection Identifier for this peer
 				if (nextMessage == null || session.getCurrentStep() != Constants.EDHOC_BEFORE_M2) {
@@ -231,12 +240,11 @@ public class EdhocResource extends CoapResource {
 				
 			}
 			
-			byte[] connectionIdentifier = null; // v-14 identifiers
+			byte[] connectionIdentifier = null;
 			if (session != null) {
 				connectionIdentifier = session.getConnectionId();
 			}
 			
-			// v-14 identifiers
 			responseType = MessageProcessor.messageType(nextMessage, false,
 														edhocEndpointInfo.getEdhocSessions(), connectionIdentifier);
 			
@@ -410,9 +418,9 @@ public class EdhocResource extends CoapResource {
 						return;
 			        }
 			        
-			        int selectedCiphersuite = mySession.getSelectedCiphersuite();
-			        AlgorithmID alg = EdhocSession.getAppAEAD(selectedCiphersuite);
-			        AlgorithmID hkdf = EdhocSession.getAppHkdf(selectedCiphersuite);
+			        int selectedCipherSuite = mySession.getSelectedCipherSuite();
+			        AlgorithmID alg = EdhocSession.getAppAEAD(selectedCipherSuite);
+			        AlgorithmID hkdf = EdhocSession.getAppHkdf(selectedCipherSuite);
 			        
 			        OSCoreCtx ctx = null;
 			        try {

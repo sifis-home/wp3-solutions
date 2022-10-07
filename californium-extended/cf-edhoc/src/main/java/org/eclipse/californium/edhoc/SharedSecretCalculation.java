@@ -29,16 +29,11 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.EllipticCurve;
 import java.util.Arrays;
+
 import javax.crypto.KeyAgreement;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator;
-import org.bouncycastle.crypto.agreement.X25519Agreement;
 import org.bouncycastle.crypto.ec.CustomNamedCurves;
-import org.bouncycastle.crypto.generators.X25519KeyPairGenerator;
-import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
-import org.bouncycastle.crypto.params.X25519KeyGenerationParameters;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -47,12 +42,12 @@ import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.KeyKeys;
 import org.eclipse.californium.cose.OneKey;
+import org.eclipse.californium.elements.util.StringUtil;
 
 import com.upokecenter.cbor.CBORObject;
 
 import net.i2p.crypto.eddsa.EdDSAPrivateKey;
 import net.i2p.crypto.eddsa.EdDSAPublicKey;
-import net.i2p.crypto.eddsa.Utils;
 import net.i2p.crypto.eddsa.math.Field;
 import net.i2p.crypto.eddsa.math.FieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerFieldElement;
@@ -97,7 +92,7 @@ public class SharedSecretCalculation {
 
 	// Create the ed25519 field
 	private static Field ed25519Field = new Field(256, // b
-			Utils.hexToBytes("edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f"), // q(2^255-19)
+			StringUtil.hex2ByteArray("edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f"), // q(2^255-19)
 			new BigIntegerLittleEndianEncoding());
 
 	/**
@@ -146,36 +141,6 @@ public class SharedSecretCalculation {
 		return key;
 	}
 
-	// https://github.com/bcgit/bc-java/blob/master/core/src/test/java/org/bouncycastle/math/ec/rfc7748/test/X25519Test.java
-	@Deprecated
-	private static void bouncyCastleKeyAgreement() {
-		SecureRandom RANDOM = new SecureRandom();
-		AsymmetricCipherKeyPairGenerator kpGen = new X25519KeyPairGenerator();
-
-		kpGen.init(new X25519KeyGenerationParameters(RANDOM));
-
-		AsymmetricCipherKeyPair kpA = kpGen.generateKeyPair();
-		AsymmetricCipherKeyPair kpB = kpGen.generateKeyPair();
-		X25519Agreement agreeA = new X25519Agreement();
-
-		AsymmetricKeyParameter pub1 = kpA.getPublic();
-		AsymmetricKeyParameter pub2 = kpB.getPublic();
-
-		AsymmetricKeyParameter priv1 = kpA.getPrivate();
-		AsymmetricKeyParameter priv2 = kpB.getPrivate();
-
-		agreeA.init(kpA.getPrivate());
-
-		byte[] secretA = new byte[agreeA.getAgreementSize()];
-		agreeA.calculateAgreement(kpB.getPublic(), secretA, 0);
-		X25519Agreement agreeB = new X25519Agreement();
-		agreeB.init(kpB.getPrivate());
-
-		byte[] secretB = new byte[agreeB.getAgreementSize()];
-		agreeB.calculateAgreement(kpA.getPublic(), secretB, 0);
-
-	}
-
 	/**
 	 * Generate a COSE OneKey using Curve25519 for X25519. Note that this key
 	 * will be lacking the Java keys internally.
@@ -198,13 +163,13 @@ public class SharedSecretCalculation {
 		SecureRandom rand = new SecureRandom();
 
 		X9ECParameters curveParams = CustomNamedCurves.getByName("Curve25519");
-		// byte[] seed =
-		// Utils.hexToBytes("1122334455667788112233445566778811223344556677881122334455667788");
+		// byte[] seed = StringUtil.hex2ByteArray(
+		//  		"1122334455667788112233445566778811223344556677881122334455667788");
 		ECParameterSpec ecSpec = new ECParameterSpec(curveParams.getCurve(), curveParams.getG(), curveParams.getN(),
 				curveParams.getH(), curveParams.getSeed());
 
 		// System.out.println("Spec using seed: " +
-		// Utils.bytesToHex(ecSpec.getSeed()));
+		// StringUtil.byteArray2HexString(ecSpec.getSeed()));
 
 		KeyPairGenerator kpg = null;
 		try {
@@ -223,40 +188,40 @@ public class SharedSecretCalculation {
 
 		// Build the COSE OneKey
 
-		System.out.println("D " + Utils.bytesToHex(privKey.getD().toByteArray()));
-		System.out.println("Seed priv " + Utils.bytesToHex(privKey.getParameters().getSeed()));
-		System.out.println("Seed pub " + Utils.bytesToHex(pubKey.getParameters().getSeed()));
+		System.out.println("D " + StringUtil.byteArray2HexString(privKey.getD().toByteArray()));
+		System.out.println("Seed priv " + StringUtil.byteArray2HexString(privKey.getParameters().getSeed()));
+		System.out.println("Seed pub " + StringUtil.byteArray2HexString(pubKey.getParameters().getSeed()));
 		System.out.println();
 		System.out.println("Q pub " + pubKey.getQ().toString());
-		System.out.println("Q pub uncompressed " + Utils.bytesToHex(pubKey.getQ().getEncoded(false)));
-		System.out.println("Q pub 1st half " + Utils.bytesToHex(Arrays.copyOf(pubKey.getQ().getEncoded(false), 32)));
-		System.out.println("Q compressed   " + Utils.bytesToHex(pubKey.getQ().getEncoded(true)));
-		System.out.println("Sing of v?   " + Utils.bytesToHex(Arrays.copyOf(pubKey.getQ().getEncoded(true), 1)));
+		System.out.println("Q pub uncompressed " + StringUtil.byteArray2HexString(pubKey.getQ().getEncoded(false)));
+		System.out.println("Q pub 1st half " + StringUtil.byteArray2HexString(Arrays.copyOf(pubKey.getQ().getEncoded(false), 32)));
+		System.out.println("Q compressed   " + StringUtil.byteArray2HexString(pubKey.getQ().getEncoded(true)));
+		System.out.println("Sing of v?   " + StringUtil.byteArray2HexString(Arrays.copyOf(pubKey.getQ().getEncoded(true), 1)));
 		System.out
-				.println("Actual U?   " + Utils.bytesToHex(Arrays.copyOfRange(pubKey.getQ().getEncoded(true), 1, 33)));
+				.println("Actual U?   " + StringUtil.byteArray2HexString(Arrays.copyOfRange(pubKey.getQ().getEncoded(true), 1, 33)));
 		System.out.println(
-				"getAffineXCoord " + Utils.bytesToHex(pubKey.getQ().getAffineXCoord().toBigInteger().toByteArray()));
+				"getAffineXCoord " + StringUtil.byteArray2HexString(pubKey.getQ().getAffineXCoord().toBigInteger().toByteArray()));
 		System.out.println(
-				"getAffineYCoord " + Utils.bytesToHex(pubKey.getQ().getAffineYCoord().toBigInteger().toByteArray()));
+				"getAffineYCoord " + StringUtil.byteArray2HexString(pubKey.getQ().getAffineYCoord().toBigInteger().toByteArray()));
 		System.out.println();
 		System.out
-				.println("getRawXCoord " + Utils.bytesToHex(pubKey.getQ().getRawXCoord().toBigInteger().toByteArray()));
+				.println("getRawXCoord " + StringUtil.byteArray2HexString(pubKey.getQ().getRawXCoord().toBigInteger().toByteArray()));
 		System.out
-				.println("getRawYCoord " + Utils.bytesToHex(pubKey.getQ().getRawYCoord().toBigInteger().toByteArray()));
+				.println("getRawYCoord " + StringUtil.byteArray2HexString(pubKey.getQ().getRawYCoord().toBigInteger().toByteArray()));
 		System.out.println();
-		System.out.println("getXCoord " + Utils.bytesToHex(pubKey.getQ().getXCoord().toBigInteger().toByteArray()));
-		System.out.println("getYCoord " + Utils.bytesToHex(pubKey.getQ().getYCoord().toBigInteger().toByteArray()));
+		System.out.println("getXCoord " + StringUtil.byteArray2HexString(pubKey.getQ().getXCoord().toBigInteger().toByteArray()));
+		System.out.println("getYCoord " + StringUtil.byteArray2HexString(pubKey.getQ().getYCoord().toBigInteger().toByteArray()));
 		System.out.println();
-		System.out.println("Pubkey encoded: " + Utils.bytesToHex(pubKey.getEncoded()));
-		System.out.println("Privkey encoded: " + Utils.bytesToHex(privKey.getEncoded()));
+		System.out.println("Pubkey encoded: " + StringUtil.byteArray2HexString(pubKey.getEncoded()));
+		System.out.println("Privkey encoded: " + StringUtil.byteArray2HexString(privKey.getEncoded()));
 		System.out.println();
-		System.out.println("S: " + Utils.bytesToHex(privKey.getS().toByteArray()));
+		System.out.println("S: " + StringUtil.byteArray2HexString(privKey.getS().toByteArray()));
 		System.out.println();
 		privKey.getParameters().getH();
-		System.out.println("H: " + Utils.bytesToHex(privKey.getParameters().getH().toByteArray()));
+		System.out.println("H: " + StringUtil.byteArray2HexString(privKey.getParameters().getH().toByteArray()));
 		System.out.println();
-		System.out.println("Pubkey (Java) encoded: " + Utils.bytesToHex(publicKey.getEncoded()));
-		System.out.println("Privkey (Java) encoded: " + Utils.bytesToHex(privateKey.getEncoded()));
+		System.out.println("Pubkey (Java) encoded: " + StringUtil.byteArray2HexString(publicKey.getEncoded()));
+		System.out.println("Privkey (Java) encoded: " + StringUtil.byteArray2HexString(privateKey.getEncoded()));
 
 		// Get the private D
 		byte[] rgbD = invertArray(privKey.getD().toByteArray());
@@ -549,9 +514,9 @@ public class SharedSecretCalculation {
 		BigInteger root2 = root1.negate().mod(prime);
 
 		// System.out.println("Root1: " +
-		// Utils.bytesToHex(root1.toByteArray()));
+		// StringUtil.byteArray2HexString(root1.toByteArray()));
 		// System.out.println("Root2: " +
-		// Utils.bytesToHex(root2.toByteArray()));
+		// StringUtil.byteArray2HexString(root2.toByteArray()));
 
 		byte[] root1Bytes = root1.toByteArray();
 		byte[] root2Bytes = root2.toByteArray();
@@ -678,9 +643,9 @@ public class SharedSecretCalculation {
 			xBytes = Arrays.copyOfRange(xBytes, 1, 49);
 		}
 
-		// System.out.println("Root1: " + Utils.bytesToHex(root1Bytes));
-		// System.out.println("Root2: " + Utils.bytesToHex(root2Bytes));
-		// System.out.println("X: " + Utils.bytesToHex(xBytes));
+		// System.out.println("Root1: " + StringUtil.byteArray2HexString(root1Bytes));
+		// System.out.println("Root2: " + StringUtil.byteArray2HexString(root2Bytes));
+		// System.out.println("X: " + StringUtil.byteArray2HexString(xBytes));
 		
 		// Now build 2 keys from the potential Y values
 		OneKey possibleKey1 = null;
@@ -856,8 +821,8 @@ public class SharedSecretCalculation {
 			byte[] privateScalar = Arrays.copyOf(privateHash, 32);
 			byte[] rgbD = privateScalar;
 			
-			// System.out.println("D bad: " + Utils.bytesToHex(rgbD_bad));
-			// System.out.println("D good: " + Utils.bytesToHex(rgbD));
+			// System.out.println("D bad: " + StringUtil.byteArray2HexString(rgbD_bad));
+			// System.out.println("D good: " + StringUtil.byteArray2HexString(rgbD));
 			
 			key.add(KeyKeys.OKP_D, CBORObject.FromObject(rgbD));
 		}
@@ -925,66 +890,6 @@ public class SharedSecretCalculation {
 	}
 
 	/**
-	 * Generate a shared secret when using EdDSA.
-	 * 
-	 * @param senderPrivateKey the public/private key of the sender
-	 * @param recipientPublicKey the public key of the recipient
-	 * @return the shared secret
-	 */
-	private static byte[] generateSharedSecretEdDSA(OneKey senderPrivateKey, OneKey recipientPublicKey) {
-
-		byte[] sharedSecret = null;
-		try {
-			sharedSecret = SharedSecretCalculation.calculateSharedSecret(recipientPublicKey, senderPrivateKey);
-		} catch (CoseException e) {
-			System.err.println("Could not generate the shared secret: " + e);
-		}
-
-		return sharedSecret;
-	}
-
-	/**
-	 * Calculate the shared secret from a COSE OneKey using EdDSA. It is first
-	 * converted to Montgomery coordinates and after that the X25519 function is
-	 * used to perform the shared secret calculation.
-	 * 
-	 * TODO: Update to handle both Ed25519 and Curve25519 already here?
-	 * 
-	 * @param publicKey the public key (of the other party)
-	 * @param privateKey the private key (your own)
-	 * @return the shared secret calculated
-	 * @throws CoseException on failure
-	 */
-	private static byte[] calculateSharedSecret(OneKey publicKey, OneKey privateKey) throws CoseException {
-
-		/* Check that the keys are as expected (using Ed25519) */
-		if (publicKey.get(KeyKeys.OKP_Curve) != KeyKeys.OKP_Ed25519
-				|| privateKey.get(KeyKeys.OKP_Curve) != KeyKeys.OKP_Ed25519) {
-			System.err.println(
-					"Error: Keys for EdDSA shared secret calculation are not using Ed25519. Use X25519 directly.");
-			return null;
-		}
-		
-		/* Calculate u coordinate from public key */
-
-		FieldElement public_y = KeyRemapping.extractCOSE_y(publicKey);
-		FieldElement public_u = KeyRemapping.calcCurve25519_u(public_y);
-		byte[] public_u_array = public_u.toByteArray();
-
-		/* Get private scalar from private key */
-
-		byte[] private_hash = ((EdDSAPrivateKey) privateKey.AsPrivateKey()).getH();
-		byte[] private_scalar = Arrays.copyOf(private_hash, 32);
-
-		/* -- Calculated shared secret -- */
-		// secret = X25519(my private scalar, your public key U)
-
-		byte[] sharedSecret = X25519(private_scalar, public_u_array);
-
-		return sharedSecret;
-	}
-
-	/**
 	 * Wrapper for the X25519 function
 	 * 
 	 * @param k the private scalar k
@@ -997,34 +902,6 @@ public class SharedSecretCalculation {
 		u = u.clone(); // Needed?
 
 		BigInteger kn = decodeScalar(k);
-		BigInteger un = decodeUCoordinate(u);
-
-		BigIntegerFieldElement kn_bif = new BigIntegerFieldElement(ed25519Field, kn);
-		BigIntegerFieldElement un_bif = new BigIntegerFieldElement(ed25519Field, un);
-
-		FieldElement res = X25519_calculate(kn_bif, un_bif);
-
-		BigInteger res_bi = new BigInteger(invertArray(res.toByteArray()));
-
-		return encodeUCoordinate(res_bi);
-
-	}
-
-	/**
-	 * Skips decoding the scalar k, since it may not be encoded in the first
-	 * place. But in the end it seems decoding multiple times changes nothing.
-	 * 
-	 * @param k
-	 * @param u
-	 * @return
-	 */
-	@SuppressWarnings("unused")
-	private static byte[] X25519_noDecodeScalar(byte[] k, byte[] u) {
-
-		k = k.clone(); // Needed?
-		u = u.clone(); // Needed?
-
-		BigInteger kn = decodeLittleEndian(k, 255);
 		BigInteger un = decodeUCoordinate(u);
 
 		BigIntegerFieldElement kn_bif = new BigIntegerFieldElement(ed25519Field, kn);

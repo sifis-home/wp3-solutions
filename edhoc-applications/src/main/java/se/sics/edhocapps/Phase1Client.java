@@ -372,13 +372,10 @@ public class Phase1Client {
 		AppProfile appProfile = edhocEndpointInfo.getAppProfiles().get(uriAsString);
 		
 		EdhocSession session = MessageProcessor.createSessionAsInitiator(authenticationMethod,
-																		 edhocEndpointInfo.getKeyPairs(),
-																		 edhocEndpointInfo.getIdCreds(),
-																		 edhocEndpointInfo.getCreds(),
-                 														 edhocEndpointInfo.getSupportedCiphersuites(),
-                 														 edhocEndpointInfo.getUsedConnectionIds(),
-                 														 appProfile, edhocEndpointInfo.getEdp(), db);
-		
+				edhocEndpointInfo.getKeyPairs(), edhocEndpointInfo.getIdCreds(), edhocEndpointInfo.getCreds(),
+				edhocEndpointInfo.getSupportedCipherSuites(), edhocEndpointInfo.getUsedConnectionIds(), appProfile,
+				edhocEndpointInfo.getEdp(), db);
+
 		// At this point, the initiator may overwrite the information in the EDHOC session about the supported ciphersuites
 		// and the selected ciphersuite, based on a previously received EDHOC Error Message
 		
@@ -599,7 +596,7 @@ public class Phase1Client {
 				        // The Sender ID of this peer is the EDHOC connection identifier of the other peer
 				        byte[] senderId = session.getPeerConnectionId(); // v-14 identifiers
 				        
-				        int selectedCiphersuite = session.getSelectedCiphersuite();
+						int selectedCiphersuite = session.getSelectedCipherSuite();
 				        AlgorithmID alg = EdhocSession.getAppAEAD(selectedCiphersuite);
 				        AlgorithmID hkdf = EdhocSession.getAppHkdf(selectedCiphersuite);
 				        

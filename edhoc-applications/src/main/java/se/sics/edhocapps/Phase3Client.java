@@ -375,7 +375,7 @@ public class Phase3Client {
 																		 edhocEndpointInfo.getKeyPairs(),
 																		 edhocEndpointInfo.getIdCreds(),
 																		 edhocEndpointInfo.getCreds(),
-                 														 edhocEndpointInfo.getSupportedCiphersuites(),
+                 														 edhocEndpointInfo.getSupportedCipherSuites(),
                  														 edhocEndpointInfo.getUsedConnectionIds(),
                  														 appProfile, edhocEndpointInfo.getEdp(), db);
 		
@@ -599,7 +599,7 @@ public class Phase3Client {
 				        // The Sender ID of this peer is the EDHOC connection identifier of the other peer
 				        byte[] senderId = session.getPeerConnectionId(); // v-14 identifiers
 				        
-				        int selectedCiphersuite = session.getSelectedCiphersuite();
+				        int selectedCiphersuite = session.getSelectedCipherSuite();
 				        AlgorithmID alg = EdhocSession.getAppAEAD(selectedCiphersuite);
 				        AlgorithmID hkdf = EdhocSession.getAppHkdf(selectedCiphersuite);
 				        

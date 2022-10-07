@@ -272,7 +272,7 @@ public class Phase3Server extends CoapServer {
 			Response r = new Response(ResponseCode.CHANGED);
 			r.getOptions().setContentFormat(MediaTypeRegistry.TEXT_PLAIN);
 
-			if (exchange.getRequestText().equals("1")) {
+			if (exchange.getRequestText().equals("1") || exchange.getRequestText().toLowerCase().equals("on")) {
 				r.setPayload("Turning on light ");
 				System.out.println("Turning on light ");
 
@@ -284,7 +284,7 @@ public class Phase3Server extends CoapServer {
 					System.err.print("Failed to run python script: ");
 					e.printStackTrace();
 				}
-			} else if (exchange.getRequestText().equals("0")) {
+			} else if (exchange.getRequestText().equals("0") || exchange.getRequestText().toLowerCase().equals("off")) {
 				r.setPayload("Turning off light");
 				System.out.println("Turning off light");
 

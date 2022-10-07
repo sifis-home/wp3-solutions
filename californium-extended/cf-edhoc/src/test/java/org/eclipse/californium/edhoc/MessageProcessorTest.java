@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Set;
 
 import org.eclipse.californium.cose.AlgorithmID;
@@ -24,6 +23,7 @@ import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.KeyKeys;
 import org.eclipse.californium.cose.OneKey;
 import org.eclipse.californium.elements.util.Bytes;
+import org.eclipse.californium.elements.util.StringUtil;
 import org.eclipse.californium.oscore.HashMapCtxDB;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -32,7 +32,6 @@ import org.junit.Test;
 import com.upokecenter.cbor.CBORObject;
 
 import net.i2p.crypto.eddsa.EdDSASecurityProvider;
-import net.i2p.crypto.eddsa.Utils;
 
 public class MessageProcessorTest {
 
@@ -45,15 +44,15 @@ public class MessageProcessorTest {
 		
 		// Note: the actual EDHOC message 1 starts with 0x00. The byte 0xf5 (CBOR simple value True) is prepended,
 		//       in order to pass the check against what returned by the EDHOC engine, to be sent as a CoAP request payload.
-		byte[] message1 = Utils
-				.hexToBytes("f500005820e31ec15ee8039427dfc4727ef17e2e0e69c54437f3c5828019ef0a6388c125520e");
+		byte[] message1 = StringUtil.hex2ByteArray(
+				"f500005820e31ec15ee8039427dfc4727ef17e2e0e69c54437f3c5828019ef0a6388c125520e");
 		
-		byte[] message2 = Utils.hexToBytes(
+		byte[] message2 = StringUtil.hex2ByteArray(
 				"5870e1739096c5c9582c1298918166d69548c78f7497b258c0856aa2019893a39425690bdd9b15885138490d3b8ac735e2ad7912d58d0e3995f2b54e8e63e90bc3c42620308c10508d0f40c8f48f87a404cfc78fb522db588a12f3d8e76436fc26a81daeb735c34feb1f7254bda2b7d014f332");
 		
 		// Note: the actual EDHOC message 3 starts with 0x58. The byte 0x32 (CBOR encoding for -19) is prepended as C_R,
 		//       in order to pass the check against what returned by the EDHOC engine, to be sent as a CoAP request payload. 
-		byte[] message3 = Utils.hexToBytes(
+		byte[] message3 = StringUtil.hex2ByteArray(
 				"3258584c53ed22c45fb00cad889b4c06f2a26cf49154cb8bdf4eee44e2b50221ab1f029d3d3e0523ddf9d7610c376c728a1e901692f1da0782a3472ff6eb1bb6810c6f686879c9a5594f8f170ca5a2b5bf05a74f42cdd9c854e01e");
 
 		HashMap<CBORObject, EdhocSession> edhocSessions = new HashMap<CBORObject, EdhocSession>();
@@ -87,12 +86,15 @@ public class MessageProcessorTest {
 		byte[] connectionIdentifierInitiator = new byte[] {(byte) 0x0e};
 		
 		// The identity key of the Initiator
-		byte[] privateIdentityKeyBytesInit = Utils.hexToBytes("366a5859a4cd65cfaeaf0566c9fc7e1a93306fdec17763e05813a70f21ff59db");
-		byte[] publicIdentityKeyBytesInit = Utils.hexToBytes("ec2c2eb6cdd95782a8cd0b2e9c44270774dcbd31bfbe2313ce80132e8a261c04");
+		byte[] privateIdentityKeyBytesInit = StringUtil.hex2ByteArray(
+				"366a5859a4cd65cfaeaf0566c9fc7e1a93306fdec17763e05813a70f21ff59db");
+		byte[] publicIdentityKeyBytesInit = StringUtil.hex2ByteArray(
+				"ec2c2eb6cdd95782a8cd0b2e9c44270774dcbd31bfbe2313ce80132e8a261c04");
 		OneKey identityKeyInit = SharedSecretCalculation.buildEd25519OneKey(privateIdentityKeyBytesInit, publicIdentityKeyBytesInit);
 		
 		// The x509 certificate of the Initiator
-		byte[] serializedCertInit = Utils.hexToBytes("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E7F808182838485868788");
+		byte[] serializedCertInit = StringUtil.hex2ByteArray(
+				"000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E7F808182838485868788");
 		
 		// CRED_I, as serialization of a CBOR byte string wrapping the serialized certificate
 		byte[] credI = CBORObject.FromObject(serializedCertInit).EncodeToBytes();
@@ -132,12 +134,15 @@ public class MessageProcessorTest {
 		byte[] connectionIdentifierResponder = new byte[] {(byte) 0x32};
 		
 		// The identity key of the Responder
-		byte[] privateIdentityKeyBytesResp = Utils.hexToBytes("bc4d4f9882612233b402db75e6c4cf3032a70a0d2e3ee6d01b11ddde5f419cfc");
-		byte[] publicIdentityKeyBytesResp = Utils.hexToBytes("27eef2b08a6f496faedaa6c7f9ec6ae3b9d52424580d52e49da6935edf53cdc5");
+		byte[] privateIdentityKeyBytesResp = StringUtil.hex2ByteArray(
+				"bc4d4f9882612233b402db75e6c4cf3032a70a0d2e3ee6d01b11ddde5f419cfc");
+		byte[] publicIdentityKeyBytesResp = StringUtil.hex2ByteArray(
+				"27eef2b08a6f496faedaa6c7f9ec6ae3b9d52424580d52e49da6935edf53cdc5");
 		OneKey identityKeyResp = SharedSecretCalculation.buildEd25519OneKey(privateIdentityKeyBytesResp, publicIdentityKeyBytesResp);
 		
 		// The x509 certificate of the Responder
-		byte[] serializedCertResp = Utils.hexToBytes("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E");
+		byte[] serializedCertResp = StringUtil.hex2ByteArray(
+				"000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E");
 		
 		// CRED_R, as serialization of a CBOR byte string wrapping the serialized certificate
 		byte[] credR = CBORObject.FromObject(serializedCertResp).EncodeToBytes();
@@ -238,7 +243,7 @@ public class MessageProcessorTest {
 	 * See: upcoming draft-ietf-lake-traces-01
 	 */
 	@Test
-	public void testWriteMessage1Ciphersuite0Method0() {
+	public void testWriteMessage1CipherSuite0Method0() {
 		
 		// Insert EdDSA security provider
 		final Provider EdDSA = new EdDSASecurityProvider();
@@ -255,15 +260,18 @@ public class MessageProcessorTest {
 		cipherSuites.add(0);
 		
 		// The identity key of the Initiator
-		byte[] privateIdentityKeyBytes = Utils.hexToBytes("4c5b25878f507c6b9dae68fbd4fd3ff997533db0af00b25d324ea28e6c213bc8");
-		byte[] publicIdentityKeyBytes = Utils.hexToBytes("ed06a8ae61a829ba5fa54525c9d07f48dd44a302f43e0f23d8cc20b73085141e");
+		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"4c5b25878f507c6b9dae68fbd4fd3ff997533db0af00b25d324ea28e6c213bc8");
+		byte[] publicIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"ed06a8ae61a829ba5fa54525c9d07f48dd44a302f43e0f23d8cc20b73085141e");
 		OneKey identityKey = SharedSecretCalculation.buildEd25519OneKey(privateIdentityKeyBytes, publicIdentityKeyBytes);
 		
 		CBORObject[] ead1 = null;
 		
 		// Just for method compatibility; it is not used for EDHOC Message 1
 		// The x509 certificate of the Initiator
-		byte[] serializedCert = Utils.hexToBytes("3081EE3081A1A003020102020462319EA0300506032B6570301D311B301906035504030C124544484F4320526F6F742045643235353139301E170D3232303331363038323430305A170D3239313233313233303030305A30223120301E06035504030C174544484F4320496E69746961746F722045643235353139302A300506032B6570032100ED06A8AE61A829BA5FA54525C9D07F48DD44A302F43E0F23D8CC20B73085141E300506032B6570034100521241D8B3A770996BCFC9B9EAD4E7E0A1C0DB353A3BDF2910B39275AE48B756015981850D27DB6734E37F67212267DD05EEFF27B9E7A813FA574B72A00B430B");
+		byte[] serializedCert = StringUtil.hex2ByteArray(
+				"3081EE3081A1A003020102020462319EA0300506032B6570301D311B301906035504030C124544484F4320526F6F742045643235353139301E170D3232303331363038323430305A170D3239313233313233303030305A30223120301E06035504030C174544484F4320496E69746961746F722045643235353139302A300506032B6570032100ED06A8AE61A829BA5FA54525C9D07F48DD44A302F43E0F23D8CC20B73085141E300506032B6570034100521241D8B3A770996BCFC9B9EAD4E7E0A1C0DB353A3BDF2910B39275AE48B756015981850D27DB6734E37F67212267DD05EEFF27B9E7A813FA574B72A00B430B");
 		
 		// CRED_I, as serialization of a CBOR byte string wrapping the serialized certificate
 		byte[] cred = CBORObject.FromObject(serializedCert).EncodeToBytes();
@@ -311,8 +319,10 @@ public class MessageProcessorTest {
 				                                idCreds, creds, cipherSuites, appProfile, edp, db);
 
 		// Force a specific ephemeral key
-		byte[] privateEkeyBytes = Utils.hexToBytes("892ec28e5cb6669108470539500b705e60d008d347c5817ee9f3327c8a87bb03");
-		byte[] publicEkeyBytes = Utils.hexToBytes("31f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f04");
+		byte[] privateEkeyBytes = StringUtil.hex2ByteArray(
+				"892ec28e5cb6669108470539500b705e60d008d347c5817ee9f3327c8a87bb03");
+		byte[] publicEkeyBytes = StringUtil.hex2ByteArray(
+				"31f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f04");
 		OneKey ek = SharedSecretCalculation.buildCurve25519OneKey(privateEkeyBytes, publicEkeyBytes);
 		session.setEphemeralKey(ek);
 
@@ -323,11 +333,9 @@ public class MessageProcessorTest {
 		
 		// Note: the actual EDHOC message 1 starts with 0x00. The byte 0xf5 (CBOR simple value True) is prepended,
 		//       in order to pass the check against what returned by the EDHOC engine, to be sent as a CoAP request payload.
-		byte[] expectedMessage1 = Utils
-				.hexToBytes("f50000582031f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f042d");
+		byte[] expectedMessage1 = StringUtil.hex2ByteArray(
+				"f5" + "0000582031f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f042d");
 
-		
-		// v-14 TO BE ENABLED
 		Assert.assertArrayEquals(expectedMessage1, message1);
 		
 	}
@@ -339,7 +347,7 @@ public class MessageProcessorTest {
 	 * See: upcoming draft-ietf-lake-traces-01
 	 */
 	@Test
-	public void testWriteMessage2Ciphersuite0Method0() {
+	public void testWriteMessage2CipherSuite0Method0() {
 
 		// Insert EdDSA security provider
 		final Provider EdDSA = new EdDSASecurityProvider();
@@ -360,7 +368,8 @@ public class MessageProcessorTest {
 
 		
 		// The x509 certificate of the Responder
-		byte[] serializedCert = Utils.hexToBytes("3081EE3081A1A003020102020462319EC4300506032B6570301D311B301906035504030C124544484F4320526F6F742045643235353139301E170D3232303331363038323433365A170D3239313233313233303030305A30223120301E06035504030C174544484F4320526573706F6E6465722045643235353139302A300506032B6570032100A1DB47B95184854AD12A0C1A354E418AACE33AA0F2C662C00B3AC55DE92F9359300506032B6570034100B723BC01EAB0928E8B2B6C98DE19CC3823D46E7D6987B032478FECFAF14537A1AF14CC8BE829C6B73044101837EB4ABC949565D86DCE51CFAE52AB82C152CB02");
+		byte[] serializedCert = StringUtil.hex2ByteArray(
+				"3081EE3081A1A003020102020462319EC4300506032B6570301D311B301906035504030C124544484F4320526F6F742045643235353139301E170D3232303331363038323433365A170D3239313233313233303030305A30223120301E06035504030C174544484F4320526573706F6E6465722045643235353139302A300506032B6570032100A1DB47B95184854AD12A0C1A354E418AACE33AA0F2C662C00B3AC55DE92F9359300506032B6570034100B723BC01EAB0928E8B2B6C98DE19CC3823D46E7D6987B032478FECFAF14537A1AF14CC8BE829C6B73044101837EB4ABC949565D86DCE51CFAE52AB82C152CB02");
 		
 		// CRED_R, as serialization of a CBOR byte string wrapping the serialized certificate
 		byte[] credR = CBORObject.FromObject(serializedCert).EncodeToBytes();
@@ -373,7 +382,7 @@ public class MessageProcessorTest {
 		/*
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(credR);
 		try {
-			System.out.println((Utils.bytesToHex(inputStream.readAllBytes())));
+			System.out.println((StringUtil.byteArray2HexString(inputStream.readAllBytes())));
 		} catch (IOException e) {
 			fail("Error when printing the input bytes: " + e.getMessage());
 			return;
@@ -412,13 +421,17 @@ public class MessageProcessorTest {
 		
 		
 		// The identity key of the Responder
-		byte[] privateIdentityKeyBytes = Utils.hexToBytes("ef140ff900b0ab03f0c08d879cbbd4b31ea71e6e7ee7ffcb7e7955777a332799");
-		byte[] publicIdentityKeyBytes = Utils.hexToBytes("a1db47b95184854ad12a0c1a354e418aace33aa0f2c662c00b3ac55de92f9359");
+		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"ef140ff900b0ab03f0c08d879cbbd4b31ea71e6e7ee7ffcb7e7955777a332799");
+		byte[] publicIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"a1db47b95184854ad12a0c1a354e418aace33aa0f2c662c00b3ac55de92f9359");
 		OneKey identityKey = SharedSecretCalculation.buildEd25519OneKey(privateIdentityKeyBytes, publicIdentityKeyBytes);
 		
 		// The ephemeral key of the Responder
-		byte[] privateEphemeralKeyBytes = Utils.hexToBytes("e69c23fbf81bc435942446837fe827bf206c8fa10a39db47449e5a813421e1e8");
-		byte[] publicEphemeralKeyBytes = Utils.hexToBytes("dc88d2d51da5ed67fc4616356bc8ca74ef9ebe8b387e623a360ba480b9b29d1c");
+		byte[] privateEphemeralKeyBytes = StringUtil.hex2ByteArray(
+				"e69c23fbf81bc435942446837fe827bf206c8fa10a39db47449e5a813421e1e8");
+		byte[] publicEphemeralKeyBytes = StringUtil.hex2ByteArray(
+				"dc88d2d51da5ed67fc4616356bc8ca74ef9ebe8b387e623a360ba480b9b29d1c");
 		OneKey ephemeralKey = SharedSecretCalculation.buildCurve25519OneKey(privateEphemeralKeyBytes, publicEphemeralKeyBytes);
 
 		
@@ -428,7 +441,8 @@ public class MessageProcessorTest {
 		byte[] connectionIdentifierInitiator = new byte[] {(byte) 0x2d};
 
 		// The ephemeral key of the Initiator
-		byte[] peerEphemeralPublicKeyBytes = Utils.hexToBytes("31f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f04");
+		byte[] peerEphemeralPublicKeyBytes = StringUtil.hex2ByteArray(
+				"31f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f04");
 		OneKey peerEphemeralPublicKey = SharedSecretCalculation.buildCurve25519OneKey(null, peerEphemeralPublicKeyBytes);
 		
 		
@@ -479,7 +493,7 @@ public class MessageProcessorTest {
 		session.setPeerEphemeralPublicKey(peerEphemeralPublicKey);
 
 		// Set the selected cipher suite
-		session.setSelectedCiphersuite(0);
+		session.setSelectedCipherSuite(0);
 		
 		// Set the asymmetric key pair, CRED and ID_CRED of the Initiator to use in this session
     	session.setAuthenticationCredential();
@@ -489,7 +503,8 @@ public class MessageProcessorTest {
 		
 		// Store the EDHOC Message 1
 		// Note: this is the actual EDHOC message 1, so it does not include the byte 0xf5 (True) prepended on the wire
-		byte[] message1 = Utils.hexToBytes("0000582031f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f042d");
+		byte[] message1 = StringUtil.hex2ByteArray(
+				"0000582031f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f042d");
 		session.setHashMessage1(message1);
 		
 		
@@ -498,8 +513,8 @@ public class MessageProcessorTest {
 
 		// Compare with the expected value from the test vectors
 		
-		byte[] expectedMessage2 = Utils
-				.hexToBytes("5870dc88d2d51da5ed67fc4616356bc8ca74ef9ebe8b387e623a360ba480b9b29d1c9b2f43ba6ee11c4e6c005c0a3e4cb5ddcbf41c938eaa3e0f9f4f9d76fe80c07cf8b09b2861331f7ce118404a354b89fc8651915eb227cd06c074601783f9706a1bf442fb5902c5c12f6e298631898b3d4118");
+		byte[] expectedMessage2 = StringUtil.hex2ByteArray(
+				"5870dc88d2d51da5ed67fc4616356bc8ca74ef9ebe8b387e623a360ba480b9b29d1c67b9cf55e7b74dd29cdce68e5c7f429c5ff7ed8f1ac3fb4035bd3254b26b63a857295afb2fdd4e479134223a9cd9992f306faf5c8bd721dc4fb2db37d376bbe4324e49b01ba434c2ddcca34431a71c734118");
 
 		Assert.assertArrayEquals(expectedMessage2, message2);
 		
@@ -514,7 +529,7 @@ public class MessageProcessorTest {
 	 * See: upcoming draft-ietf-lake-traces-01
 	 */
 	@Test
-	public void testWriteMessage3Ciphersuite0Method0() {
+	public void testWriteMessage3CipherSuite0Method0() {
 
 		// Insert EdDSA security provider
 		final Provider EdDSA = new EdDSASecurityProvider();
@@ -535,7 +550,8 @@ public class MessageProcessorTest {
 		
 		
 		// The x509 certificate of the Initiator
-		byte[] serializedCert = Utils.hexToBytes("3081EE3081A1A003020102020462319EA0300506032B6570301D311B301906035504030C124544484F4320526F6F742045643235353139301E170D3232303331363038323430305A170D3239313233313233303030305A30223120301E06035504030C174544484F4320496E69746961746F722045643235353139302A300506032B6570032100ED06A8AE61A829BA5FA54525C9D07F48DD44A302F43E0F23D8CC20B73085141E300506032B6570034100521241D8B3A770996BCFC9B9EAD4E7E0A1C0DB353A3BDF2910B39275AE48B756015981850D27DB6734E37F67212267DD05EEFF27B9E7A813FA574B72A00B430B");
+		byte[] serializedCert = StringUtil.hex2ByteArray(
+				"3081EE3081A1A003020102020462319EA0300506032B6570301D311B301906035504030C124544484F4320526F6F742045643235353139301E170D3232303331363038323430305A170D3239313233313233303030305A30223120301E06035504030C174544484F4320496E69746961746F722045643235353139302A300506032B6570032100ED06A8AE61A829BA5FA54525C9D07F48DD44A302F43E0F23D8CC20B73085141E300506032B6570034100521241D8B3A770996BCFC9B9EAD4E7E0A1C0DB353A3BDF2910B39275AE48B756015981850D27DB6734E37F67212267DD05EEFF27B9E7A813FA574B72A00B430B");
 		
 		// CRED_I, as serialization of a CBOR byte string wrapping the serialized certificate
 		byte[] credI = CBORObject.FromObject(serializedCert).EncodeToBytes();
@@ -544,13 +560,17 @@ public class MessageProcessorTest {
 		CBORObject idCredI = Util.buildIdCredX5t(serializedCert);
 		
 		// The identity key of the Initiator
-		byte[] privateIdentityKeyBytes = Utils.hexToBytes("4c5b25878f507c6b9dae68fbd4fd3ff997533db0af00b25d324ea28e6c213bc8");
-		byte[] publicIdentityKeyBytes = Utils.hexToBytes("ed06a8ae61a829ba5fa54525c9d07f48dd44a302f43e0f23d8cc20b73085141e");
+		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"4c5b25878f507c6b9dae68fbd4fd3ff997533db0af00b25d324ea28e6c213bc8");
+		byte[] publicIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"ed06a8ae61a829ba5fa54525c9d07f48dd44a302f43e0f23d8cc20b73085141e");
 		OneKey identityKey = SharedSecretCalculation.buildEd25519OneKey(privateIdentityKeyBytes, publicIdentityKeyBytes);
 		
 		// The ephemeral key of the Initiator
-		byte[] privateEphemeralKeyBytes = Utils.hexToBytes("892ec28e5cb6669108470539500b705e60d008d347c5817ee9f3327c8a87bb03");
-		byte[] publicEphemeralKeyBytes = Utils.hexToBytes("31f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f04");
+		byte[] privateEphemeralKeyBytes = StringUtil.hex2ByteArray(
+				"892ec28e5cb6669108470539500b705e60d008d347c5817ee9f3327c8a87bb03");
+		byte[] publicEphemeralKeyBytes = StringUtil.hex2ByteArray(
+				"31f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f04");
 		OneKey ephemeralKey = SharedSecretCalculation.buildCurve25519OneKey(privateEphemeralKeyBytes, publicEphemeralKeyBytes);
 		
 		
@@ -559,14 +579,24 @@ public class MessageProcessorTest {
 		// Connection Identifier of the Responder
 		byte[] connectionIdentifierResponder = new byte[] {(byte) 0x18};
 		
+		// The x509 certificate of the Responder
+		byte[] serializedCertResponder = StringUtil.hex2ByteArray(
+				"3081EE3081A1A003020102020462319EC4300506032B6570301D311B301906035504030C124544484F4320526F6F742045643235353139301E170D3232303331363038323433365A170D3239313233313233303030305A30223120301E06035504030C174544484F4320526573706F6E6465722045643235353139302A300506032B6570032100A1DB47B95184854AD12A0C1A354E418AACE33AA0F2C662C00B3AC55DE92F9359300506032B6570034100B723BC01EAB0928E8B2B6C98DE19CC3823D46E7D6987B032478FECFAF14537A1AF14CC8BE829C6B73044101837EB4ABC949565D86DCE51CFAE52AB82C152CB02");
+		
+		// CRED_R, as serialization of a CBOR byte string wrapping the serialized certificate
+		byte[] credR = CBORObject.FromObject(serializedCertResponder).EncodeToBytes();
+		
 		// The ephemeral key of the Responder
-		byte[] peerEphemeralPublicKeyBytes = Utils.hexToBytes("dc88d2d51da5ed67fc4616356bc8ca74ef9ebe8b387e623a360ba480b9b29d1c");
+		byte[] peerEphemeralPublicKeyBytes = StringUtil.hex2ByteArray(
+				"dc88d2d51da5ed67fc4616356bc8ca74ef9ebe8b387e623a360ba480b9b29d1c");
 		OneKey peerEphemeralPublicKey = SharedSecretCalculation.buildCurve25519OneKey(null, peerEphemeralPublicKeyBytes);
 
 		
 		/* Status from after receiving EDHOC Message 2 */
-		byte[] th2 = Utils.hexToBytes("3ab11700841fce193c323911edb317b046dcf24b9950fd624884f7f57cd98b07");
-		byte[] prk3e2m = Utils.hexToBytes("c576105d95b4d8c18e8f655f546880a854f2da106ce5a3a02d8b3ede7baabca6");
+		byte[] th2 = StringUtil.hex2ByteArray(
+				"3ab11700841fce193c323911edb317b046dcf24b9950fd624884f7f57cd98b07");
+		byte[] prk3e2m = StringUtil.hex2ByteArray(
+				"2ae2421de9a72a7ae6715fb518f3ed30058fd9ca58b62568cafe7cdaa15a41f7");
 		
 		
 		
@@ -617,7 +647,7 @@ public class MessageProcessorTest {
 		session.setPeerEphemeralPublicKey(peerEphemeralPublicKey);
 
 		// Set the selected cipher suite
-		session.setSelectedCiphersuite(0);
+		session.setSelectedCipherSuite(0);
 		
 		// Set the asymmetric key pair, CRED and ID_CRED of the Initiator to use in this session
 		session.setAuthenticationCredential();
@@ -627,23 +657,28 @@ public class MessageProcessorTest {
 		
 		// Set TH_2 from the previous protocol step
 		session.setTH2(th2);
-		
-		// v-14
+
 		// Set PLAINTEXT_2 from the previous protocol step
-		byte[] plaintext2 = Utils.hexToBytes("a11822822e4879f2a41b510c1f9b5840f373a7203efa7df0738c360ee080171aca67fcb175f26d785d095b55eb1484655c39e03a3f5f9bdd87ef8c5f2ec3dfe6fbba49b7b4625b126f27de301767270c");
+		byte[] plaintext2 = StringUtil.hex2ByteArray(
+				"a11822822e4879f2a41b510c1f9b5840af7381f19ae1fe0f53895b18e5818b1fe3e3463072c02ad39f202d3828aa6237c10b08668fc476964124031fed9f944e6a78797f5c084958db0f2089c21c5202");
 		session.setPlaintext2(plaintext2);
 		
 		// Set PRK_3e2m from the previous protocol step
 		session.setPRK3e2m(prk3e2m);
+		
+		// v-16
+		// Set CRED_R from the previous protocol step
+		session.setPeerCred(credR);
 		
 		
 		// Now write EDHOC message 3
 		byte[] message3 = MessageProcessor.writeMessage3(session, ead3);
 
 		// Compare with the expected value from the test vectors
-		// Note: the actual EDHOC message 3 starts with 0x58. The bytes 0x1718 (CBOR encoding for h'18') is prepended as C_R,
+		// Note: the actual EDHOC message 3 starts with 0x58. The bytes 0x4118 (CBOR encoding for h'18') is prepended as C_R,
 		//       in order to pass the check against what returned by the EDHOC engine, to be sent as a CoAP request payload. 
-		byte[] expectedMessage3 = Utils.hexToBytes("411858582fc19556f67c929a9734789ecec60aaf8f50324fc31bd07801d57cec00d3bf1ea4dbafac342fe1686cbcea0cec4502959805b153819e274638cc23bbc4f4e39477f8a8fff5caaf5e32d4ca4e7c748d2b519d21b8d7577248");
+		byte[] expectedMessage3 = StringUtil.hex2ByteArray(
+				"4118" + "5858ba5e0e745bfa2a871d20cb02c800200771434b6e1ac98977ec733ec94c0633cb3ec0207898597f2c49d3a40f4c1451b43d0bcae4847a0d6cd32d5e8a3554f43f7a982904b077c5029b3dc7f05eedede3b02157c324c0db3e");
 
 		Assert.assertArrayEquals(expectedMessage3, message3);
 		
@@ -655,8 +690,8 @@ public class MessageProcessorTest {
         
 		// Compare with the expected value from the test vectors
 		
-		byte[] expectedMasterSecret = Utils.hexToBytes("d6dd09b137359f0ad215dd021962c05c");
-		byte[] expectedMasterSalt = Utils.hexToBytes("67ecd7d5bb494617");
+		byte[] expectedMasterSecret = StringUtil.hex2ByteArray("09c36661cf68f8c3ad216443cf6291e6");
+		byte[] expectedMasterSalt = StringUtil.hex2ByteArray("1382bf719ee65c32");
        
        	Util.nicePrint("OSCORE Master Secret", masterSecret);
         Util.nicePrint("OSCORE Master Salt", masterSalt);
@@ -667,7 +702,7 @@ public class MessageProcessorTest {
         
         /* Invoke EDHOC-KeyUpdate to updated the EDHOC key material */
         
-        byte[] nonce = Utils.hexToBytes("d6be169602b8bceaa01158fdb820890c");
+        byte[] nonce = StringUtil.hex2ByteArray("d6be169602b8bceaa01158fdb820890c");
        
         try {
 			session.edhocKeyUpdate(CBORObject.FromObject(nonce));
@@ -688,8 +723,8 @@ public class MessageProcessorTest {
        	Util.nicePrint("OSCORE Master Secret", masterSecret);
         Util.nicePrint("OSCORE Master Salt", masterSalt);
         
-		expectedMasterSecret = Utils.hexToBytes("66ecb0db0a9e496f67c0b55554796e3e");
-		expectedMasterSalt = Utils.hexToBytes("18f57dc34ed54917");
+		expectedMasterSecret = StringUtil.hex2ByteArray("f005280c948a64c46e33e9ea8de93115");
+		expectedMasterSalt = StringUtil.hex2ByteArray("0b0af32aa49b3ce3");
         
         Assert.assertArrayEquals(expectedMasterSecret, masterSecret);
         Assert.assertArrayEquals(expectedMasterSalt, masterSalt);
@@ -703,7 +738,7 @@ public class MessageProcessorTest {
 	 * See: upcoming draft-ietf-lake-traces-01
 	 */
 	@Test
-	public void testWriteMessage4Ciphersuite0Method0() {
+	public void testWriteMessage4CipherSuite0Method0() {
 
 		// Insert EdDSA security provider
 		final Provider EdDSA = new EdDSASecurityProvider();
@@ -724,7 +759,8 @@ public class MessageProcessorTest {
 		
 		
 		// The x509 certificate of the Responder
-		byte[] serializedCert = Utils.hexToBytes("3081EE3081A1A003020102020462319EC4300506032B6570301D311B301906035504030C124544484F4320526F6F742045643235353139301E170D3232303331363038323433365A170D3239313233313233303030305A30223120301E06035504030C174544484F4320526573706F6E6465722045643235353139302A300506032B6570032100A1DB47B95184854AD12A0C1A354E418AACE33AA0F2C662C00B3AC55DE92F9359300506032B6570034100B723BC01EAB0928E8B2B6C98DE19CC3823D46E7D6987B032478FECFAF14537A1AF14CC8BE829C6B73044101837EB4ABC949565D86DCE51CFAE52AB82C152CB02");
+		byte[] serializedCert = StringUtil.hex2ByteArray(
+				"3081EE3081A1A003020102020462319EC4300506032B6570301D311B301906035504030C124544484F4320526F6F742045643235353139301E170D3232303331363038323433365A170D3239313233313233303030305A30223120301E06035504030C174544484F4320526573706F6E6465722045643235353139302A300506032B6570032100A1DB47B95184854AD12A0C1A354E418AACE33AA0F2C662C00B3AC55DE92F9359300506032B6570034100B723BC01EAB0928E8B2B6C98DE19CC3823D46E7D6987B032478FECFAF14537A1AF14CC8BE829C6B73044101837EB4ABC949565D86DCE51CFAE52AB82C152CB02");
 		
 		// CRED_R, as serialization of a CBOR byte string wrapping the serialized certificate
 		byte[] credR = CBORObject.FromObject(serializedCert).EncodeToBytes();
@@ -733,13 +769,17 @@ public class MessageProcessorTest {
 		CBORObject idCredR = Util.buildIdCredX5t(serializedCert);
 		
 		// The identity key of the Responder
-		byte[] privateIdentityKeyBytes = Utils.hexToBytes("ef140ff900b0ab03f0c08d879cbbd4b31ea71e6e7ee7ffcb7e7955777a332799");
-		byte[] publicIdentityKeyBytes = Utils.hexToBytes("a1db47b95184854ad12a0c1a354e418aace33aa0f2c662c00b3ac55de92f9359");
+		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"ef140ff900b0ab03f0c08d879cbbd4b31ea71e6e7ee7ffcb7e7955777a332799");
+		byte[] publicIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"a1db47b95184854ad12a0c1a354e418aace33aa0f2c662c00b3ac55de92f9359");
 		OneKey identityKey = SharedSecretCalculation.buildEd25519OneKey(privateIdentityKeyBytes, publicIdentityKeyBytes);
 		
 		// The ephemeral key of the Responder
-		byte[] privateEphemeralKeyBytes = Utils.hexToBytes("e69c23fbf81bc435942446837fe827bf206c8fa10a39db47449e5a813421e1e8");
-		byte[] publicEphemeralKeyBytes = Utils.hexToBytes("dc88d2d51da5ed67fc4616356bc8ca74ef9ebe8b387e623a360ba480b9b29d1c");
+		byte[] privateEphemeralKeyBytes = StringUtil.hex2ByteArray(
+				"e69c23fbf81bc435942446837fe827bf206c8fa10a39db47449e5a813421e1e8");
+		byte[] publicEphemeralKeyBytes = StringUtil.hex2ByteArray(
+				"dc88d2d51da5ed67fc4616356bc8ca74ef9ebe8b387e623a360ba480b9b29d1c");
 		OneKey ephemeralKey = SharedSecretCalculation.buildCurve25519OneKey(privateEphemeralKeyBytes, publicEphemeralKeyBytes);
 
 		
@@ -749,7 +789,8 @@ public class MessageProcessorTest {
 		byte[] connectionIdentifierInitiator = new byte[] {(byte) 0x2d};
 
 		// The ephemeral key of the Initiator
-		byte[] peerEphemeralPublicKeyBytes = Utils.hexToBytes("31f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f04");
+		byte[] peerEphemeralPublicKeyBytes = StringUtil.hex2ByteArray(
+				"31f82c7b5b9cbbf0f194d913cc12ef1532d328ef32632a4881a1c0701e237f04");
 		OneKey peerEphemeralPublicKey = SharedSecretCalculation.buildCurve25519OneKey(null, peerEphemeralPublicKeyBytes);
 		
 		
@@ -802,7 +843,7 @@ public class MessageProcessorTest {
 		session.setPeerEphemeralPublicKey(peerEphemeralPublicKey);
 
 		// Set the selected cipher suite
-		session.setSelectedCiphersuite(0);
+		session.setSelectedCipherSuite(0);
 		
 		// Set the asymmetric key pair, CRED and ID_CRED of the Initiator to use in this session
 		session.setAuthenticationCredential();
@@ -811,11 +852,11 @@ public class MessageProcessorTest {
 		session.setPeerConnectionId(connectionIdentifierInitiator);
 		
 		// Store PRK_4e3m computed from the previous protocol step
-		byte[] prk4e3m = Utils.hexToBytes("c576105d95b4d8c18e8f655f546880a854f2da106ce5a3a02d8b3ede7baabca6");
+		byte[] prk4e3m = StringUtil.hex2ByteArray("2ae2421de9a72a7ae6715fb518f3ed30058fd9ca58b62568cafe7cdaa15a41f7");
 		session.setPRK4e3m(prk4e3m);
 		
 		// Store TH_4 computed from the previous protocol step
-		byte[] th4 = Utils.hexToBytes("ddccc14e32330d2da93d134b0c571e2e22a28e6208135e7cda45231d850dcec3");
+		byte[] th4 = StringUtil.hex2ByteArray("38e2e6f4641e814b721814c05b51ef0aa38bdb36074f981239e6474d9cccddc8");
 		session.setTH4(th4);
 		
 		// Now write EDHOC message 4
@@ -823,7 +864,7 @@ public class MessageProcessorTest {
 
 		// Compare with the expected value from the test vectors
 
-		byte[] expectedMessage4 = Utils.hexToBytes("48523b0282a13c8923");
+		byte[] expectedMessage4 = StringUtil.hex2ByteArray("48d5417c474cb4a302");
 		
 		Assert.assertArrayEquals(expectedMessage4, message4);
 		
@@ -836,7 +877,7 @@ public class MessageProcessorTest {
 	 * See: upcoming draft-ietf-lake-traces-01
 	 */
 	@Test
-	public void testWriteMessage1Ciphersuite2Method3() {
+	public void testWriteMessage1CipherSuite2Method3() {
 		
 		boolean initiator = true;
 		int method = 3;
@@ -861,7 +902,8 @@ public class MessageProcessorTest {
 		CBORObject idCred = Util.buildIdCredKid(idCredKid);
 		
 		// CRED_I for the identity key of the Initiator
-		byte[] cred = Utils.hexToBytes("A2027734322D35302D33312D46462D45462D33372D33322D333908A101A5010202412B2001215820AC75E9ECE3E50BFC8ED60399889522405C47BF16DF96660A41298CB4307F7EB62258206E5DE611388A4B8A8211334AC7D37ECB52A387D257E6DB3C2A93DF21FF3AFFC8");
+		byte[] cred = StringUtil.hex2ByteArray(
+				"A2027734322D35302D33312D46462D45462D33372D33322D333908A101A5010202412B2001215820AC75E9ECE3E50BFC8ED60399889522405C47BF16DF96660A41298CB4307F7EB62258206E5DE611388A4B8A8211334AC7D37ECB52A387D257E6DB3C2A93DF21FF3AFFC8");
 		
 				
 		// Set the application profile
@@ -907,9 +949,12 @@ public class MessageProcessorTest {
 		session.setPeerSupportedCipherSuites(cipherSuitesPeer);
 		
 		// Force a specific ephemeral key
-		byte[] privateEkeyBytes = Utils.hexToBytes("368ec1f69aeb659ba37d5a8d45b21bdc0299dceaa8ef235f3ca42ce3530f9525");
-		byte[] publicEkeyBytesX = Utils.hexToBytes("8af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b6");
-		byte[] publicEkeyBytesY = Utils.hexToBytes("51e8af6c6edb781601ad1d9c5fa8bf7aa15716c7c06a5d038503c614ff80c9b3");
+		byte[] privateEkeyBytes = StringUtil.hex2ByteArray(
+				"368ec1f69aeb659ba37d5a8d45b21bdc0299dceaa8ef235f3ca42ce3530f9525");
+		byte[] publicEkeyBytesX = StringUtil.hex2ByteArray(
+				"8af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b6");
+		byte[] publicEkeyBytesY = StringUtil.hex2ByteArray(
+				"51e8af6c6edb781601ad1d9c5fa8bf7aa15716c7c06a5d038503c614ff80c9b3");
 		OneKey ek = SharedSecretCalculation.buildEcdsa256OneKey(privateEkeyBytes, publicEkeyBytesX, publicEkeyBytesY);
 		session.setEphemeralKey(ek);
 
@@ -920,8 +965,8 @@ public class MessageProcessorTest {
 
 		// Note: the actual EDHOC message 1 starts with 0x03. The byte 0xf5 (CBOR simple value True) is prepended,
 		//       in order to pass the check against what returned by the EDHOC engine, to be sent as a CoAP request payload. 
-		byte[] expectedMessage1 = Utils
-				.hexToBytes("f50382060258208af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b637");
+		byte[] expectedMessage1 = StringUtil.hex2ByteArray(
+				"f5" + "0382060258208af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b637");
 		
 		Assert.assertArrayEquals(expectedMessage1, message1);
 	}
@@ -933,7 +978,7 @@ public class MessageProcessorTest {
 	 * See: upcoming draft-ietf-lake-traces-01
 	 */
 	@Test
-	public void testWriteMessage2Ciphersuite2Method3() {
+	public void testWriteMessage2CipherSuite2Method3() {
 
 		boolean initiator = false;
 		int method = 3;
@@ -948,9 +993,11 @@ public class MessageProcessorTest {
 		supportedCipherSuites.add(2);
 		
 		// The identity key of the Responder
-		byte[] privateIdentityKeyBytes = Utils.hexToBytes("72cc4761dbd4c78f758931aa589d348d1ef874a7e303ede2f140dcf3e6aa4aac");
-		byte[] publicIdentityKeyBytesX = Utils.hexToBytes("bbc34960526ea4d32e940cad2a234148ddc21791a12afbcbac93622046dd44f0");
-		byte[] publicIdentityKeyBytesY = Utils.hexToBytes("4519e257236b2a0ce2023f0931f1f386ca7afda64fcde0108c224c51eabf6072");
+		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"72cc4761dbd4c78f758931aa589d348d1ef874a7e303ede2f140dcf3e6aa4aac");
+		byte[] publicIdentityKeyBytesX = StringUtil.hex2ByteArray(
+				"bbc34960526ea4d32e940cad2a234148ddc21791a12afbcbac93622046dd44f0");
+		byte[] publicIdentityKeyBytesY = StringUtil.hex2ByteArray("4519e257236b2a0ce2023f0931f1f386ca7afda64fcde0108c224c51eabf6072");
 		
 		OneKey identityKey = SharedSecretCalculation.buildEcdsa256OneKey(privateIdentityKeyBytes, publicIdentityKeyBytesX, publicIdentityKeyBytesY);
 		
@@ -959,13 +1006,16 @@ public class MessageProcessorTest {
 		CBORObject idCredR = Util.buildIdCredKid(idCredKid);
 		
 		// CRED_R for the identity key of the Responder
-		byte[] credR = Utils.hexToBytes("A2026B6578616D706C652E65647508A101A501020241322001215820BBC34960526EA4D32E940CAD2A234148DDC21791A12AFBCBAC93622046DD44F02258204519E257236B2A0CE2023F0931F1F386CA7AFDA64FCDE0108C224C51EABF6072");
+		byte[] credR = StringUtil.hex2ByteArray("A2026B6578616D706C652E65647508A101A501020241322001215820BBC34960526EA4D32E940CAD2A234148DDC21791A12AFBCBAC93622046DD44F02258204519E257236B2A0CE2023F0931F1F386CA7AFDA64FCDE0108C224C51EABF6072");
 		
 				
 		// The ephemeral key of the Responder
-		byte[] privateEphemeralKeyBytes = Utils.hexToBytes("e2f4126777205e853b437d6eaca1e1f753cdcc3e2c69fa884b0a1a640977e418");
-		byte[] publicEphemeralKeyBytesX = Utils.hexToBytes("419701d7f00a26c2dc587a36dd752549f33763c893422c8ea0f955a13a4ff5d5");
-		byte[] publicEphemeralKeyBytesY = Utils.hexToBytes("5e4f0dd8a3da0baa16b9d3ad56a0c1860a940af85914915e25019b402417e99d");
+		byte[] privateEphemeralKeyBytes = StringUtil.hex2ByteArray(
+				"e2f4126777205e853b437d6eaca1e1f753cdcc3e2c69fa884b0a1a640977e418");
+		byte[] publicEphemeralKeyBytesX = StringUtil.hex2ByteArray(
+				"419701d7f00a26c2dc587a36dd752549f33763c893422c8ea0f955a13a4ff5d5");
+		byte[] publicEphemeralKeyBytesY = StringUtil.hex2ByteArray(
+				"5e4f0dd8a3da0baa16b9d3ad56a0c1860a940af85914915e25019b402417e99d");
 		OneKey ephemeralKey = SharedSecretCalculation.buildEcdsa256OneKey(privateEphemeralKeyBytes,
 																		  publicEphemeralKeyBytesX,
 																		  publicEphemeralKeyBytesY);
@@ -976,8 +1026,10 @@ public class MessageProcessorTest {
 		byte[] connectionIdentifierInitiator = new byte[] {(byte) 0x37};
 
 		// The ephemeral key of the Initiator
-		byte[] publicPeerEphemeralKeyBytesX = Utils.hexToBytes("8af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b6");
-		byte[] publicPeerEphemeralKeyBytesY = Utils.hexToBytes("51e8af6c6edb781601ad1d9c5fa8bf7aa15716c7c06a5d038503c614ff80c9b3");
+		byte[] publicPeerEphemeralKeyBytesX = StringUtil.hex2ByteArray(
+				"8af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b6");
+		byte[] publicPeerEphemeralKeyBytesY = StringUtil.hex2ByteArray(
+				"51e8af6c6edb781601ad1d9c5fa8bf7aa15716c7c06a5d038503c614ff80c9b3");
 		OneKey peerEphemeralPublicKey = SharedSecretCalculation.buildEcdsa256OneKey(null,
 																					publicPeerEphemeralKeyBytesX,
 																					publicPeerEphemeralKeyBytesY);
@@ -1029,7 +1081,7 @@ public class MessageProcessorTest {
 		session.setPeerEphemeralPublicKey(peerEphemeralPublicKey);
 
 		// Set the selected cipher suite
-		session.setSelectedCiphersuite(2);
+		session.setSelectedCipherSuite(2);
 		
 		// Set the asymmetric key pair, CRED and ID_CRED of the Initiator to use in this session
 		session.setAuthenticationCredential();
@@ -1039,7 +1091,8 @@ public class MessageProcessorTest {
 		
 		// Store the EDHOC Message 1
 		// Note: this is the actual EDHOC message 1, so it does not include the byte 0xf5 (True) prepended on the wire
-		byte[] message1 = Utils.hexToBytes("0382060258208af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b637");
+		byte[] message1 = StringUtil.hex2ByteArray(
+				"0382060258208af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b637");
 		session.setHashMessage1(message1);
 		
 		
@@ -1048,8 +1101,8 @@ public class MessageProcessorTest {
 
 		// Compare with the expected value from the test vectors
 		
-		byte[] expectedMessage2 = Utils
-				.hexToBytes("582a419701d7f00a26c2dc587a36dd752549f33763c893422c8ea0f955a13a4ff5d58b8fec6b1f0580c5043927");
+		byte[] expectedMessage2 = StringUtil.hex2ByteArray(
+				"582a419701d7f00a26c2dc587a36dd752549f33763c893422c8ea0f955a13a4ff5d5042459e2da6c75143f3527");
 		
 		Assert.assertArrayEquals(expectedMessage2, message2);
 		
@@ -1064,7 +1117,7 @@ public class MessageProcessorTest {
 	 * See: upcoming draft-ietf-lake-traces-01
 	 */
 	@Test
-	public void testWriteMessage3Ciphersuite2Method3() {
+	public void testWriteMessage3CipherSuite2Method3() {
 
 		boolean initiator = true;
 		int method = 3;
@@ -1080,9 +1133,12 @@ public class MessageProcessorTest {
 		supportedCipherSuites.add(2);
 		
 		// The identity key of the Initiator
-		byte[] privateIdentityKeyBytes = Utils.hexToBytes("fb13adeb6518cee5f88417660841142e830a81fe334380a953406a1305e8706b");
-		byte[] publicIdentityKeyBytesX = Utils.hexToBytes("ac75e9ece3e50bfc8ed60399889522405c47bf16df96660a41298cb4307f7eb6");
-		byte[] publicIdentityKeyBytesY = Utils.hexToBytes("6e5de611388a4b8a8211334ac7d37ecb52a387d257e6db3c2a93df21ff3affc8");
+		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"fb13adeb6518cee5f88417660841142e830a81fe334380a953406a1305e8706b");
+		byte[] publicIdentityKeyBytesX = StringUtil.hex2ByteArray(
+				"ac75e9ece3e50bfc8ed60399889522405c47bf16df96660a41298cb4307f7eb6");
+		byte[] publicIdentityKeyBytesY = StringUtil.hex2ByteArray(
+				"6e5de611388a4b8a8211334ac7d37ecb52a387d257e6db3c2a93df21ff3affc8");
 		OneKey identityKey = SharedSecretCalculation.buildEcdsa256OneKey(privateIdentityKeyBytes, publicIdentityKeyBytesX, publicIdentityKeyBytesY);
 		
 		// ID_CRED_I for the identity key of the Initiator
@@ -1090,12 +1146,16 @@ public class MessageProcessorTest {
 		CBORObject idCredI = Util.buildIdCredKid(idCredKid);
 		
 		// CRED_I for the identity key of the Initiator
-		byte[] credI = Utils.hexToBytes("A2027734322D35302D33312D46462D45462D33372D33322D333908A101A5010202412B2001215820AC75E9ECE3E50BFC8ED60399889522405C47BF16DF96660A41298CB4307F7EB62258206E5DE611388A4B8A8211334AC7D37ECB52A387D257E6DB3C2A93DF21FF3AFFC8");
+		byte[] credI = StringUtil.hex2ByteArray(
+				"A2027734322D35302D33312D46462D45462D33372D33322D333908A101A5010202412B2001215820AC75E9ECE3E50BFC8ED60399889522405C47BF16DF96660A41298CB4307F7EB62258206E5DE611388A4B8A8211334AC7D37ECB52A387D257E6DB3C2A93DF21FF3AFFC8");
 		
 		// The ephemeral key of the Initiator
-		byte[] privateEphemeralKeyBytes = Utils.hexToBytes("368ec1f69aeb659ba37d5a8d45b21bdc0299dceaa8ef235f3ca42ce3530f9525");
-		byte[] publicEphemeralKeyBytesX = Utils.hexToBytes("8af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b6");
-		byte[] publicEphemeralKeyBytesY = Utils.hexToBytes("51e8af6c6edb781601ad1d9c5fa8bf7aa15716c7c06a5d038503c614ff80c9b3");
+		byte[] privateEphemeralKeyBytes = StringUtil.hex2ByteArray(
+				"368ec1f69aeb659ba37d5a8d45b21bdc0299dceaa8ef235f3ca42ce3530f9525");
+		byte[] publicEphemeralKeyBytesX = StringUtil.hex2ByteArray(
+				"8af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b6");
+		byte[] publicEphemeralKeyBytesY = StringUtil.hex2ByteArray(
+				"51e8af6c6edb781601ad1d9c5fa8bf7aa15716c7c06a5d038503c614ff80c9b3");
 		OneKey ephemeralKey = SharedSecretCalculation.buildEcdsa256OneKey(privateEphemeralKeyBytes,
 																		  publicEphemeralKeyBytesX,
 																		  publicEphemeralKeyBytesY);
@@ -1106,9 +1166,15 @@ public class MessageProcessorTest {
 		// Connection Identifier of the Responder
 		byte[] connectionIdentifierResponder = new byte[] {(byte) 0x27};
 		
+		// v-16
+		// CRED_R for the identity key of the Responder
+		byte[] credR = StringUtil.hex2ByteArray("A2026B6578616D706C652E65647508A101A501020241322001215820BBC34960526EA4D32E940CAD2A234148DDC21791A12AFBCBAC93622046DD44F02258204519E257236B2A0CE2023F0931F1F386CA7AFDA64FCDE0108C224C51EABF6072");
+		
 		// The ephemeral key of the Responder
-		byte[] peerEphemeralPublicKeyBytesX = Utils.hexToBytes("419701d7f00a26c2dc587a36dd752549f33763c893422c8ea0f955a13a4ff5d5");
-		byte[] peerEphemeralPublicKeyBytesY = Utils.hexToBytes("5e4f0dd8a3da0baa16b9d3ad56a0c1860a940af85914915e25019b402417e99d");
+		byte[] peerEphemeralPublicKeyBytesX = StringUtil.hex2ByteArray(
+				"419701d7f00a26c2dc587a36dd752549f33763c893422c8ea0f955a13a4ff5d5");
+		byte[] peerEphemeralPublicKeyBytesY = StringUtil.hex2ByteArray(
+				"5e4f0dd8a3da0baa16b9d3ad56a0c1860a940af85914915e25019b402417e99d");
 		OneKey peerEphemeralPublicKey = SharedSecretCalculation.buildEcdsa256OneKey(null,
 																					peerEphemeralPublicKeyBytesX,
 																					peerEphemeralPublicKeyBytesY);
@@ -1116,9 +1182,9 @@ public class MessageProcessorTest {
 		
 		/* Status from after receiving EDHOC Message 2 */
 		
-		byte[] th2 = Utils.hexToBytes("9d2af3a3d3fc06aea8110f14ba12ad0b4fb7e5cdf59c7df1cf2dfe9c2024439c");
+		byte[] th2 = StringUtil.hex2ByteArray("9d2af3a3d3fc06aea8110f14ba12ad0b4fb7e5cdf59c7df1cf2dfe9c2024439c");
 		
-		byte[] prk3e2m = Utils.hexToBytes("7e230e62b909ca7492367aaa8a229f6306c5ac67482184b33362d28d177a56e9");
+		byte[] prk3e2m = StringUtil.hex2ByteArray("412d60cdf99dc7490754c969ad4c46b1350b908433ebf3fe063be8627fb35b3b");
 		
 		
 		/* Set up the session to use */
@@ -1168,7 +1234,7 @@ public class MessageProcessorTest {
 		session.setPeerEphemeralPublicKey(peerEphemeralPublicKey);
 
 		// Set the selected cipher suite
-		session.setSelectedCiphersuite(2);
+		session.setSelectedCipherSuite(2);
 		
 		// Set the asymmetric key pair, CRED and ID_CRED of the Initiator to use in this session
 		session.setAuthenticationCredential();
@@ -1178,14 +1244,17 @@ public class MessageProcessorTest {
 		
 		// Set TH_2 from the previous protocol step
 		session.setTH2(th2);
-		
-		// v-14
+
 		// Set PLAINTEXT_2 from the previous protocol step
-		byte[] plaintext2 = Utils.hexToBytes("3248ad01bc30c6911176");
+		byte[] plaintext2 = StringUtil.hex2ByteArray("3248d0d1a594797d0aaf");
 		session.setPlaintext2(plaintext2);
 		
 		// Set PRK_3e2m from the previous protocol step
 		session.setPRK3e2m(prk3e2m);
+		
+		// v-16
+		// Set CRED_R from the previous protocol step
+		session.setPeerCred(credR);
 		
 		
 		// Now write EDHOC message 3
@@ -1195,7 +1264,7 @@ public class MessageProcessorTest {
 		// Note: the actual EDHOC message 3 starts with 0x52. The byte 0x27 (CBOR encoding for -8) is prepended as C_R,
 		//       in order to pass the check against what returned by the EDHOC engine, to be sent as a CoAP request payload.
 		
-		byte[] expectedMessage3 = Utils.hexToBytes("2752c25c8420036764462f57357986616c8d21b0");
+		byte[] expectedMessage3 = StringUtil.hex2ByteArray("27" + "52c2b62835dc9b1f53419c1d3a2261eeed3505");
 
 		Assert.assertArrayEquals(expectedMessage3, message3);
 		
@@ -1207,8 +1276,8 @@ public class MessageProcessorTest {
         
 		// Compare with the expected value from the test vectors
         
-		byte[] expectedMasterSecret = Utils.hexToBytes("f3fb2149fd08c18a40938ae5703bfb38");
-		byte[] expectedMasterSalt = Utils.hexToBytes("25549b7255cafa1d");
+		byte[] expectedMasterSecret = StringUtil.hex2ByteArray("07ce22f2638fca404dded72a25fa45f4");
+		byte[] expectedMasterSalt = StringUtil.hex2ByteArray("5be3825f5a5284b7");
 
        	Util.nicePrint("OSCORE Master Secret", masterSecret);
         Util.nicePrint("OSCORE Master Salt", masterSalt);
@@ -1219,7 +1288,7 @@ public class MessageProcessorTest {
         
         /* Invoke EDHOC-KeyUpdate to updated the EDHOC key material */
         
-        byte[] nonce = Utils.hexToBytes("a01158fdb820890cd6be169602b8bcea");
+        byte[] nonce = StringUtil.hex2ByteArray("a01158fdb820890cd6be169602b8bcea");
        
         try {
 			session.edhocKeyUpdate(CBORObject.FromObject(nonce));
@@ -1237,8 +1306,8 @@ public class MessageProcessorTest {
         
         // Compare with the expected value from the test vectors
         
-		expectedMasterSecret = Utils.hexToBytes("5d96c2fb5c1ad12e324a59f4a4cde25b");
-		expectedMasterSalt = Utils.hexToBytes("3aef12c42700cb60");
+		expectedMasterSecret = StringUtil.hex2ByteArray("4c75696cba179ca9f68707eedcde76e0");
+		expectedMasterSalt = StringUtil.hex2ByteArray("9d954fc2e7abb4d0");
 
        	Util.nicePrint("OSCORE Master Secret", masterSecret);
         Util.nicePrint("OSCORE Master Salt", masterSalt);
@@ -1255,7 +1324,7 @@ public class MessageProcessorTest {
 	 * See: upcoming draft-ietf-lake-traces-01
 	 */
 	@Test
-	public void testWriteMessage4Ciphersuite2Method3() {
+	public void testWriteMessage4CipherSuite2Method3() {
 
 		boolean initiator = false;
 		int method = 3;
@@ -1270,9 +1339,12 @@ public class MessageProcessorTest {
 		supportedCipherSuites.add(2);
 		
 		// The identity key of the Responder
-		byte[] privateIdentityKeyBytes = Utils.hexToBytes("72cc4761dbd4c78f758931aa589d348d1ef874a7e303ede2f140dcf3e6aa4aac");
-		byte[] publicIdentityKeyBytesX = Utils.hexToBytes("bbc34960526ea4d32e940cad2a234148ddc21791a12afbcbac93622046dd44f0");
-		byte[] publicIdentityKeyBytesY = Utils.hexToBytes("4519e257236b2a0ce2023f0931f1f386ca7afda64fcde0108c224c51eabf6072");
+		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
+				"72cc4761dbd4c78f758931aa589d348d1ef874a7e303ede2f140dcf3e6aa4aac");
+		byte[] publicIdentityKeyBytesX = StringUtil.hex2ByteArray(
+				"bbc34960526ea4d32e940cad2a234148ddc21791a12afbcbac93622046dd44f0");
+		byte[] publicIdentityKeyBytesY = StringUtil.hex2ByteArray(
+				"4519e257236b2a0ce2023f0931f1f386ca7afda64fcde0108c224c51eabf6072");
 		
 		OneKey identityKey = SharedSecretCalculation.buildEcdsa256OneKey(privateIdentityKeyBytes, publicIdentityKeyBytesX, publicIdentityKeyBytesY);
 		
@@ -1281,13 +1353,17 @@ public class MessageProcessorTest {
 		CBORObject idCredR = Util.buildIdCredKid(idCredKid);
 		
 		// CRED_R for the identity key of the Responder
-		byte[] credR = Utils.hexToBytes("A2026B6578616D706C652E65647508A101A501020241322001215820BBC34960526EA4D32E940CAD2A234148DDC21791A12AFBCBAC93622046DD44F02258204519E257236B2A0CE2023F0931F1F386CA7AFDA64FCDE0108C224C51EABF6072");
+		byte[] credR = StringUtil.hex2ByteArray(
+				"A2026B6578616D706C652E65647508A101A501020241322001215820BBC34960526EA4D32E940CAD2A234148DDC21791A12AFBCBAC93622046DD44F02258204519E257236B2A0CE2023F0931F1F386CA7AFDA64FCDE0108C224C51EABF6072");
 		
 		
 		// The ephemeral key of the Responder
-		byte[] privateEphemeralKeyBytes = Utils.hexToBytes("e2f4126777205e853b437d6eaca1e1f753cdcc3e2c69fa884b0a1a640977e418");
-		byte[] publicEphemeralKeyBytesX = Utils.hexToBytes("419701d7f00a26c2dc587a36dd752549f33763c893422c8ea0f955a13a4ff5d5");
-		byte[] publicEphemeralKeyBytesY = Utils.hexToBytes("5e4f0dd8a3da0baa16b9d3ad56a0c1860a940af85914915e25019b402417e99d");
+		byte[] privateEphemeralKeyBytes = StringUtil.hex2ByteArray(
+				"e2f4126777205e853b437d6eaca1e1f753cdcc3e2c69fa884b0a1a640977e418");
+		byte[] publicEphemeralKeyBytesX = StringUtil.hex2ByteArray(
+				"419701d7f00a26c2dc587a36dd752549f33763c893422c8ea0f955a13a4ff5d5");
+		byte[] publicEphemeralKeyBytesY = StringUtil.hex2ByteArray(
+				"5e4f0dd8a3da0baa16b9d3ad56a0c1860a940af85914915e25019b402417e99d");
 		OneKey ephemeralKey = SharedSecretCalculation.buildEcdsa256OneKey(privateEphemeralKeyBytes,
 																		  publicEphemeralKeyBytesX,
 																		  publicEphemeralKeyBytesY);
@@ -1299,8 +1375,10 @@ public class MessageProcessorTest {
 		byte[] connectionIdentifierInitiator = new byte[] {(byte) 0x37};
 
 		// The ephemeral key of the Initiator
-		byte[] publicPeerEphemeralKeyBytesX = Utils.hexToBytes("8af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b6");
-		byte[] publicPeerEphemeralKeyBytesY = Utils.hexToBytes("51e8af6c6edb781601ad1d9c5fa8bf7aa15716c7c06a5d038503c614ff80c9b3");
+		byte[] publicPeerEphemeralKeyBytesX = StringUtil.hex2ByteArray(
+				"8af6f430ebe18d34184017a9a11bf511c8dff8f834730b96c1b7c8dbca2fc3b6");
+		byte[] publicPeerEphemeralKeyBytesY = StringUtil.hex2ByteArray(
+				"51e8af6c6edb781601ad1d9c5fa8bf7aa15716c7c06a5d038503c614ff80c9b3");
 		OneKey peerEphemeralPublicKey = SharedSecretCalculation.buildEcdsa256OneKey(null,
 																					publicPeerEphemeralKeyBytesX,
 																					publicPeerEphemeralKeyBytesY);
@@ -1355,18 +1433,18 @@ public class MessageProcessorTest {
 		session.setPeerEphemeralPublicKey(peerEphemeralPublicKey);
 
 		// Set the selected cipher suite
-		session.setSelectedCiphersuite(2);
+		session.setSelectedCipherSuite(2);
 		
 		// Set the Connection Identifier of the peer
 		session.setPeerConnectionId(connectionIdentifierInitiator);
 		
 		
 		// Store PRK_4e3m computed from the previous protocol step
-		byte[] prk4e3m = Utils.hexToBytes("9eda8cd755ae3b80b47e8ddbb8d7c5fe2b62b462e4bcba2c6c8ea36ee5fb604d");
+		byte[] prk4e3m = StringUtil.hex2ByteArray("7d0159bbe45473c9402e0d42dbceb45dca05b744cae1e083e58315b8aa47ceec");
 		session.setPRK4e3m(prk4e3m);
 		
 		// Store TH_4 computed from the previous protocol step
-		byte[] th4 = Utils.hexToBytes("a4097a6b9e39f7d3dc4f8af2c4a8645b373d7af586f415df626e16b6ac2755d3");
+		byte[] th4 = StringUtil.hex2ByteArray("1f57dabf8f26da0657d9840c9b1077c1d4c47db243a8b41360a98ec4cb706b70");
 		session.setTH4(th4);
 		
 		// Now write EDHOC message 4
@@ -1374,7 +1452,7 @@ public class MessageProcessorTest {
 
 		// Compare with the expected value from the test vectors
 
-		byte[] expectedMessage4 = Utils.hexToBytes("48ddf977df1cac7fc3");
+		byte[] expectedMessage4 = StringUtil.hex2ByteArray("486359ad21f077a9d1");
 		
 		Assert.assertArrayEquals(expectedMessage4, message4);
 		
