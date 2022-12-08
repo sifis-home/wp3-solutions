@@ -18,6 +18,9 @@
 
 	<properties>
 		<assembly.mainClass>org.eclipse.californium.examples.Proxy2</assembly.mainClass>
+		<skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
+		<skipStaging>false</skipStaging>
+		<maven.javadoc.skip>false</maven.javadoc.skip>
 	</properties>
 
 	<dependencies>
@@ -32,11 +35,6 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>californium-proxy2</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>cf-oscore</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
