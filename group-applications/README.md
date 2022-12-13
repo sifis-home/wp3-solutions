@@ -1,5 +1,4 @@
-
-**Codebase for SIFIS-HOME including OSCORE, Group OSCORE, ACE and Group Joining.**
+**Codebase for SIFIS-HOME including applications using OSCORE, Group OSCORE, ACE and Group Joining.**
 
 To setup and run the provided applications, follow the steps below. This will start 3 clients and 1 server in one group, and 3 clients and 1 server in another group. The servers and clients all start by first requesting an ACE Token from the Authorization Server, then posting it to the Group Manager and performing the group join procedure. After that they are ready to securely communicate with Group OSCORE in the group. The clients can be triggered to send requests by sending a message to the SIFIS-Home DHT. The clients will received this command using WebSockets from the DHT.
 
@@ -17,7 +16,8 @@ OscoreAsRsClient -name Server4
 OscoreAsRsClient -name Server5  
 OscoreAsRsClient -name Server6  
 
-**Start up the SIFIS-Home DHT application**
+**Start up the SIFIS-Home DHT application (download separately)**  
+./build_and_launch.sh 
 
 **Next, start the first client. It will listen to commands from the DHT.**  
 OscoreAsRsClient -dht -name Client1
@@ -33,3 +33,17 @@ https://datatracker.ietf.org/doc/rfc8613/
 https://datatracker.ietf.org/doc/rfc9200/  
 https://datatracker.ietf.org/doc/draft-ietf-core-oscore-groupcomm/  
 https://datatracker.ietf.org/doc/draft-ietf-ace-key-groupcomm-oscore/
+
+**DHT information**  
+The client applications listen for messages from the DHT on the following topics:  
+* command_dev1 (Client1)
+* command_dev2 (Client2)
+
+And provide their output on the following topics:  
+* output_dev1 (Client1)
+* output_dev2 (Client2)
+
+The message structure is as follows:  
+{"message": $payload, "topic": $topic }  
+Valid payloads are "on"/"close"/"lock" and "off"/"open"/"unlock", to turn on and off the lights, or lock and unlock the locks.  
+

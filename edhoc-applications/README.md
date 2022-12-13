@@ -12,7 +12,8 @@ The 4 supported configurations are as follows:
 **First start the EDHOC Server**  
 PhaseXServer  
 
-**Next start up the SIFIS-Home DHT application**  
+**Next start up the SIFIS-Home DHT application (download separately)**  
+./build_and_launch.sh 
 
 **Now start the EDHOC Client. It will listen to commands from the DHT.**  
 PhaseXClient -dht  
@@ -23,3 +24,15 @@ python3 dht_rest_client.py
 **Relevant documentation**  
 https://datatracker.ietf.org/doc/draft-ietf-lake-edhoc/  
 https://datatracker.ietf.org/doc/draft-ietf-core-oscore-edhoc/  
+
+**DHT information**  
+The client applications listen for messages from the DHT on the following topic:  
+* command_ed
+
+And provide their output on the following topics  
+* output_ed
+
+The message structure is as follows:  
+{"message": $payload, "topic": $topic }  
+Valid payloads are "on" and "off", to turn on and off the lights respectively.  
+
