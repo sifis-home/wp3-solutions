@@ -2,7 +2,6 @@ package org.eclipse.californium.edhoc;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Set;
 
 import org.eclipse.californium.cose.OneKey;
@@ -55,10 +54,31 @@ public class EdhocEndpointInfo {
 	// List of supported cipher suites
 	private List<Integer> supportedCipherSuites;
 	
+	// Set of supported EAD items
+	private Set<Integer> supportedEADs;
+	
+	// This data structure collects instructions provided by the application for producing EAD items
+	// to include in outgoing EDHOC messages. The production of these EAD items is not related to or
+	// triggered by the consumption of other EAD items included in incoming EDHOC messages.
+	// 
+	// This data structure can be null if the application does not specify the production of any of such EAD items. 
+	//
+	// The outer map key indicates the outgoing EDHOC message in question.
+	//
+	// Each inner list specifies a sequence of element pairs (CBOR integer, CBOR map).
+	// The CBOR integer specifies the ead_label in case of non-critical EAD item,
+	// or the corresponding negative value in case of critical EAD item.
+	// The CBOR map provides input on how to produce the EAD item,
+	// with the map keys from a namespace specific of the ead_label.
+	private HashMap<Integer, List<CBORObject>> eadProductionInput;
+	
+	// The trust model for validating authentication credentials of other peers
+	private int trustModel;
+	
 	// The database of OSCORE Security Contexts
 	private HashMapCtxDB db;
 	
-	// Lookup identifier to be associated with the OSCORE Security Context
+	// URI of the EDHOC resource, also used as lookup identifier associated with the created OSCORE Security Context
 	private String uri;
 	
 	// The size of the Replay Window to use in an OSCORE Recipient Context
@@ -69,11 +89,7 @@ public class EdhocEndpointInfo {
 	
 	// The collection of application profiles - The lookup key is the full URI of the EDHOC resource
 	private HashMap<String, AppProfile> appProfiles;
-	
-	// The processor of External Authorization Data
-	private EDP edp;
-	
-	
+		
 	public EdhocEndpointInfo(HashMap<Integer, HashMap<Integer, CBORObject>> idCreds,
 							 HashMap<Integer, HashMap<Integer, CBORObject>> creds,
 							 HashMap<Integer, HashMap<Integer, OneKey>> keyPairs,
@@ -81,8 +97,9 @@ public class EdhocEndpointInfo {
 							 HashMap<CBORObject, CBORObject> peerCredentials,
 							 HashMap<CBORObject, EdhocSession> edhocSessions,
 							 Set<CBORObject> usedConnectionIds, List<Integer> supportedCipherSuites,
-							 HashMapCtxDB db, String uri, int OSCORE_REPLAY_WINDOW, int MAX_UNFRAGMENTED_SIZE,
-							 HashMap<String, AppProfile> appProfiles, EDP edp) {
+							 Set<Integer> supportedEADs, HashMap<Integer, List<CBORObject>> eadProductionInput,
+							 int trustModel, HashMapCtxDB db, String uri, int OSCORE_REPLAY_WINDOW,
+							 int MAX_UNFRAGMENTED_SIZE, HashMap<String, AppProfile> appProfiles) {
 
 		
 		this.keyPairs = keyPairs;
@@ -92,14 +109,16 @@ public class EdhocEndpointInfo {
 		this.peerPublicKeys = peerPublicKeys;
 		this.peerCredentials = peerCredentials;
 		this.edhocSessions = edhocSessions;
-		this .usedConnectionIds = usedConnectionIds;
+		this.usedConnectionIds = usedConnectionIds;
 		this.supportedCipherSuites = supportedCipherSuites;
+		this.supportedEADs = supportedEADs;
+		this.eadProductionInput = eadProductionInput;
+		this.trustModel = trustModel;
 		this.db = db;
 		this.uri = uri;
 		this.OSCORE_REPLAY_WINDOW = OSCORE_REPLAY_WINDOW;
 		this.MAX_UNFRAGMENTED_SIZE = MAX_UNFRAGMENTED_SIZE;
 		this.appProfiles = appProfiles;
-		this.edp = edp;
 		
 	}
 	
@@ -111,11 +130,6 @@ public class EdhocEndpointInfo {
 	// Return a reference to the set of Application Profiles
 	public HashMap<String, AppProfile> getAppProfiles() {
 		return appProfiles;
-	}
-	
-	// Return a reference to the processor of External Authorization Data
-	public EDP getEdp() {
-		return edp;
 	}
 	
 	// Return the identity key pair
@@ -167,10 +181,25 @@ public class EdhocEndpointInfo {
 	public List<Integer> getSupportedCipherSuites() {
 		return supportedCipherSuites;
 	}
-	
+		
 	// Return the set of used Connection Identifiers
 	public Set<CBORObject> getUsedConnectionIds() {
 		return usedConnectionIds;
+	}
+	
+	// Return the set of supported EAD items
+	public Set<Integer> getSupportedEADs() {
+		return supportedEADs;
+	}
+	
+	// Return the information to produce EAD items for outgoing messages
+	public HashMap<Integer, List<CBORObject>> getEadProductionInput() {
+		return eadProductionInput;
+	}
+	
+	// Return the trust model used for validating authentication credentials of other peers
+	public int getTrustModel() {
+		return trustModel;
 	}
 	
 }

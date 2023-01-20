@@ -133,10 +133,7 @@ public class EdhocResource extends CoapResource {
 		}
 		
 		List<CBORObject> processingResult = new ArrayList<CBORObject>();
-		
-		// Possibly specify external authorization data for EAD_2, or null if none has to be provided
-		// The EAD is structured in pairs of CBOR items (int, any), i.e. the data type first and then the actual data
-		CBORObject[] ead2 = null;		
+
 		
 		// The received message is an actual EDHOC message
 		
@@ -169,9 +166,14 @@ public class EdhocResource extends CoapResource {
 		
 		if (messageType == Constants.EDHOC_MESSAGE_1) {
 			
+			SideProcessor sideProcessor = new SideProcessor(edhocEndpointInfo.getTrustModel(),
+															edhocEndpointInfo.getPeerCredentials(),
+															edhocEndpointInfo.getEadProductionInput());
+			
 			processingResult = MessageProcessor.readMessage1(message, true,
 															 edhocEndpointInfo.getSupportedCipherSuites(),
-															 appProfile);
+															 edhocEndpointInfo.getSupportedEADs(),
+															 appProfile, sideProcessor);
 
 			if (processingResult.get(0) == null || processingResult.get(0).getType() != CBORType.ByteString) {
 				String responseString = new String("Internal error when processing EDHOC Message 1");
@@ -186,35 +188,29 @@ public class EdhocResource extends CoapResource {
 			
 			EdhocSession session = null;
 			int responseType = -1;
-						
+			
 			// A non-zero length response payload would be an EDHOC Error Message
 			nextMessage = processingResult.get(0).GetByteString();
 			
 			// Prepare EDHOC Message 2
 			if (nextMessage.length == 0) {
-				
-				// Deliver EAD_1 to the application, if present
-				if (processingResult.size() == 2 && processingResult.get(1).getType() == CBORType.Array) {
-					// This inspected element of 'processing_result' should really be a CBOR Array at this point
-					int length = processingResult.get(1).size();
-					CBORObject[] ead1 = new CBORObject[length];
-					for (int i = 0; i < length; i++) {
-						ead1[i] = processingResult.get(1).get(i);
-					}
-					edhocEndpointInfo.getEdp().processEAD1(ead1);
-				}
-				
+
 				session = MessageProcessor.createSessionAsResponder(message, true,
 																	edhocEndpointInfo.getKeyPairs(),
 																    edhocEndpointInfo.getIdCreds(),
 																    edhocEndpointInfo.getCreds(),
 																    edhocEndpointInfo.getSupportedCipherSuites(),
+																    edhocEndpointInfo.getSupportedEADs(),
 																    edhocEndpointInfo.getUsedConnectionIds(),
-																    appProfile, edhocEndpointInfo.getEdp(),
+																    appProfile, edhocEndpointInfo.getTrustModel(),
 																    edhocEndpointInfo.getOscoreDb());
 				
+				// Provide the side processor object with the just created EDHOC session.
+				// A reference to the sideProcessor is also going to be stored in the EDHOC session.
+				sideProcessor.setEdhocSession(session);
+				
 				// Compute the EDHOC Message 2
-				nextMessage = MessageProcessor.writeMessage2(session, ead2);
+				nextMessage = MessageProcessor.writeMessage2(session);
 
 				byte[] connectionIdentifier = session.getConnectionId();
 				
@@ -255,21 +251,10 @@ public class EdhocResource extends CoapResource {
 			if (nextMessage != null) {
 				
 				ResponseCode responseCode = ResponseCode.CHANGED;
+				
 				if (responseType == Constants.EDHOC_ERROR_MESSAGE) {
 					int responseCodeValue = processingResult.get(1).AsInt32();
 					responseCode = ResponseCode.valueOf(responseCodeValue);
-					
-					// If the Error Message was generated while reading EDHOC Message 1,
-					// deliver EAD_1 to the application, if any was present in EDHOC Message 1
-					if (processingResult.size() == 3 && processingResult.get(2).getType() == CBORType.Array) {
-					    // This inspected element of 'processing_result' should really be a CBOR Array at this point
-					    int length = processingResult.get(2).size();
-					    CBORObject[] ead1 = new CBORObject[length];
-					    for (int i = 0; i < length; i++) {
-					        ead1[i] = processingResult.get(2).get(i);
-					    }
-					    edhocEndpointInfo.getEdp().processEAD1(ead1);
-					}
 				}
 
 				Response myResponse = new Response(responseCode);
@@ -361,22 +346,6 @@ public class EdhocResource extends CoapResource {
 			// The EDHOC protocol has successfully completed
 			if (nextMessage.length == 0) {
 				
-				// Deliver EAD_3 to the application, if present
-				if (processingResult.size() == 3 && processingResult.get(2).getType() == CBORType.Array) {
-					// Elements of 'processingResult' are:
-					//   i) A zero-length CBOR byte string, indicating successful processing;
-					//  ii) The Connection Identifier of the Responder, i.e. C_R
-					// iii) Optionally, the External Authorization Data EAD_3, as elements of a CBOR array
-					
-					// This inspected element of 'processingResult' should really be a CBOR Array at this point
-					int length = processingResult.get(2).size();
-					CBORObject[] ead3 = new CBORObject[length];
-					for (int i = 0; i < length; i++) {
-						ead3[i] = processingResult.get(2).get(i);
-					}
-					edhocEndpointInfo.getEdp().processEAD3(ead3);
-				}
-				
 				CBORObject cR = processingResult.get(1);
 				mySession = edhocEndpointInfo.getEdhocSessions().get(cR);
 				
@@ -385,13 +354,13 @@ public class EdhocResource extends CoapResource {
 					return;
 				}
 				if (mySession.getCurrentStep() != Constants.EDHOC_AFTER_M3) {
-						System.err.println("Inconsistent state before sending EDHOC Message 3");							
+						System.err.println("Inconsistent state after sending EDHOC Message 3");							
 						Util.purgeSession(mySession, mySession.getConnectionId(),
 										  edhocEndpointInfo.getEdhocSessions(),
 										  edhocEndpointInfo.getUsedConnectionIds());
 						return;
 				}
-		        
+				
 				if (mySession.getApplicationProfile().getUsedForOSCORE() == true) {
 			        /* Invoke the EDHOC-Exporter to produce OSCORE input material */
 			        byte[] masterSecret = EdhocSession.getMasterSecretOSCORE(mySession);
@@ -468,13 +437,9 @@ public class EdhocResource extends CoapResource {
 		        else {
 		        	// message_4 has to be sent to the Initiator
 		        	
-		        	// Possibly specify external authorization data for EAD_4, or null if none has to be provided
-		        	// The EAD is structured in pairs of CBOR items (int, any), i.e. the data type first and then the actual data
-					CBORObject[] ead4 = null;
-		        	
 					// Compute the EDHOC Message 4
 					byte[] connectionIdentifierResponder = mySession.getConnectionId();
-					nextMessage = MessageProcessor.writeMessage4(mySession, ead4);
+					nextMessage = MessageProcessor.writeMessage4(mySession);
 					
 					// Deallocate the assigned Connection Identifier for this peer
 					if (nextMessage == null || mySession.getCurrentStep() != Constants.EDHOC_AFTER_M4) {
@@ -539,20 +504,7 @@ public class EdhocResource extends CoapResource {
 			}
 			// An EDHOC error message has to be returned in response to EDHOC message_3
 			// The session has been possibly purged while attempting to process message_3
-			else {
-				
-				// An Error Message was generated while reading EDHOC Message 3. Hence,
-				// deliver EAD_3 to the application, if any was present in EDHOC Message 3
-				if (processingResult.size() == 3 && processingResult.get(2).getType() == CBORType.Array) {
-				    // This inspected element of 'processing_result' should really be a CBOR Array at this point
-				    int length = processingResult.get(2).size();
-				    CBORObject[] ead3 = new CBORObject[length];
-				    for (int i = 0; i < length; i++) {
-				        ead3[i] = processingResult.get(2).get(i);
-				    }
-				    edhocEndpointInfo.getEdp().processEAD3(ead3);
-				}
-				
+			else {				
 				int responseCodeValue = processingResult.get(1).AsInt32();
 				ResponseCode responseCode = ResponseCode.valueOf(responseCodeValue);
 				sendErrorMessage(exchange, nextMessage, appProfile, responseCode);
@@ -566,8 +518,7 @@ public class EdhocResource extends CoapResource {
 		/* Start handling EDHOC Error Message */
 		if (messageType == Constants.EDHOC_ERROR_MESSAGE) {
             
-        	CBORObject[] objectList = MessageProcessor.readErrorMessage(message, null,
-        			                                                    edhocEndpointInfo.getEdhocSessions());
+        	CBORObject[] objectList = MessageProcessor.readErrorMessage(message, null, edhocEndpointInfo.getEdhocSessions());
         	
         	if (objectList != null) {
         	
@@ -624,8 +575,9 @@ public class EdhocResource extends CoapResource {
 	        					  edhocEndpointInfo.getUsedConnectionIds());
 	        	
 	        	// If the request is confirmable, send an empty ack
-		        if (exchange.advanced().getRequest().isConfirmable())
+		        if (exchange.advanced().getRequest().isConfirmable()) {
 		        	exchange.accept();
+		        }
         	
 			}
         	
@@ -649,6 +601,8 @@ public class EdhocResource extends CoapResource {
 		Response myResponse = new Response(responseCode);
 		myResponse.getOptions().setContentFormat(Constants.APPLICATION_EDHOC_CBOR_SEQ);
 		myResponse.setPayload(nextMessage);
+		
+		Util.nicePrint("EDHOC Error Message", nextMessage);
 		
 		exchange.respond(myResponse);
 		

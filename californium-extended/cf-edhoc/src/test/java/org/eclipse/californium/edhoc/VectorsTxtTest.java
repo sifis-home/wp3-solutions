@@ -191,6 +191,8 @@ public class VectorsTxtTest {
 		byte[] connectionId = connectionIdList.get(index).GetByteString();
 		List<Integer> cipherSuites = new ArrayList<Integer>();
 		cipherSuites.add(supportedCipherSuitesList.get(index)); // 1 suite only
+		Set<Integer> supportedEADs = new HashSet<>();
+		List<Integer> peerSupportedCipherSuites = new ArrayList<Integer>();
 		byte[] ead1 = ad1List.get(index);
 		if (ead1.length == 0) { // Consider len 0 ad as null
 			ead1 = null;
@@ -215,9 +217,7 @@ public class VectorsTxtTest {
 		boolean usedForOSCORE = true;
 		boolean supportCombinedRequest = false;
 		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
-		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
+		int trustModel = Constants.TRUST_MODEL_STRICT;
 		
 		// Specify the database of OSCORE Security Contexts
 		HashMapCtxDB db = new HashMapCtxDB();
@@ -234,7 +234,8 @@ public class VectorsTxtTest {
 				 put(Integer.valueOf(Constants.CURVE_Ed25519), idCred);
 		
 		EdhocSession session = new EdhocSession(initiator, true, methodCorr, connectionId, keyPairs,
-				                                idCreds, creds, cipherSuites, appProfile, edp, db);
+				                                idCreds, creds, cipherSuites, peerSupportedCipherSuites,
+				                                supportedEADs, appProfile, trustModel, db);
 
 		// Force a specific ephemeral key
 		byte[] privateEkeyBytes = initiatorEphemeralPrivateList.get(index);
@@ -255,7 +256,7 @@ public class VectorsTxtTest {
 				System.out.println("Malformed or invalid CBOR sequence as EAD_1");
 			}
 		}
-		byte[] message1 = MessageProcessor.writeMessage1(session, ead1Array);
+		byte[] message1 = MessageProcessor.writeMessage1(session);
 
 		// Compare with the expected value from the test vectors
 		byte[] expectedMessage1 = message1List.get(index);

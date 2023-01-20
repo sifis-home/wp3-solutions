@@ -23,6 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.KeyKeys;
@@ -47,13 +48,13 @@ public class EdhocSession {
     
     // The authentication credentials of this peer (one per supported curve)
 	private HashMap<Integer, HashMap<Integer, CBORObject>> creds = new HashMap<Integer, HashMap<Integer, CBORObject>>();
-	
-	// The processor to use for External Authorization Data.
+
+	// The side processor to use with this session
 	//
 	// It is required to be also in the EDHOC session, to be accessible
 	// also by the EDHOC layer, when receiving an EDHOC+OSCORE request
 	// targeting a different resource than an EDHOC resource. 
-	private EDP edp;
+	private SideProcessor sideProcessor;
 	
 	// The database of OSCORE Security Contexts.
 	// It can be null, if the EDHOC session has occurred
@@ -73,12 +74,12 @@ public class EdhocSession {
 	private OneKey ephemeralKey;
 	
 	private List<Integer> supportedCipherSuites;
+	private Set<Integer> supportedEADs;
 	private AppProfile appProfile;
+	private int trustModel;
 	
 	private byte[] peerConnectionId;
 	private CBORObject peerIdCred = null;
-	
-	// v-16
 	private byte[] peerCred = null; // This is the serialization of a CBOR object
 	
 	private OneKey peerLongTermPublicKey = null;
@@ -112,8 +113,8 @@ public class EdhocSession {
 						HashMap<Integer, HashMap<Integer, OneKey>> keyPairs,
 						HashMap<Integer, HashMap<Integer, CBORObject>> idCreds,
 						HashMap<Integer, HashMap<Integer, CBORObject>> creds,
-						List<Integer> cipherSuites, AppProfile appProfile,
-						EDP edp, HashMapCtxDB db) {
+						List<Integer> cipherSuites, List<Integer> peerCipherSuites,
+						Set<Integer> eads, AppProfile appProfile, int trustModel, HashMapCtxDB db) {
 		
 		this.initiator = initiator;
 		this.clientInitiated = clientInitiated;
@@ -130,13 +131,15 @@ public class EdhocSession {
 		this.ephemeralKey = null;
 		
 		this.supportedCipherSuites = cipherSuites;
+		this.supportedEADs = eads;
 		this.appProfile = appProfile;
-		this.edp = edp;
+		this.trustModel = trustModel;
 		this.db = db;
 		
 		this.selectedCipherSuite = -1;
 		
 		this.peerConnectionId = null;
+		this.peerSupportedCipherSuites = peerCipherSuites;
 		
 		currentStep = initiator ? Constants.EDHOC_BEFORE_M1 : Constants.EDHOC_BEFORE_M2;
 		
@@ -318,6 +321,15 @@ public class EdhocSession {
 	}
 	
 	/**
+	 * @return  the supported EAD items
+	 */
+	public Set<Integer> getSupportedEADs() {
+
+		return this.supportedEADs;
+		
+	}
+	
+	/**
 	 * @return  the application profile used for this session
 	 */
 	public AppProfile getApplicationProfile() {
@@ -327,11 +339,30 @@ public class EdhocSession {
 	}
 	
 	/**
-	 * @return  the processor of External Authorization Data used for this session
+	 * @return  the used trust model for validating authentication credentials of the other peer
 	 */
-	public EDP getEdp() {
+	public int getTrustModel() {
+
+		return this.trustModel;
 		
-		return this.edp;
+	}	
+	
+	/**
+	 * @return  the side processor object for this session
+	 */
+	public SideProcessor getSideProcessor() {
+		
+		return this.sideProcessor;
+		
+	}
+	
+	/**
+	 * Set the side processor object for this session
+	 * @param  the side processor object for this session
+	 */
+	public void setSideProcessor(SideProcessor sideProcessor) {
+		
+		this.sideProcessor = sideProcessor;
 		
 	}
 	
@@ -395,23 +426,12 @@ public class EdhocSession {
 	}
 	
 	/**
-	 * Set the list of the cipher suites supported by the peer
-	 * @param peerSupportedCipherSuites   the list of the cipher suites supported by the peer
-	 */
-	public void setPeerSupportedCipherSuites(List<Integer> peerSupportedCipherSuites) {
-		this.peerSupportedCipherSuites = peerSupportedCipherSuites;
-	}
-	
-	
-	// v-16
-	/**
 	 * @return  the CRED of the other peer
 	 */
 	public byte[] getPeerCred() {
 		return this.peerCred;
 	}
 	
-	// v-16
 	/**
 	 * Set the CRED of the other peer
 	 * @param peerCred   the CRED of the other peer 
@@ -419,9 +439,7 @@ public class EdhocSession {
 	public void setPeerCred(byte[] peerCred) {
 		this.peerCred = peerCred;
 	}
-	
-	
-	
+
 	/**
 	 * @return  the long-term public key of the other peer
 	 */

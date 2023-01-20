@@ -22,10 +22,7 @@ package se.sics.edhocapps;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,16 +30,12 @@ import java.util.Set;
 
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.CoapServer;
-import org.eclipse.californium.core.Utils;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.config.CoapConfig;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.eclipse.californium.cose.AlgorithmID;
-import org.eclipse.californium.cose.CoseException;
-import org.eclipse.californium.cose.HeaderKeys;
 import org.eclipse.californium.cose.OneKey;
 import org.eclipse.californium.edhoc.AppProfile;
 import org.eclipse.californium.edhoc.Constants;
@@ -50,7 +43,6 @@ import org.eclipse.californium.edhoc.EdhocCoapStackFactory;
 import org.eclipse.californium.edhoc.EdhocEndpointInfo;
 import org.eclipse.californium.edhoc.EdhocResource;
 import org.eclipse.californium.edhoc.EdhocSession;
-import org.eclipse.californium.edhoc.KissEDP;
 import org.eclipse.californium.edhoc.SharedSecretCalculation;
 import org.eclipse.californium.edhoc.Util;
 import org.eclipse.californium.elements.config.Configuration;
@@ -61,8 +53,6 @@ import org.eclipse.californium.oscore.OSCoreResource;
 
 import com.upokecenter.cbor.CBORObject;
 
-import se.sics.edhocapps.Phase1Server.LightResource;
-
 public class Phase4Server extends CoapServer {
 
 	private static final int COAP_PORT = Configuration.getStandard().get(CoapConfig.COAP_PORT);
@@ -70,10 +60,10 @@ public class Phase4Server extends CoapServer {
 	// private static final int COAP_PORT = 5690;
 
 	// Set to True if this CoAP server is the EDHOC responder (only flow available at the moment)
-	private final static boolean isResponder = true;
+	// private final static boolean isResponder = true;
 
 	// The authentication method to include in EDHOC message_1 (relevant only when Initiator)
-	private static int authenticationMethod = Constants.EDHOC_AUTH_METHOD_0;
+	// private static int authenticationMethod = Constants.EDHOC_AUTH_METHOD_0;
 	
     // The type of the authentication credential of this peer (same type for all its credentials)
     // Possible values: CRED_TYPE_CWT ; CRED_TYPE_CCS ; CRED_TYPE_X509
@@ -179,19 +169,16 @@ public class Phase4Server extends CoapServer {
 		
 		appProfiles.put(uriLocal + "/.well-known/edhoc", appProfile);
 		
-		try {
-			// create server
-			boolean udp = true;
+		// create server
+		boolean udp = true;
 
-			Phase4Server server = new Phase4Server();
-			// add endpoints on all IP addresses
-			server.addEndpoints(udp);
-			server.start();
-						
-		} catch (SocketException e) {
-			System.err.println("Failed to initialize server: " + e.getMessage());
-		}
+		Phase4Server server = new Phase4Server();
+		// add endpoints on all IP addresses
+		server.addEndpoints(udp);
+		server.start();
 		
+		System.out.println("Server started");
+
 		// Use to dynamically generate a key pair
 		// keyPair = Util.generateKeyPair(keyCurve);
 		    	
@@ -220,7 +207,7 @@ public class Phase4Server extends CoapServer {
 	/*
 	 * Constructor for a new server. Here, the resources of the server are initialized.
 	 */
-	public Phase4Server() throws SocketException {
+	public Phase4Server() {
 
 		// provide an instance of a Hello-World resource
 		add(new HelloWorldResource());
@@ -232,15 +219,34 @@ public class Phase4Server extends CoapServer {
 		CoapResource wellKnownResource = new WellKnown();
 		add(wellKnownResource);
 		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
-		
+		// If EAD items have to be produced for outgoing EDHOC messages
+		// (irrespective of the consumption of EAD items
+		// in incoming EDHOC message, this data structure specifies instructions
+		// on how to produce those.
+		//
+		// The outer map key indicates the outgoing EDHOC message in question.
+		//
+		// Each inner list specifies a sequence of element pairs (CBOR integer,
+		// CBOR map).
+		// The CBOR integer specifies the ead_label in case of non-critical EAD
+		// item,
+		// or the corresponding negative value in case of critical EAD item.
+		// The CBOR map provides input on how to produce the EAD item,
+		// with the map keys from a namespace specific of the ead_label.
+		HashMap<Integer, List<CBORObject>> eadProductionInput = null;
+
+		// Set of supported EAD items, identified by their EAD label
+		Set<Integer> supportedEADs = new HashSet<>();
+
+		// The trust model used to validate authentication credentials of other
+		// peers
+		int trustModel = Constants.TRUST_MODEL_STRICT;
+
 		// prepare the set of information for this EDHOC endpoint
 		EdhocEndpointInfo edhocEndpointInfo = new EdhocEndpointInfo(idCreds, creds, keyPairs, peerPublicKeys,
 																	peerCredentials, edhocSessions, usedConnectionIds,
-																	supportedCiphersuites, db, uriLocal,
-																	OSCORE_REPLAY_WINDOW, MAX_UNFRAGMENTED_SIZE,
-																	appProfiles, edp);
+				supportedCiphersuites, supportedEADs, eadProductionInput, trustModel, db, uriLocal,
+				OSCORE_REPLAY_WINDOW, MAX_UNFRAGMENTED_SIZE, appProfiles);
 		
 		// provide an instance of a .well-known/edhoc resource
 		CoapResource edhocResource = new EdhocResource("edhoc", edhocEndpointInfo, ownIdCreds);
@@ -352,85 +358,6 @@ public class Phase4Server extends CoapServer {
 		}
 	}
 	
-	private static void runTests() {
-		// Test a hash computation
-		System.out.println("=======================");
-		System.out.println("Test a hash computation");
-		byte[] inputHash = new byte[] {(byte) 0xfe, (byte) 0xed, (byte) 0xca, (byte) 0x57, (byte) 0xf0, (byte) 0x5c};
-		try {
-			System.out.println("Hash input: " + Utils.toHexString(inputHash));
-			byte[] resultHash = Util.computeHash(inputHash, "SHA-256");
-			System.out.println("Hash output: " + Utils.toHexString(resultHash));
-		} catch (NoSuchAlgorithmException e) {
-			System.err.println("Hash algorithm not supported");
-		}
-		System.out.println();
-		
-
-		// Test a signature computation and verification
-		System.out.println("=======================");
-		System.out.println("Test a signature computation and verification");
-		byte[] payloadToSign = new byte[] {(byte) 0xfe, (byte) 0xed, (byte) 0xca, (byte) 0x57, (byte) 0xf0, (byte) 0x5c};
-		byte[] externalData = new byte[] {(byte) 0xef, (byte) 0xde, (byte) 0xac, (byte) 0x75, (byte) 0x0f, (byte) 0xc5};
-		byte[] kid = new byte[] {(byte) 0x01};
-		CBORObject idCredX = CBORObject.NewMap();
-		idCredX.Add(HeaderKeys.KID.AsCBOR(), kid);
-		CBORObject emptyMap = CBORObject.NewMap();
-		
-		byte[] mySignature = null;
-		try {
-			mySignature = Util.computeSignature(idCredX, externalData, payloadToSign,
-												keyPairs.get(Constants.SIGNATURE_KEY).
-												         get(Integer.valueOf(Constants.CURVE_Ed25519)));
-	        System.out.println("Signing completed");
-		} catch (CoseException e) {
-			System.err.println("Error while computing the signature: " +  e.getMessage());
-		}
-		
-		boolean verified = false;
-		try {
-			verified = Util.verifySignature(mySignature, idCredX, externalData, payloadToSign,
-											keyPairs.get(Constants.SIGNATURE_KEY).
-													 get(Integer.valueOf(Constants.CURVE_Ed25519)));
-		} catch (CoseException e) {
-			System.err.println("Error while verifying the signature: " + e.getMessage());
-		}
-		System.out.println("Signature validity: " + verified);
-		System.out.println();
-		
-		
-		// Test an encryption and decryption
-		System.out.println("=======================");
-		System.out.println("Test an encryption and decryption");
-		byte[] payloadToEncrypt = new byte[] {(byte) 0xfe, (byte) 0xed, (byte) 0xca, (byte) 0x57, (byte) 0xf0, (byte) 0x5c};
-		byte[] symmetricKey =  new byte[] {(byte) 0x00, (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04, (byte) 0x05,
-				                           (byte) 0x06, (byte) 0x07, (byte) 0x08, (byte) 0x09, (byte) 0x10, (byte) 0x11,
-				                           (byte) 0x12, (byte) 0x013, (byte) 0x14, (byte) 0x15};
-		byte[] iv = {(byte) 0xc5, (byte) 0xb7, (byte) 0x17, (byte) 0x0e, (byte) 0x65, (byte) 0xd5, (byte) 0x4f,
-				     (byte) 0x1a, (byte) 0xe0, (byte) 0x5d, (byte) 0x10, (byte) 0xaf, (byte) 0x56,};
-		AlgorithmID encryptionAlg = AlgorithmID.AES_CCM_16_64_128;
-		
-		
-		System.out.println("Plaintext: " + Utils.toHexString(payloadToEncrypt));
-		byte[] myCiphertext = null;
-		try {
-			myCiphertext = Util.encrypt(emptyMap, externalData, payloadToEncrypt, encryptionAlg, iv, symmetricKey);
-			System.out.println("Encryption completed");
-		} catch (CoseException e) {
-			System.err.println("Error while encrypting: " + e.getMessage());
-		}
-		byte[] myPlaintext = null;
-		try {
-			myPlaintext = Util.decrypt(emptyMap, externalData, myCiphertext, encryptionAlg, iv, symmetricKey);
-			System.out.println("Decryption completed");
-		} catch (CoseException e) {
-			System.err.println("Error while encrypting: " + e.getMessage());
-		}
-		System.out.println("Decryption correctness: " + Arrays.equals(payloadToEncrypt, myPlaintext));
-		System.out.println();
-		
-	}
-	
 	private static void setupSupportedCipherSuites() {
 		
 		// Add the supported ciphersuites in decreasing order of preference
@@ -510,6 +437,9 @@ public class Phase4Server extends CoapServer {
 		        // CRED, as serialization of a CBOR byte string wrapping the serialized certificate
 		        credEd25519 = CBORObject.FromObject(serializedCert).EncodeToBytes();
 		        break;
+			default:
+				System.err.println("Error: Unknown credType");
+				break;
 			}
 			
 			// Build ID_CRED
@@ -532,6 +462,9 @@ public class Phase4Server extends CoapServer {
 				break;
 			case Constants.ID_CRED_TYPE_X5U:
 				idCredEd25519 = Util.buildIdCredX5u("http://example.repo.com/hostB-x509-Ed25519");
+				break;
+			default:
+				System.err.println("Error: Unknown idCredType");
 				break;
 			}
 			
@@ -589,6 +522,9 @@ public class Phase4Server extends CoapServer {
 		        // CRED, as serialization of a CBOR byte string wrapping the serialized certificate
 		        credX25519 = CBORObject.FromObject(serializedCert).EncodeToBytes();
 		        break;
+			default:
+				System.err.println("Error: Unknown credType");
+				break;
 			}
 			
 			// Build ID_CRED
@@ -611,6 +547,9 @@ public class Phase4Server extends CoapServer {
 				break;
 			case Constants.ID_CRED_TYPE_X5U:
 				idCredX25519 = Util.buildIdCredX5u("http://example.repo.com/hostB-x509-X25519");
+				break;
+			default:
+				System.err.println("Error: Unknown idCredType");
 				break;
 			}
 			
@@ -674,6 +613,9 @@ public class Phase4Server extends CoapServer {
 		        // CRED, as serialization of a CBOR byte string wrapping the serialized certificate
 		        credP256 = CBORObject.FromObject(serializedCert).EncodeToBytes();
 		        break;
+			default:
+				System.err.println("Error: Unknown credType");
+				break;
 			}
 			
 			// Build ID_CRED
@@ -696,6 +638,9 @@ public class Phase4Server extends CoapServer {
 				break;
 			case Constants.ID_CRED_TYPE_X5U:
 				idCredP256 = Util.buildIdCredX5u("http://example.repo.com/hostB-x509-P256-signing");
+				break;
+			default:
+				System.err.println("Error: Unknown idCredType");
 				break;
 			}
 			
@@ -753,6 +698,9 @@ public class Phase4Server extends CoapServer {
 		        // CRED, as serialization of a CBOR byte string wrapping the serialized certificate
 		        credP256dh = CBORObject.FromObject(serializedCert).EncodeToBytes();
 		        break;
+			default:
+				System.err.println("Error: Unknown credType");
+				break;
 			}
 			
 			// Build ID_CRED
@@ -775,6 +723,9 @@ public class Phase4Server extends CoapServer {
 				break;
 			case Constants.ID_CRED_TYPE_X5U:
 				idCredP256dh = Util.buildIdCredX5u("http://example.repo.com/hostB-x509-P256-dh");
+				break;
+			default:
+				System.err.println("Error: Unknown idCredType");
 				break;
 			}
 			

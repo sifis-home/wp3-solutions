@@ -54,14 +54,8 @@ public class EdhocServer extends CoapServer {
 
 	private static final int COAP_PORT = Configuration.getStandard().get(CoapConfig.COAP_PORT);
 
-	// private static final int COAP_PORT = 5690;
-	
 	private final static Provider EdDSA = new EdDSASecurityProvider();
 	
-	
-	// Set to True if this CoAP server is the EDHOC responder (only flow available at the moment)
-	private final static boolean isResponder = true;
-
 	// The authentication method to include in EDHOC message_1 (relevant only when Initiator)
 	private static int authenticationMethod = Constants.EDHOC_AUTH_METHOD_0;
 	
@@ -74,6 +68,9 @@ public class EdhocServer extends CoapServer {
     // Possible values: ID_CRED_TYPE_KID ; ID_CRED_TYPE_CWT ; ID_CRED_TYPE_CCS ;
     //                  ID_CRED_TYPE_X5T ; ID_CRED_TYPE_X5U ; ID_CRED_TYPE_X5CHAIN
     private static int idCredType = Constants.ID_CRED_TYPE_X5T;
+    
+    // The trust model used to validate authentication credentials of other peers
+    private static int trustModel = Constants.TRUST_MODEL_STRICT;
     
     
     // Authentication credentials of this peer 
@@ -104,9 +101,9 @@ public class EdhocServer extends CoapServer {
 	// The map label is a CBOR Map used as ID_CRED_X
 	// The map value is a CBOR Byte String, with value the serialization of CRED_X
 	private static HashMap<CBORObject, CBORObject> peerCredentials = new HashMap<CBORObject, CBORObject>();
-
+	
 	// Existing EDHOC Sessions, including completed ones
-	// The map label is C_X, i.e. the connection identifier offered to the other peer, as a CBOR integer or byte string
+	// The map label is C_X, i.e. the connection identifier offered to the other peer
 	private static HashMap<CBORObject, EdhocSession> edhocSessions = new HashMap<CBORObject, EdhocSession>();
 	
 	// Each element is a used Connection Identifier offered to the other peers.
@@ -115,6 +112,9 @@ public class EdhocServer extends CoapServer {
 	
 	// List of supported cipher suites, in decreasing order of preference.
 	private static List<Integer> supportedCipherSuites = new ArrayList<Integer>();
+
+	// Set of supported EAD items, identified by their EAD label
+	private static Set<Integer> supportedEADs = new HashSet<>();
 	
 	// The collection of application profiles - The lookup key is the full URI of the EDHOC resource
 	private static HashMap<String, AppProfile> appProfiles = new HashMap<String, AppProfile>();
@@ -145,6 +145,12 @@ public class EdhocServer extends CoapServer {
 
 		// Add the supported cipher suites
 		setupSupportedCipherSuites();
+
+		// Add the supported cipher suites
+		setupSupportedEADs();
+		
+		// Set up the authentication credentials for this peer and the other peer
+		setupOwnAuthenticationCredentials();
 		
 		// Set up the authentication credentials for this peer and the other peer
 		setupOwnAuthenticationCredentials();
@@ -219,15 +225,24 @@ public class EdhocServer extends CoapServer {
 		CoapResource wellKnownResource = new WellKnown();
 		add(wellKnownResource);
 		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
+		// If EAD items have to be produced for outgoing EDHOC messages (irrespective of the consumption of EAD items
+		// in incoming EDHOC message, this data structure specifies instructions on how to produce those.
+		//
+		// The outer map key indicates the outgoing EDHOC message in question.
+		//
+		// Each inner list specifies a sequence of element pairs (CBOR integer, CBOR map).
+		// The CBOR integer specifies the ead_label in case of non-critical EAD item,
+		// or the corresponding negative value in case of critical EAD item.
+		// The CBOR map provides input on how to produce the EAD item,
+		// with the map keys from a namespace specific of the ead_label.
+		HashMap<Integer, List<CBORObject>> eadProductionInput = null;
 		
 		// prepare the set of information for this EDHOC endpoint
 		EdhocEndpointInfo edhocEndpointInfo = new EdhocEndpointInfo(idCreds, creds, keyPairs, peerPublicKeys,
 																	peerCredentials, edhocSessions, usedConnectionIds,
-																	supportedCipherSuites, db, uriLocal,
-																	OSCORE_REPLAY_WINDOW, MAX_UNFRAGMENTED_SIZE,
-																	appProfiles, edp);
+																	supportedCipherSuites, supportedEADs, eadProductionInput,
+																	trustModel, db, uriLocal, OSCORE_REPLAY_WINDOW,
+																	MAX_UNFRAGMENTED_SIZE, appProfiles);
 		
 		// provide an instance of a .well-known/edhoc resource
 		CoapResource edhocResource = new EdhocResource("edhoc", edhocEndpointInfo, ownIdCreds);
@@ -363,11 +378,19 @@ public class EdhocServer extends CoapServer {
 	private static void setupSupportedCipherSuites() {
 		
 		// Add the supported cipher suites in decreasing order of preference
+		
 		supportedCipherSuites.add(Constants.EDHOC_CIPHER_SUITE_0);
 		supportedCipherSuites.add(Constants.EDHOC_CIPHER_SUITE_1);
 		supportedCipherSuites.add(Constants.EDHOC_CIPHER_SUITE_2);
 		supportedCipherSuites.add(Constants.EDHOC_CIPHER_SUITE_3);
 				
+	}
+	
+	private static void setupSupportedEADs() {
+	    
+	    // Add the supported EAD items, as per the example line below
+	    // supportedEADs.add(Integer.valueOf(1));
+	    
 	}
 
 	private static void setupOwnAuthenticationCredentials () {
@@ -898,8 +921,8 @@ public class EdhocServer extends CoapServer {
 		
 		// These serializations have to be prepared manually, in order to ensure that
 		// the CBOR map used as CRED has its parameters encoded in bytewise lexicographic order
-		peerCred = StringUtil.hex2ByteArray("A2026008A101A501020241022001215820CD4177BA62433375EDE279B5E18E8B91BC3ED8F1E174474A26FC0EDB44EA5373225820A0391DE29C5C5BADDA610D4E301EAAA18422367722289CD18CBE6624E89B9CFD");
- 		
+		peerCred = StringUtil.hex2ByteArray("A2026008A101A501020241022001215820CD4177BA62433375EDE279B5E18E8B91BC3ED8F1E174474A26FC0EDB44EA5373225820A0391DE29C5C5BADDA610D4E301EAAA18422367722289CD18CBE6624E89B9CFD");	
+		
 		peer1IdCredP256kccs = Util.buildIdCredKccs(peer1CcsObjectP256); // ID_CRED as 'kccs'
 		peer1IdCredP256kid = Util.buildIdCredKid(peer1KidP256); // ID_CRED as 'kid'
 		
@@ -945,11 +968,11 @@ public class EdhocServer extends CoapServer {
 		// i.e. the serialized ID_CRED_X is 0xa1, 0x04, 0x41, 0x03
 		byte[] peer1KidP256DH = new byte[] {(byte) 0x03};
 		
-
 		// Build the public key
 		
 		peerPublicKeyBinary = StringUtil.hex2ByteArray("ac75e9ece3e50bfc8ed60399889522405c47bf16df96660a41298cb4307f7eb6");
 		peerPublicKeyBinaryY = StringUtil.hex2ByteArray("6e5de611388a4b8a8211334ac7d37ecb52a387d257e6db3c2a93df21ff3affc8");
+		
 		peer1PublicKeyP256DH =  SharedSecretCalculation.buildEcdsa256OneKey(null, peerPublicKeyBinary, peerPublicKeyBinaryY);
 		
 		
@@ -963,7 +986,7 @@ public class EdhocServer extends CoapServer {
 		// These serializations have to be prepared manually, in order to ensure that
 		// the CBOR map used as CRED has its parameters encoded in bytewise lexicographic order
 		peerCred = StringUtil.hex2ByteArray("A2026008A101A501020241032001215820AC75E9ECE3E50BFC8ED60399889522405C47BF16DF96660A41298CB4307F7EB62258206E5DE611388A4B8A8211334AC7D37ECB52A387D257E6DB3C2A93DF21FF3AFFC8");
- 		
+		
 		peer1IdCredP256DHkccs = Util.buildIdCredKccs(peer1CcsObjectP256DH); // ID_CRED as 'kccs'
 		peer1IdCredP256DHkid = Util.buildIdCredKid(peer1KidP256DH); // ID_CRED as 'kid'
 		

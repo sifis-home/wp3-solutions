@@ -80,6 +80,10 @@ public class MessageProcessorTest {
 		List<Integer> supportedCipherSuites = new ArrayList<Integer>();
 		supportedCipherSuites.add(0);
 		
+		Set<Integer> supportedEADs = new HashSet<>();
+		
+		List<Integer> peerSupportedCipherSuites = new ArrayList<Integer>();
+		
 		/* Initiator information*/
 
 		// Connection Identifier of the Initiator
@@ -119,11 +123,11 @@ public class MessageProcessorTest {
 
 		// Create the session for the Initiator (with only the minimal set of information required for this test)
 		boolean initiator = true;
-		KissEDP edp = new KissEDP();
+		int trustModel = Constants.TRUST_MODEL_STRICT;
 		HashMapCtxDB db = new HashMapCtxDB();
 		EdhocSession sessionInitiator = new EdhocSession(initiator, true, method, connectionIdentifierInitiator,
 														 keyPairsI, idCredsI, credsI, supportedCipherSuites,
-														 appProfile, edp, db);
+														 peerSupportedCipherSuites, supportedEADs, appProfile, trustModel, db);
 		
 		edhocSessions.put(CBORObject.FromObject(connectionIdentifierInitiator), sessionInitiator);
 
@@ -167,11 +171,10 @@ public class MessageProcessorTest {
 		
 		// Create the session for the Responder (with only the minimal set of information required for this test)
 		initiator = false;
-		KissEDP edp2 = new KissEDP();
 		HashMapCtxDB db2 = new HashMapCtxDB();
 		EdhocSession sessionResponder = new EdhocSession(initiator, true, method, connectionIdentifierResponder,
 														 keyPairsR, idCredsR, credsR, supportedCipherSuites,
-														 appProfile, edp2, db2);
+														 peerSupportedCipherSuites, supportedEADs, appProfile, trustModel, db2);
 		
 		edhocSessions.put(CBORObject.FromObject(connectionIdentifierResponder), sessionResponder);
 		
@@ -259,14 +262,16 @@ public class MessageProcessorTest {
 		List<Integer> cipherSuites = new ArrayList<Integer>();
 		cipherSuites.add(0);
 		
+		Set<Integer> supportedEADs = new HashSet<>();
+		
+		List<Integer> peerSupportedCipherSuites = new ArrayList<Integer>();
+		
 		// The identity key of the Initiator
 		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
 				"4c5b25878f507c6b9dae68fbd4fd3ff997533db0af00b25d324ea28e6c213bc8");
 		byte[] publicIdentityKeyBytes = StringUtil.hex2ByteArray(
 				"ed06a8ae61a829ba5fa54525c9d07f48dd44a302f43e0f23d8cc20b73085141e");
 		OneKey identityKey = SharedSecretCalculation.buildEd25519OneKey(privateIdentityKeyBytes, publicIdentityKeyBytes);
-		
-		CBORObject[] ead1 = null;
 		
 		// Just for method compatibility; it is not used for EDHOC Message 1
 		// The x509 certificate of the Initiator
@@ -293,9 +298,7 @@ public class MessageProcessorTest {
 		boolean usedForOSCORE = true;
 		boolean supportCombinedRequest = false;
 		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
-		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
+		int trustModel = Constants.TRUST_MODEL_STRICT;
 		
 		// Specify the database of OSCORE Security Contexts
 		HashMapCtxDB db = new HashMapCtxDB();
@@ -315,9 +318,14 @@ public class MessageProcessorTest {
 		idCreds.get(Integer.valueOf(Constants.SIGNATURE_KEY)).
 				 put(Integer.valueOf(Constants.CURVE_Ed25519), idCred);
 	    
-		EdhocSession session = new EdhocSession(initiator, true, method, connectionIdentifierInitiator, keyPairs,
-				                                idCreds, creds, cipherSuites, appProfile, edp, db);
+		EdhocSession session = new EdhocSession(initiator, true, method, connectionIdentifierInitiator,
+												keyPairs, idCreds, creds, cipherSuites, peerSupportedCipherSuites,
+												supportedEADs, appProfile, trustModel, db);
 
+		SideProcessor sideProcessor = new SideProcessor(trustModel, null, null);
+		sideProcessor.setEdhocSession(session);
+		
+		
 		// Force a specific ephemeral key
 		byte[] privateEkeyBytes = StringUtil.hex2ByteArray(
 				"892ec28e5cb6669108470539500b705e60d008d347c5817ee9f3327c8a87bb03");
@@ -327,7 +335,7 @@ public class MessageProcessorTest {
 		session.setEphemeralKey(ek);
 
 		// Now write EDHOC message 1
-		byte[] message1 = MessageProcessor.writeMessage1(session, ead1);
+		byte[] message1 = MessageProcessor.writeMessage1(session);
 
 		// Compare with the expected value from the test vectors
 		
@@ -355,7 +363,6 @@ public class MessageProcessorTest {
 		
 		boolean initiator = false;
 		int method = 0;
-		CBORObject[] ead2 = null;
 		
 		
 		/* Responder information*/
@@ -366,6 +373,9 @@ public class MessageProcessorTest {
 		List<Integer> supportedCipherSuites = new ArrayList<Integer>();
 		supportedCipherSuites.add(0);
 
+		Set<Integer> supportedEADs = new HashSet<>();
+		
+		List<Integer> peerSupportedCipherSuites = new ArrayList<Integer>();
 		
 		// The x509 certificate of the Responder
 		byte[] serializedCert = StringUtil.hex2ByteArray(
@@ -462,9 +472,7 @@ public class MessageProcessorTest {
 		boolean usedForOSCORE = true;
 		boolean supportCombinedRequest = false;
 		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
-		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
+		int trustModel = Constants.TRUST_MODEL_STRICT;
 		
 		// Specify the database of OSCORE Security Contexts
 		HashMapCtxDB db = new HashMapCtxDB();
@@ -486,8 +494,12 @@ public class MessageProcessorTest {
 	    
 		// Create the session
 		EdhocSession session = new EdhocSession(initiator, true, method, connectionIdentifierResponder, keyPairs,
-												idCreds, creds, supportedCipherSuites, appProfile, edp, db);
+												idCreds, creds, supportedCipherSuites, peerSupportedCipherSuites,
+												supportedEADs, appProfile, trustModel, db);
 
+		SideProcessor sideProcessor = new SideProcessor(trustModel, null, null);
+		sideProcessor.setEdhocSession(session);
+		
 		// Set the ephemeral keys, i.e. G_X for the initiator, as well as Y and G_Y for the Responder
 		session.setEphemeralKey(ephemeralKey);
 		session.setPeerEphemeralPublicKey(peerEphemeralPublicKey);
@@ -509,7 +521,7 @@ public class MessageProcessorTest {
 		
 		
 		// Now write EDHOC message 2
-		byte[] message2 = MessageProcessor.writeMessage2(session, ead2);
+		byte[] message2 = MessageProcessor.writeMessage2(session);
 
 		// Compare with the expected value from the test vectors
 		
@@ -537,8 +549,7 @@ public class MessageProcessorTest {
 		
 		boolean initiator = true;
 		int method = 0;
-		CBORObject[] ead3 = null;
-		
+
 		
 		/* Initiator information*/
 
@@ -548,6 +559,9 @@ public class MessageProcessorTest {
 		List<Integer> supportedCipherSuites = new ArrayList<Integer>();
 		supportedCipherSuites.add(0);
 		
+		Set<Integer> supportedEADs = new HashSet<>();
+		
+		List<Integer> peerSupportedCipherSuites = new ArrayList<Integer>();
 		
 		// The x509 certificate of the Initiator
 		byte[] serializedCert = StringUtil.hex2ByteArray(
@@ -616,9 +630,7 @@ public class MessageProcessorTest {
 		boolean usedForOSCORE = true;
 		boolean supportCombinedRequest = false;
 		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
-		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
+		int trustModel = Constants.TRUST_MODEL_STRICT;
 		
 		// Specify the database of OSCORE Security Contexts
 		HashMapCtxDB db = new HashMapCtxDB();
@@ -640,8 +652,12 @@ public class MessageProcessorTest {
 		
 		// Create the session
 		EdhocSession session = new EdhocSession(initiator, true, method, connectionIdentifierInitiator, keyPairs,
-												idCreds, creds, supportedCipherSuites, appProfile, edp, db);
+												idCreds, creds, supportedCipherSuites, peerSupportedCipherSuites,
+												supportedEADs, appProfile, trustModel, db);
 
+		SideProcessor sideProcessor = new SideProcessor(trustModel, null, null);
+		sideProcessor.setEdhocSession(session);
+		
 		// Set the ephemeral keys, i.e. X and G_X for the initiator, as well as G_Y for the Responder
 		session.setEphemeralKey(ephemeralKey);
 		session.setPeerEphemeralPublicKey(peerEphemeralPublicKey);
@@ -666,13 +682,12 @@ public class MessageProcessorTest {
 		// Set PRK_3e2m from the previous protocol step
 		session.setPRK3e2m(prk3e2m);
 		
-		// v-16
 		// Set CRED_R from the previous protocol step
 		session.setPeerCred(credR);
 		
 		
 		// Now write EDHOC message 3
-		byte[] message3 = MessageProcessor.writeMessage3(session, ead3);
+		byte[] message3 = MessageProcessor.writeMessage3(session);
 
 		// Compare with the expected value from the test vectors
 		// Note: the actual EDHOC message 3 starts with 0x58. The bytes 0x4118 (CBOR encoding for h'18') is prepended as C_R,
@@ -746,7 +761,6 @@ public class MessageProcessorTest {
 		
 		boolean initiator = false;
 		int method = 0;
-		CBORObject[] ead4 = null;
 		
 		
 		/* Responder information*/
@@ -757,6 +771,9 @@ public class MessageProcessorTest {
 		List<Integer> supportedCipherSuites = new ArrayList<Integer>();
 		supportedCipherSuites.add(0);
 		
+		Set<Integer> supportedEADs = new HashSet<>();
+		
+		List<Integer> peerSupportedCipherSuites = new ArrayList<Integer>();
 		
 		// The x509 certificate of the Responder
 		byte[] serializedCert = StringUtil.hex2ByteArray(
@@ -810,9 +827,7 @@ public class MessageProcessorTest {
 		boolean usedForOSCORE = true;
 		boolean supportCombinedRequest = false;
 		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
-		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
+		int trustModel = Constants.TRUST_MODEL_STRICT;
 		
 		// Specify the database of OSCORE Security Contexts
 		HashMapCtxDB db = new HashMapCtxDB();
@@ -834,8 +849,12 @@ public class MessageProcessorTest {
 		
 		// Create the session
 		EdhocSession session = new EdhocSession(initiator, true, method, connectionIdentifierResponder, keyPairs,
-												idCreds, creds, supportedCipherSuites, appProfile, edp, db);
+												idCreds, creds, supportedCipherSuites, peerSupportedCipherSuites,
+												supportedEADs, appProfile, trustModel, db);
 
+		SideProcessor sideProcessor = new SideProcessor(trustModel, null, null);
+		sideProcessor.setEdhocSession(session);
+		
 		session.setCurrentStep(Constants.EDHOC_AFTER_M3);
 		
 		// Set the ephemeral keys, i.e. G_X for the initiator, as well as Y and G_Y for the Responder
@@ -860,7 +879,7 @@ public class MessageProcessorTest {
 		session.setTH4(th4);
 		
 		// Now write EDHOC message 4
-		byte[] message4 = MessageProcessor.writeMessage4(session, ead4);
+		byte[] message4 = MessageProcessor.writeMessage4(session);
 
 		// Compare with the expected value from the test vectors
 
@@ -888,12 +907,14 @@ public class MessageProcessorTest {
 		List<Integer> supportedCipherSuites = new ArrayList<Integer>();
 		supportedCipherSuites.add(6);
 		supportedCipherSuites.add(2);
+		
+		Set<Integer> supportedEADs = new HashSet<>();
 
-		List<Integer> cipherSuitesPeer = new ArrayList<Integer>();
-		cipherSuitesPeer.add(2);
+		List<Integer> peerSupportedCipherSuites = new ArrayList<Integer>();
+		// Force the early knowledge of cipher suites supported by the other peer
+		peerSupportedCipherSuites.add(2);
 		
 		OneKey identityKey = Util.generateKeyPair(KeyKeys.EC2_P256.AsInt32());
-		CBORObject[] ead1 = null;
 		
 		// Just for method compatibility; it is not used for EDHOC Message 1
 		
@@ -920,9 +941,7 @@ public class MessageProcessorTest {
 		boolean usedForOSCORE = true;
 		boolean supportCombinedRequest = false;
 		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
-		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
+		int trustModel = Constants.TRUST_MODEL_STRICT;
 		
 		// Specify the database of OSCORE Security Contexts
 		HashMapCtxDB db = new HashMapCtxDB();
@@ -943,10 +962,11 @@ public class MessageProcessorTest {
 				 put(Integer.valueOf(Constants.CURVE_P256), idCred);
 		
 		EdhocSession session = new EdhocSession(initiator, true, method, connectionIdentifierInitiator, keyPairs,
-				                                idCreds, creds, supportedCipherSuites, appProfile, edp, db);
+				                                idCreds, creds, supportedCipherSuites, peerSupportedCipherSuites,
+				                                supportedEADs, appProfile, trustModel, db);
 
-		// Force the early knowledge of cipher suites supported by the other peer
-		session.setPeerSupportedCipherSuites(cipherSuitesPeer);
+		SideProcessor sideProcessor = new SideProcessor(trustModel, null, null);
+		sideProcessor.setEdhocSession(session);
 		
 		// Force a specific ephemeral key
 		byte[] privateEkeyBytes = StringUtil.hex2ByteArray(
@@ -959,7 +979,7 @@ public class MessageProcessorTest {
 		session.setEphemeralKey(ek);
 
 		// Now write EDHOC message 1
-		byte[] message1 = MessageProcessor.writeMessage1(session, ead1);
+		byte[] message1 = MessageProcessor.writeMessage1(session);
 
 		// Compare with the expected value from the test vectors
 
@@ -982,7 +1002,7 @@ public class MessageProcessorTest {
 
 		boolean initiator = false;
 		int method = 3;
-		CBORObject[] ead2 = null;
+
 		
 		/* Responder information*/
 
@@ -992,6 +1012,10 @@ public class MessageProcessorTest {
 		List<Integer> supportedCipherSuites = new ArrayList<Integer>();
 		supportedCipherSuites.add(2);
 		
+		Set<Integer> supportedEADs = new HashSet<>();
+		
+		List<Integer> peerSupportedCipherSuites = new ArrayList<Integer>();
+		
 		// The identity key of the Responder
 		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
 				"72cc4761dbd4c78f758931aa589d348d1ef874a7e303ede2f140dcf3e6aa4aac");
@@ -999,7 +1023,9 @@ public class MessageProcessorTest {
 				"bbc34960526ea4d32e940cad2a234148ddc21791a12afbcbac93622046dd44f0");
 		byte[] publicIdentityKeyBytesY = StringUtil.hex2ByteArray("4519e257236b2a0ce2023f0931f1f386ca7afda64fcde0108c224c51eabf6072");
 		
-		OneKey identityKey = SharedSecretCalculation.buildEcdsa256OneKey(privateIdentityKeyBytes, publicIdentityKeyBytesX, publicIdentityKeyBytesY);
+		OneKey identityKey = SharedSecretCalculation.buildEcdsa256OneKey(privateIdentityKeyBytes,
+																		 publicIdentityKeyBytesX,
+																		 publicIdentityKeyBytesY);
 		
 		// ID_CRED_R for the identity key of the Responder
 		byte[] idCredKid = {(byte) 0x32};
@@ -1050,10 +1076,8 @@ public class MessageProcessorTest {
 		boolean usedForOSCORE = true;
 		boolean supportCombinedRequest = false;
 		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
-		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
-		
+		int trustModel = Constants.TRUST_MODEL_STRICT;
+				
 		// Specify the database of OSCORE Security Contexts
 		HashMapCtxDB db = new HashMapCtxDB();
 		
@@ -1074,8 +1098,12 @@ public class MessageProcessorTest {
 		
 		// Create the session
 		EdhocSession session = new EdhocSession(initiator, true, method, connectionIdentifierResponder, keyPairs,
-												idCreds, creds, supportedCipherSuites, appProfile, edp, db);
+												idCreds, creds, supportedCipherSuites, peerSupportedCipherSuites,
+												supportedEADs, appProfile, trustModel, db);
 
+		SideProcessor sideProcessor = new SideProcessor(trustModel, null, null);
+		sideProcessor.setEdhocSession(session);
+		
 		// Set the ephemeral keys, i.e. G_X for the initiator, as well as Y and G_Y for the Responder
 		session.setEphemeralKey(ephemeralKey);
 		session.setPeerEphemeralPublicKey(peerEphemeralPublicKey);
@@ -1097,7 +1125,7 @@ public class MessageProcessorTest {
 		
 		
 		// Now write EDHOC message 2
-		byte[] message2 = MessageProcessor.writeMessage2(session, ead2);
+		byte[] message2 = MessageProcessor.writeMessage2(session);
 
 		// Compare with the expected value from the test vectors
 		
@@ -1121,7 +1149,7 @@ public class MessageProcessorTest {
 
 		boolean initiator = true;
 		int method = 3;
-		CBORObject[] ead3 = null;
+
 		
 		/* Initiator information*/
 
@@ -1131,6 +1159,10 @@ public class MessageProcessorTest {
 		List<Integer> supportedCipherSuites = new ArrayList<Integer>();
 		supportedCipherSuites.add(6);
 		supportedCipherSuites.add(2);
+		
+		Set<Integer> supportedEADs = new HashSet<>();
+		
+		List<Integer> peerSupportedCipherSuites = new ArrayList<Integer>();
 		
 		// The identity key of the Initiator
 		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
@@ -1166,7 +1198,6 @@ public class MessageProcessorTest {
 		// Connection Identifier of the Responder
 		byte[] connectionIdentifierResponder = new byte[] {(byte) 0x27};
 		
-		// v-16
 		// CRED_R for the identity key of the Responder
 		byte[] credR = StringUtil.hex2ByteArray("A2026B6578616D706C652E65647508A101A501020241322001215820BBC34960526EA4D32E940CAD2A234148DDC21791A12AFBCBAC93622046DD44F02258204519E257236B2A0CE2023F0931F1F386CA7AFDA64FCDE0108C224C51EABF6072");
 		
@@ -1203,10 +1234,8 @@ public class MessageProcessorTest {
 		boolean usedForOSCORE = true;
 		boolean supportCombinedRequest = false;
 		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
-		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
-		
+		int trustModel = Constants.TRUST_MODEL_STRICT;
+				
 		// Specify the database of OSCORE Security Contexts
 		HashMapCtxDB db = new HashMapCtxDB();
 		
@@ -1227,8 +1256,12 @@ public class MessageProcessorTest {
 		
 		// Create the session
 		EdhocSession session = new EdhocSession(initiator, true, method, connectionIdentifierInitiator, keyPairs,
-												idCreds, creds, supportedCipherSuites, appProfile, edp, db);
+												idCreds, creds, supportedCipherSuites, peerSupportedCipherSuites,
+												supportedEADs, appProfile, trustModel, db);
 
+		SideProcessor sideProcessor = new SideProcessor(trustModel, null, null);
+		sideProcessor.setEdhocSession(session);
+		
 		// Set the ephemeral keys, i.e. X and G_X for the initiator, as well as G_Y for the Responder
 		session.setEphemeralKey(ephemeralKey);
 		session.setPeerEphemeralPublicKey(peerEphemeralPublicKey);
@@ -1252,13 +1285,12 @@ public class MessageProcessorTest {
 		// Set PRK_3e2m from the previous protocol step
 		session.setPRK3e2m(prk3e2m);
 		
-		// v-16
 		// Set CRED_R from the previous protocol step
 		session.setPeerCred(credR);
 		
 		
 		// Now write EDHOC message 3
-		byte[] message3 = MessageProcessor.writeMessage3(session, ead3);
+		byte[] message3 = MessageProcessor.writeMessage3(session);
 
 		// Compare with the expected value from the test vectors
 		// Note: the actual EDHOC message 3 starts with 0x52. The byte 0x27 (CBOR encoding for -8) is prepended as C_R,
@@ -1328,7 +1360,7 @@ public class MessageProcessorTest {
 
 		boolean initiator = false;
 		int method = 3;
-		CBORObject[] ead4 = null;
+
 		
 		/* Responder information*/
 
@@ -1337,6 +1369,10 @@ public class MessageProcessorTest {
 		
 		List<Integer> supportedCipherSuites = new ArrayList<Integer>();
 		supportedCipherSuites.add(2);
+		
+		Set<Integer> supportedEADs = new HashSet<>();
+		
+		List<Integer> peerSupportedCipherSuites = new ArrayList<Integer>();
 		
 		// The identity key of the Responder
 		byte[] privateIdentityKeyBytes = StringUtil.hex2ByteArray(
@@ -1400,9 +1436,7 @@ public class MessageProcessorTest {
 		boolean usedForOSCORE = true;
 		boolean supportCombinedRequest = false;
 		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
-		
-		// Specify the processor of External Authorization Data
-		KissEDP edp = new KissEDP();
+		int trustModel = Constants.TRUST_MODEL_STRICT;
 		
 		// Specify the database of OSCORE Security Contexts
 		HashMapCtxDB db = new HashMapCtxDB();
@@ -1424,8 +1458,12 @@ public class MessageProcessorTest {
 		
 		// Create the session
 		EdhocSession session = new EdhocSession(initiator, true, method, connectionIdentifierResponder, keyPairs,
-												idCreds, creds, supportedCipherSuites, appProfile, edp, db);
-
+												idCreds, creds, supportedCipherSuites, peerSupportedCipherSuites,
+												supportedEADs, appProfile, trustModel, db);
+		
+		SideProcessor sideProcessor = new SideProcessor(trustModel, null, null);
+		sideProcessor.setEdhocSession(session);
+		
 		session.setCurrentStep(Constants.EDHOC_AFTER_M3);
 		
 		// Set the ephemeral keys, i.e. G_X for the initiator, as well as Y and G_Y for the Responder
@@ -1448,7 +1486,7 @@ public class MessageProcessorTest {
 		session.setTH4(th4);
 		
 		// Now write EDHOC message 4
-		byte[] message4 = MessageProcessor.writeMessage4(session, ead4);
+		byte[] message4 = MessageProcessor.writeMessage4(session);
 
 		// Compare with the expected value from the test vectors
 
