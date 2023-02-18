@@ -296,6 +296,22 @@ public class Phase3Client {
 																	trustModel, db, edhocURI, OSCORE_REPLAY_WINDOW,
 																	MAX_UNFRAGMENTED_SIZE, appProfiles);
 		
+		// Wait for EDHOC Server to become available
+		boolean serverAvailable = false;
+		do {
+			System.out.println("Attempting to reach EDHOC Server at: " + edhocURI + " ...");
+			CoapClient checker = new CoapClient(edhocURI);
+
+			serverAvailable = checker.ping();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				System.err.println("Failed to sleep when waiting for AS.");
+				e.printStackTrace();
+			}
+		} while (!serverAvailable);
+		System.out.println("EDHOC Server is available.");
+
 		// Connect and listen to DHT, or use command line
 		if (useDht) {
 			System.out.println("Using DHT");

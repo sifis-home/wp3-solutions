@@ -32,7 +32,6 @@ import org.eclipse.californium.core.Utils;
 import org.eclipse.californium.core.coap.CoAP.Code;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.cose.AlgorithmID;
-import org.eclipse.californium.elements.exception.ConnectorException;
 import org.eclipse.californium.elements.util.Bytes;
 import org.eclipse.californium.oscore.HashMapCtxDB;
 import org.eclipse.californium.oscore.OSCoreCoapStackFactory;
@@ -91,11 +90,8 @@ public class Phase0Client {
 	 * 
 	 * @param args command line arguments
 	 * @throws OSException on OSCORE processing failure
-	 * @throws ConnectorException on OSCORE processing failure
-	 * @throws IOException on OSCORE processing failure
-	 * @throws InterruptedException on OSCORE processing failure
 	 */
-	public static void main(String[] args) throws OSException, ConnectorException, IOException, InterruptedException {
+	public static void main(String[] args) throws OSException {
 		if (args.length > 0 && (args[0].toLowerCase().equals("-dht") || args[0].toLowerCase().equals("-usedht"))) {
 			useDht = true;
 		}
@@ -122,6 +118,22 @@ public class Phase0Client {
 		if (cmdUri.getScheme() != null && cmdUri.getScheme().equals("coap")) {
 			lightURI = cmdUri.toString();
 		}
+
+		// Wait for EDHOC Server to become available
+		boolean serverAvailable = false;
+		do {
+			System.out.println("Attempting to reach EDHOC Server at: " + lightURI + " ...");
+			CoapClient checker = new CoapClient(lightURI);
+
+			serverAvailable = checker.ping();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				System.err.println("Failed to sleep when waiting for AS.");
+				e.printStackTrace();
+			}
+		} while (!serverAvailable);
+		System.out.println("EDHOC Server is available.");
 
 		OSCoreCtx ctx = new OSCoreCtx(master_secret, true, alg, sid, rid, kdf, 32, master_salt, null,
 				MAX_UNFRAGMENTED_SIZE);

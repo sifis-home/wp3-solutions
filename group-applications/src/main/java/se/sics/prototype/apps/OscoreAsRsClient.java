@@ -169,8 +169,25 @@ public class OscoreAsRsClient {
 			OSCoreCoapStackFactory.useAsDefault(db);
 		}
 
+		// Wait for Authorization Server to become available
+		boolean asAvailable = false;
+		do {
+			String asUri = "coap://" + AS_HOST + ":" + AS_PORT + "/token";
+			System.out.println("Attempting to reach AS at: " + asUri + " ...");
+			CoapClient checker = new CoapClient(asUri);
+
+			asAvailable = checker.ping();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				System.err.println("Failed to sleep when waiting for AS.");
+				e.printStackTrace();
+			}
+		} while (!asAvailable);
+		System.out.println("AS is available. Proceeding to request Token from AS.");
+
+		// Build empty sets of assigned Sender IDs; one set for each possible
 		for (int i = 0; i < 4; i++) {
-			// Empty sets of assigned Sender IDs; one set for each possible
 			// Sender ID size in bytes.
 			// The set with index 0 refers to Sender IDs with size 1 byte
 			usedRecipientIds.add(new HashSet<Integer>());
@@ -228,6 +245,23 @@ public class OscoreAsRsClient {
 		}
 
 		printPause(memberName, "Will now post Token to Group Manager and perform group joining");
+
+		// Wait for Group Manager to become available
+		boolean gmAvailable = false;
+		do {
+			String gmUri = "coap://" + GM_HOST + ":" + GM_PORT + "/authz-info";
+			CoapClient checker = new CoapClient(gmUri);
+
+			System.out.println("Attempting to reach GM at: " + gmUri + " ...");
+			gmAvailable = checker.ping();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				System.err.println("Failed to sleep when waiting for GM.");
+				e.printStackTrace();
+			}
+		} while (!gmAvailable);
+		System.out.println("GM is available. Proceeding to post Token to GM.");
 
 		// ///////////////
 		// // EDDSA (Ed25519)
@@ -469,7 +503,7 @@ public class OscoreAsRsClient {
 				"coap://" + rsAddr + ":" + portNumberRSnosec + "/" + rootGroupMembershipResource + "/" + groupName,
 				portNumberRSnosec), ctxDB);
 
-		System.out.println("Performing Join request using OSCORE to GM at " + "coap://localhost/feedca570000");
+		System.out.println("Performing Join request using OSCORE to GM.");
 
 		CBORObject requestPayload = CBORObject.NewMap();
 
