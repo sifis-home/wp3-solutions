@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Configure and prepare projects for import in Eclipse
+
 cd ace
 mvn -P eclipse eclipse:eclipse
 cd ..
@@ -9,11 +11,11 @@ mvn eclipse:eclipse
 cd ..
 
 cd group-applications
-mvn eclipse:eclipse
+mvn -P eclipse eclipse:eclipse
 cd ..
 
 cd edhoc-applications
-mvn eclipse:eclipse
+mvn -P eclipse eclipse:eclipse
 cd ..
 
 #Check that the ace/db.pwd file exists

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Execute Junit tests for ACE and save as Jacoco test reports
+
 # Build Californium (if needed)
 FILE=californium-extended/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT.jar
 if [ -f "$FILE" ]; then
@@ -13,19 +15,12 @@ fi
 
 # Copy library Jar files from Californium to ACE lib folder
 mkdir ace/lib
-cp californium-extended/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT-sources.jar ace/lib
 cp californium-extended/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT.jar ace/lib
 
 cp californium-extended/californium-core/target/californium-core-3.1.0-SNAPSHOT.jar ace/lib
-cp californium-extended/californium-core/target/californium-core-3.1.0-SNAPSHOT-sources.jar ace/lib
-cp californium-extended/californium-core/target/californium-core-3.1.0-SNAPSHOT-tests.jar ace/lib
 
-cp californium-extended/scandium-core/target/scandium-3.1.0-SNAPSHOT-sources.jar ace/lib
 cp californium-extended/scandium-core/target/scandium-3.1.0-SNAPSHOT.jar ace/lib
-cp californium-extended/scandium-core/target/scandium-3.1.0-SNAPSHOT-tests.jar ace/lib
 
-cp californium-extended/element-connector/target/element-connector-3.1.0-SNAPSHOT-sources.jar ace/lib
-cp californium-extended/element-connector/target/element-connector-3.1.0-SNAPSHOT-tests.jar ace/lib
 cp californium-extended/element-connector/target/element-connector-3.1.0-SNAPSHOT.jar ace/lib
 
 # Install Mysql server (seems to be already installed in Github test environment)
