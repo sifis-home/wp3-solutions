@@ -107,10 +107,10 @@ public class MySQLDBAdapter implements SQLDBAdapter {
     @Override
     public synchronized void createUser(String rootPwd) throws AceException {
         String cUser = "CREATE USER IF NOT EXISTS'" + this.user
-                + "'@'localhost' IDENTIFIED BY '" + this.password
+                + "'@'%' IDENTIFIED BY '" + this.password
                 + "';";
         String authzUser = "GRANT DELETE, INSERT, SELECT, UPDATE, CREATE ON "
-                + this.dbName + ".* TO '" + this.user + "'@'localhost';";
+                + this.dbName + ".* TO '" + this.user + "'@'%';";
 
         try (Connection rootConn = getRootConnection(rootPwd);
              Statement stmt = rootConn.createStatement()) {
@@ -278,7 +278,7 @@ public class MySQLDBAdapter implements SQLDBAdapter {
         {
             String dropDB = "DROP DATABASE IF EXISTS " + this.dbName + ";";
             String dropUser = "DROP USER IF EXISTS '" + this.user 
-                    + "'@'localhost';";
+                    + "'@'%';";
             stmt.execute(dropDB);
             stmt.execute(dropUser);
         } catch (SQLException e) {

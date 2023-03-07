@@ -60,6 +60,8 @@ public class DBHelper
     private static final String testDBName = "testdb";
 
     private static String dbRootPwd = null;
+    private static String dbHost = null;
+    private static String dbPort = null;
 
     /**
      * Sets up the DB using the current default adapter.
@@ -69,11 +71,24 @@ public class DBHelper
      */
     public static void setUpDB() throws AceException, IOException
     {
-        // First load the DB root password from an external file.
-        loadRootPassword();
+        // First load the DB root password, and DB host & port from an external file.
+        loadDbParams();
 
+        // If dbHost and dbPort was set in external file, use them
+        // Otherwise default will be used in dbAdapter
+        String dbUrl = null;
+        if(dbHost != null && dbPort != null) {
+        	dbUrl = "jdbc:mysql://" + dbHost + ":" + dbPort;
+        	System.out.println("Using DB URL: " + dbUrl);
+        } else if (dbHost != null && dbPort == null) {
+        	dbUrl = "jdbc:mysql://" + dbHost + ":3306";
+        	System.out.println("Using DB URL: " + dbUrl);
+        } else {
+        	System.out.println("Using DB URL: Default");
+        }
+        
         // Set parameters for the DB.
-        dbAdapter.setParams(testUsername, testPassword, testDBName, null);
+        dbAdapter.setParams(testUsername, testPassword, testDBName, dbUrl);
 
         // In case database and/or user already existed.
         SQLConnector.wipeDatabase(dbAdapter, dbRootPwd);
@@ -114,10 +129,10 @@ public class DBHelper
     }
 
     /**
-     * Loads the root password form an external file.
+     * Loads the root password, and the DB host & port from an external file.
      * @throws IOException
      */
-    private static void loadRootPassword() throws IOException
+    private static void loadDbParams() throws IOException
     {
         BufferedReader br = new BufferedReader(new FileReader("db.pwd"));
         try
@@ -130,7 +145,18 @@ public class DBHelper
                 sb.append(System.lineSeparator());
                 line = br.readLine();
             }
-            dbRootPwd = sb.toString().replace(System.getProperty("line.separator"), "");
+            
+            String[] parts = sb.toString().split(" ");
+           
+            dbRootPwd = parts[0].replace(System.getProperty("line.separator"), "");
+            
+            if(parts.length > 1) {
+            	dbHost = parts[1].replace(System.getProperty("line.separator"), "");
+            }
+            
+            if(parts.length > 2) {
+            	dbPort = parts[2].replace(System.getProperty("line.separator"), "");
+            }
         }
         finally
         {
