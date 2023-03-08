@@ -257,7 +257,7 @@ public class Adversary {
 		CoapClient client = new CoapClient();
 
 		client.setEndpoint(endpoint);
-		client.setURI(requestURI); // FIXME: ?
+		client.setURI(requestURI);
 
 		// Information about the sender
 		System.out.println("==================");

@@ -259,11 +259,8 @@ public class GroupOscoreServer {
 					System.err.print("Failed to run python script: ");
 					e.printStackTrace();
 				}
-			} else {
-				// System.out.println("*** Toggling LEDs/solenoids ***");
-				// stateOn = !stateOn;
+			} else { // Other payload prints status
 				System.out.println("They are now turned on :" + stateOn);
-				// TODO? Run script to turn on or off
 			}
 
 			boolean isConfirmable = exchange.advanced().getRequest().isConfirmable();

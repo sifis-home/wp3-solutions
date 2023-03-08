@@ -53,6 +53,10 @@ import org.eclipse.californium.oscore.OSCoreResource;
 
 import com.upokecenter.cbor.CBORObject;
 
+/**
+ * EDHOC server using Authentication method 3, and using the Optimized request.
+ *
+ */
 public class Phase4Server extends CoapServer {
 
 	private static final int COAP_PORT = Configuration.getStandard().get(CoapConfig.COAP_PORT);
@@ -65,21 +69,24 @@ public class Phase4Server extends CoapServer {
 	// The authentication method to include in EDHOC message_1 (relevant only when Initiator)
 	// private static int authenticationMethod = Constants.EDHOC_AUTH_METHOD_0;
 	
-    // The type of the authentication credential of this peer (same type for all its credentials)
-    // Possible values: CRED_TYPE_CWT ; CRED_TYPE_CCS ; CRED_TYPE_X509
+	// The type of the authentication credential of this peer (same type for all
+	// its credentials). Possible values: CRED_TYPE_CWT ; CRED_TYPE_CCS ;
+	// CRED_TYPE_X509
     private static int credType = Constants.CRED_TYPE_X509;
     
-    // The type of the credential identifier to use as ID_CRED_R in EDHOC message_2 or as ID_CRED_I in EDHOC message_3,
-    // i.e., for this peer to indicate its own authentication credential to the other peer.
-    // Possible values: ID_CRED_TYPE_KID ; ID_CRED_TYPE_CWT ; ID_CRED_TYPE_CCS ;
-    //                  ID_CRED_TYPE_X5T ; ID_CRED_TYPE_X5U ; ID_CRED_TYPE_X5CHAIN
+	// The type of the credential identifier to use as ID_CRED_R in EDHOC
+	// message_2 or as ID_CRED_I in EDHOC message_3, i.e., for this peer to
+	// indicate its own authentication credential to the other peer. Possible
+	// values: ID_CRED_TYPE_KID ; ID_CRED_TYPE_CWT ; ID_CRED_TYPE_CCS ;
+	// ID_CRED_TYPE_X5T ; ID_CRED_TYPE_X5U ; ID_CRED_TYPE_X5CHAIN
     private static int idCredType = Constants.ID_CRED_TYPE_X5T;
     
     
     // Authentication credentials of this peer 
     //
-    // At the top level, authentication credentials are sorted by key usage of the authentication keys.
-    // The outer map has label SIGNATURE_KEY or ECDH_KEY for distinguishing the two key usages. 
+	// At the top level, authentication credentials are sorted by key usage of
+	// the authentication keys. The outer map has label SIGNATURE_KEY or
+	// ECDH_KEY for distinguishing the two key usages.
     
     // The asymmetric key pairs of this peer (one per supported curve)
 	private static HashMap<Integer, HashMap<Integer, OneKey>> keyPairs = new HashMap<Integer, HashMap<Integer, OneKey>>();
@@ -131,8 +138,10 @@ public class Phase4Server extends CoapServer {
 	// The size to consider for MAX_UNFRAGMENTED SIZE
 	private final static int MAX_UNFRAGMENTED_SIZE = 4096;
 	
-	/*
+	/**
 	 * Application entry point.
+	 * 
+	 * @param args command line arguments
 	 */
 	public static void main(String[] args) {
 		
@@ -206,8 +215,9 @@ public class Phase4Server extends CoapServer {
 		}
 	}
 
-	/*
-	 * Constructor for a new server. Here, the resources of the server are initialized.
+	/**
+	 * Constructor for a new server. Here, the resources of the server are
+	 * initialized.
 	 */
 	public Phase4Server() {
 

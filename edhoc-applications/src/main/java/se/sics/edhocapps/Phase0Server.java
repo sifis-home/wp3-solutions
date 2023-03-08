@@ -120,7 +120,8 @@ public class Phase0Server {
 						System.err.print("Failed to run python script: ");
 						e.printStackTrace();
 					}
-				} else if (exchange.getRequestText().equals("0") || exchange.getRequestText().toLowerCase().equals("off")) {
+				} else if (exchange.getRequestText().equals("0")
+						|| exchange.getRequestText().toLowerCase().equals("off")) {
 					r.setPayload("Turning off light");
 					System.out.println("Turning off light");
 

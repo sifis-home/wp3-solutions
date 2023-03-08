@@ -71,8 +71,10 @@ import org.eclipse.californium.edhoc.EdhocSession;
 import org.eclipse.californium.edhoc.SharedSecretCalculation;
 import org.eclipse.californium.edhoc.Util;
 
-/*
- * EDHOC client using Authentication method 3, and not using the Optimized request.
+/**
+ * EDHOC client using Authentication method 3, and not using the Optimized
+ * request.
+ *
  */
 @ClientEndpoint
 public class Phase2Client {
@@ -86,21 +88,24 @@ public class Phase2Client {
 	// Set to true if an OSCORE-protected exchange is performed after EDHOC completion
 	// private static final boolean POST_EDHOC_EXCHANGE = true;
 
-	// Set to true if EDHOC message_3 will be combined with the first OSCORE request
-	// Note: the application profile pertaining the EDHOC resource must first indicate support for the combined request 
+	// Set to true if EDHOC message_3 will be combined with the first OSCORE
+	// request. Note: the application profile pertaining the EDHOC resource must
+	// first indicate support for the combined request
 	private static final boolean OSCORE_EDHOC_COMBINED = false;
 	
 	// The authentication method to include in EDHOC message_1 (relevant only when Initiator)
 	private static int authenticationMethod = Constants.EDHOC_AUTH_METHOD_3;
 
-    // The type of the authentication credential of this peer (same type for all its credentials)
-    // Possible values: CRED_TYPE_CWT ; CRED_TYPE_CCS ; CRED_TYPE_X509
+	// The type of the authentication credential of this peer (same type for all
+	// its credentials). Possible values: CRED_TYPE_CWT ; CRED_TYPE_CCS ;
+	// CRED_TYPE_X509
     private static int credType = Constants.CRED_TYPE_X509;
     
-    // The type of the credential identifier of this peer (same type for all its credentials)
-    // This will be the type of ID_CRED_R used in EDHOC message_2 or as ID_CRED_I in EDHOC message_3.
-    // Possible values: ID_CRED_TYPE_KID ; ID_CRED_TYPE_CWT ; ID_CRED_TYPE_CCS ;
-    //                  ID_CRED_TYPE_X5T ; ID_CRED_TYPE_X5U ; ID_CRED_TYPE_X5CHAIN
+	// The type of the credential identifier of this peer (same type for all its
+	// credentials). This will be the type of ID_CRED_R used in EDHOC message_2
+	// or as ID_CRED_I in EDHOC message_3. Possible values: ID_CRED_TYPE_KID ;
+	// ID_CRED_TYPE_CWT ; ID_CRED_TYPE_CCS ; ID_CRED_TYPE_X5T ; ID_CRED_TYPE_X5U
+	// ; ID_CRED_TYPE_X5CHAIN
     private static int idCredType = Constants.ID_CRED_TYPE_X5T;
 
     // The trust model used to validate authentication credentials of other peers
@@ -108,9 +113,10 @@ public class Phase2Client {
     
     // Authentication credentials of this peer
     //
-    // At the top level, authentication credentials are sorted by key usage of the authentication keys.
-    // The outer map has label SIGNATURE_KEY or ECDH_KEY for distinguishing the two key usages. 
-    //
+	// At the top level, authentication credentials are sorted by key usage of
+	// the authentication keys. The outer map has label SIGNATURE_KEY or
+	// ECDH_KEY for distinguishing the two key usages.
+
     // The asymmetric key pairs of this peer (one per supported curve)
 	private static HashMap<Integer, HashMap<Integer, OneKey>> keyPairs = new HashMap<Integer, HashMap<Integer, OneKey>>();
     
@@ -220,9 +226,10 @@ public class Phase2Client {
 	// Set of information for this EDHOC endpoint
 	static EdhocEndpointInfo edhocEndpointInfo;
 
-	/*
+	/**
 	 * Application entry point.
 	 * 
+	 * @param args command line arguments
 	 */
 	public static void main(String args[]) {
 
@@ -1138,7 +1145,7 @@ public class Phase2Client {
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			System.err.println("Error: Failed to sleep after sending request");
 			e.printStackTrace();
 		}
 

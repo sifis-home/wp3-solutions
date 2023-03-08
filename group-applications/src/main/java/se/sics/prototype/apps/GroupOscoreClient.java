@@ -281,7 +281,7 @@ public class GroupOscoreClient {
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			System.err.println("Error: Failed to sleep after sending request");
 			e.printStackTrace();
 		}
 
@@ -373,8 +373,7 @@ public class GroupOscoreClient {
 		String messageField = parsed.getVolatile().getValue().getMessage();
 
 		// Device 1 filter
-		if (clientName.equals("Client1")
-				&& topicField.equals("command_dev1")) {
+		if (clientName.equals("Client1") && topicField.equals("command_dev1")) {
 			System.out.println("Filter matched message (device 1)!");
 
 			// Send group request and compile responses
@@ -404,8 +403,7 @@ public class GroupOscoreClient {
 		}
 
 		// Device 2 filter
-		else if (clientName.equals("Client2")
-				&& topicField.equals("command_dev2")) {
+		else if (clientName.equals("Client2") && topicField.equals("command_dev2")) {
 			System.out.println("Filter matched message (device 2)!");
 
 			// Send group request and compile responses

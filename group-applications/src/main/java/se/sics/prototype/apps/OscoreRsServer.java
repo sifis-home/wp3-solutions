@@ -51,7 +51,6 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.apache.log4j.BasicConfigurator;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.coap.CoAP;
@@ -2814,8 +2813,7 @@ public class OscoreRsServer {
 				// Invalid public key format
 				if (!publicKey.get(KeyKeys.KeyType).equals(targetedGroup.getSignParams().get(0).get(0))
 						|| !publicKey.get(KeyKeys.KeyType).equals(targetedGroup.getSignParams().get(1).get(0))
-						|| !publicKey.get(KeyKeys.EC2_Curve).equals(targetedGroup.getSignParams().get(1).get(1)))
-				{
+						|| !publicKey.get(KeyKeys.EC2_Curve).equals(targetedGroup.getSignParams().get(1).get(1))) {
 
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 							"Invalid public key for the algorithm and parameters used in the OSCORE group");
@@ -2830,8 +2828,7 @@ public class OscoreRsServer {
 				// Invalid public key format
 				if (!publicKey.get(KeyKeys.KeyType).equals(targetedGroup.getSignParams().get(0).get(0))
 						|| !publicKey.get(KeyKeys.KeyType).equals(targetedGroup.getSignParams().get(1).get(0))
-						|| !publicKey.get(KeyKeys.OKP_Curve).equals(targetedGroup.getSignParams().get(1).get(1)))
-				{
+						|| !publicKey.get(KeyKeys.OKP_Curve).equals(targetedGroup.getSignParams().get(1).get(1))) {
 
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 							"Invalid public key for the algorithm and parameters used in the OSCORE group");

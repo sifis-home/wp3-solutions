@@ -212,7 +212,7 @@ public class Phase0Client {
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			System.err.println("Error: Failed to sleep after sending request");
 			e.printStackTrace();
 		}
 
