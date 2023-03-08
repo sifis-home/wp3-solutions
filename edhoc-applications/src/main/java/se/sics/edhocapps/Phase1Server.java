@@ -186,7 +186,7 @@ public class Phase1Server extends CoapServer {
 												// CONVERSION_ID_CORE
 		AppProfile appProfile = new AppProfile(authMethods, useMessage4, usedForOSCORE, supportCombinedRequest);
 
-		appProfiles.put(uriLocal + "/.well-known/edhoc", appProfile);
+		appProfiles.put("/.well-known/edhoc", appProfile);
 
 		// create server
 		boolean udp = true;
