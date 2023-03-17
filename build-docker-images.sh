@@ -48,6 +48,7 @@ cp -r ../edhoc-applications/lib edhoc/lib
 echo 'FROM ubuntu:20.04' > Dockerfile.base
 echo 'ENV DEBIAN_FRONTEND noninteractive' >> Dockerfile.base
 echo 'ENV TZ="Europe/Stockholm"' >> Dockerfile.base
+echo 'WORKDIR /apps' >> Dockerfile.base
 echo 'RUN apt-get -y update && \' >> Dockerfile.base
 echo '    apt-get install -yq tzdata && \' >> Dockerfile.base
 echo '    ln -fs /usr/share/zoneinfo/Europe/Stockholm /etc/localtime && \' >> Dockerfile.base
@@ -77,7 +78,7 @@ echo 'ADD db.pwd /apps' >> $dockerfile
 echo 'ADD OscoreAsServer.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/OscoreAsServer.jar"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsServer.jar"]' >> $dockerfile
 #docker build -f $dockerfile -t oscoreasserver .
 
 # OscoreRsServer: Group Manager (ACE Resource Server)
@@ -88,7 +89,7 @@ echo 'EXPOSE 5783/udp' >> $dockerfile
 echo 'ADD OscoreRsServer.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/OscoreRsServer.jar"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreRsServer.jar"]' >> $dockerfile
 #docker build -f $dockerfile -t oscorersserver .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
@@ -101,7 +102,7 @@ cp ../Dockerfile.base $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/OscoreAsRsClient.jar", "-name", "Client2", "-delay", "75", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-delay", "75", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783", "-dht"]' >> $dockerfile
 #docker build -f $dockerfile -t oscoreasrsclient-client2 .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
@@ -115,7 +116,7 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/OscoreAsRsClient.jar", "-name", "Server4", "-delay", "15"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "15"]' >> $dockerfile
 #docker build -f $dockerfile -t oscoreasrsclient-server4 .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
@@ -129,7 +130,7 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/OscoreAsRsClient.jar", "-name", "Server5", "-delay", "30"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "30"]' >> $dockerfile
 #docker build -f $dockerfile -t oscoreasrsclient-server5 .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
@@ -143,7 +144,7 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/OscoreAsRsClient.jar", "-name", "Server6", "-delay", "45"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "45"]' >> $dockerfile
 #docker build -f $dockerfile -t oscoreasrsclient-server6 .
 
 # Adversary: Adversary for testing attacks against the group(s)
@@ -152,7 +153,7 @@ cp ../Dockerfile.base $dockerfile
 echo 'ADD Adversary.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Adversary.jar"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Adversary.jar"]' >> $dockerfile
 #docker build -f $dockerfile -t adversary .
 
 
@@ -170,7 +171,7 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD Phase0Server.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Phase0Server.jar"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase0Server.jar"]' >> $dockerfile
 #docker build -f $dockerfile -t phase0server .
 
 # Phase0Client: CoAP-only client
@@ -181,7 +182,7 @@ cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase0Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Phase0Client.jar", "-server", "coap://coap-server:5683", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase0Client.jar", "-server", "coap://coap-server:5683", "-dht"]' >> $dockerfile
 #docker build -f $dockerfile -t phase0client .
 
 # Phase1Server: EDHOC server using method 0 and no optimized request
@@ -193,7 +194,7 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD Phase1Server.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Phase1Server.jar"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase1Server.jar"]' >> $dockerfile
 #docker build -f $dockerfile -t phase1server .
 
 # Phase1Client: EDHOC client using method 0 and no optimized request
@@ -203,7 +204,7 @@ cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase1Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Phase1Client.jar", "-server", "coap://phase1server:5683", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase1Client.jar", "-server", "coap://phase1server:5683", "-dht"]' >> $dockerfile
 #docker build -f $dockerfile -t phase1client .
 
 # Phase2Server: EDHOC server using method 3 and no optimized request
@@ -215,7 +216,7 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD Phase2Server.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Phase2Server.jar"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase2Server.jar"]' >> $dockerfile
 #docker build -f $dockerfile -t phase2server .
 
 # Phase2Client: EDHOC client using method 3 and no optimized request
@@ -225,7 +226,7 @@ cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase2Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Phase2Client.jar", "-server", "coap://phase2server:5683", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase2Client.jar", "-server", "coap://phase2server:5683", "-dht"]' >> $dockerfile
 #docker build -f $dockerfile -t phase2client .
 
 # Phase3Server: EDHOC server using method 0 and the optimized request
@@ -237,7 +238,7 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD Phase3Server.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Phase3Server.jar"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase3Server.jar"]' >> $dockerfile
 #docker build -f $dockerfile -t phase3server .
 
 # Phase3Client: EDHOC client using method 0 and the optimized request
@@ -247,7 +248,7 @@ cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase3Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Phase3Client.jar", "-server", "coap://phase3server:5683", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase3Client.jar", "-server", "coap://phase3server:5683", "-dht"]' >> $dockerfile
 #docker build -f $dockerfile -t phase3client .
 
 # Phase4Server: EDHOC server using method 3 and the optimized request
@@ -260,7 +261,7 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD Phase4Server.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Phase4Server.jar"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase4Server.jar"]' >> $dockerfile
 #docker build -f $dockerfile -t phase4server .
 
 # Phase4Client: EDHOC client using method 3 and the optimized request
@@ -271,7 +272,7 @@ cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase4Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "/apps/Phase4Client.jar", "-server", "coap://edhoc-server:5683", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase4Client.jar", "-server", "coap://edhoc-server:5683", "-dht"]' >> $dockerfile
 #docker build -f $dockerfile -t phase4client .
 
 
