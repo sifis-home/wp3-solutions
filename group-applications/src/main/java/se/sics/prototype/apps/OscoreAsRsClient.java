@@ -190,14 +190,16 @@ public class OscoreAsRsClient {
 		do {
 			String asUri = "coap://" + AS_HOST + ":" + AS_PORT + "/token";
 			System.out.println("Attempting to reach AS at: " + asUri + " ...");
-			CoapClient checker = new CoapClient(asUri);
 
-			asAvailable = checker.ping();
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(5000);
+				CoapClient checker = new CoapClient(asUri);
+				asAvailable = checker.ping();
 			} catch (InterruptedException e) {
 				System.err.println("Failed to sleep when waiting for AS.");
 				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				System.err.println("AS hostname not available. Retrying...");
 			}
 		} while (!asAvailable);
 		System.out.println("AS is available. Proceeding to request Token from AS.");
@@ -266,15 +268,17 @@ public class OscoreAsRsClient {
 		boolean gmAvailable = false;
 		do {
 			String gmUri = "coap://" + GM_HOST + ":" + GM_PORT + "/authz-info";
-			CoapClient checker = new CoapClient(gmUri);
-
 			System.out.println("Attempting to reach GM at: " + gmUri + " ...");
-			gmAvailable = checker.ping();
+
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(5000);
+				CoapClient checker = new CoapClient(gmUri);
+				gmAvailable = checker.ping();
 			} catch (InterruptedException e) {
 				System.err.println("Failed to sleep when waiting for GM.");
 				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				System.err.println("GM hostname not available. Retrying...");
 			}
 		} while (!gmAvailable);
 		System.out.println("GM is available. Proceeding to post Token to GM.");
