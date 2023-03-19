@@ -23,8 +23,8 @@ cp californium-extended/scandium-core/target/scandium-3.1.0-SNAPSHOT.jar ace/lib
 
 cp californium-extended/element-connector/target/element-connector-3.1.0-SNAPSHOT.jar ace/lib
 
-# Install Mysql server (seems to be already installed in Github test environment)
-if [ "$1" != "--skip-mysql-install" ]
+# If indicated install Mysql server
+if [ "$1" = "--with-mysql" ]
 then
   echo "mysql-server mysql-server/root_password password root" | sudo debconf-set-selections
   echo "mysql-server mysql-server/root_password_again password root" | sudo debconf-set-selections

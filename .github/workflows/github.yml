@@ -41,7 +41,7 @@ jobs:
       - name: Run Californium & ACE JUnit tests
         run: |
           ./test-californium.sh
-          ./test-ace.sh
+          ./test-ace.sh --with-mysql
           ./code-coverage.sh
 
       - name: Deploy Jacoco code coverage reports to gh-pages
