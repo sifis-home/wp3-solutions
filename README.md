@@ -56,7 +56,7 @@ Deactive the "default" profile, and activate the "eclipse" profile.
 
 ### MySQL installation
 
-Note that mySQL is needed for the ACE parts to run correctly. To install it use:
+Note that MySQL is needed for the ACE parts to run correctly. To install it use:
 ```
 sudo apt-get install mysql-server
 ```
@@ -71,13 +71,60 @@ If some of the JUnit tests fail due to "invalid key size" you may need to update
 https://www.andreafortuna.org/2016/06/08/java-tips-how-to-fix-the-invalidkeyexception-illegal-key-size-or-default-parameters-runtime/
 
 
-### JUnit tests
+### Repository content overview
 
-To only run the JUnit tests:
+- config.sh
+    - Configure and prepare projects for import in Eclipse
 
-For Californium: `test-californium.sh`
+- test-californium.sh
+    - Execute JUnit tests for Californium and save as Jacoco test reports
 
-For ACE: `test-ace.sh --skip-mysql-install`
+- test-ace.sh
+    - Execute JUnit tests for ACE and save as Jacoco test reports
+    - Specify the flag --with-mysql to also perform install and setup of MySQL server
+
+- build-group-apps.sh
+    - Builds DHT-enabled standalone Jar files for the Group Applications
+
+- build-edhoc-apps.sh
+    - Builds DHT-enabled standalone Jar files for the EDHOC Applications
+
+- build-for-docker.sh
+    - Prepares Docker Dockerfiles and Contexts for the Group & EDHOC Applications
+    - If the flag --build-images is specified, it also builds the Docker images
+
+- code-coverage.sh
+    - Relocate Jacoco code coverage reports for deployment to gh-pages
+
+- dht_rest_client.py
+    - Allows sending volatile message to the DHT for triggering Group & EDHOC Applications
+    - Run *pip install -r python_requirements.txt* to install required dependencies
+
+- californium-extended/
+    - Modified version of the Californium CoAP library with support for EDHOC and Group OSCORE
+
+- ace/
+    - Implementation of ACE with support for Group Managers and the Group Joining procedure
+
+- group-applications/
+    - **The Group Applications including:**
+    - OscoreAsServer: ACE Authorization Server
+    - OscoreRsServer: Group Manager (ACE Resource Server)
+    - OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
+    - Adversary: Adversary for testing attacks against the group(s)
+
+- edhoc-applications/
+    - **The EDHOC Applications including:**
+    - Phase0Server: CoAP-only server
+    - Phase0Client: CoAP-only client
+    - Phase1Server: EDHOC server using method 0 and no optimized request
+    - Phase1Client: EDHOC client using method 0 and no optimized request
+    - Phase2Server: EDHOC server using method 3 and no optimized request
+    - Phase2Client: EDHOC client using method 3 and no optimized request
+    - Phase3Server: EDHOC server using method 0 and the optimized request
+    - Phase3Client: EDHOC client using method 0 and the optimized request
+    - Phase4Server: EDHOC server using method 3 and the optimized request
+    - Phase4Client: EDHOC client using method 3 and the optimized request
 
 
 ### Code coverage reports
