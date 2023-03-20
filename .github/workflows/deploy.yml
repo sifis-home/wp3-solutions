@@ -39,7 +39,6 @@ jobs:
           zip -ur ${ARCHIVE_FILE} group-applications/lib
           zip -ur ${ARCHIVE_FILE} edhoc-applications/*.jar
           zip -ur ${ARCHIVE_FILE} edhoc-applications/lib
-          zip -r Source.zip . -x *.jar -x *.class
 
       - name: Create a release
         uses: softprops/action-gh-release@v1
