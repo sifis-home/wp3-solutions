@@ -92,7 +92,7 @@ jobs:
           context: docker-build/group/.
           file: docker-build/group/Dockerfile-OscoreAsServer
           platforms: linux/amd64, linux/arm64, linux/arm
-          push: false
+          push: true
           tags: sifishome/authorization-server:latest
       -
         name: Build and push image (Group Manager)
@@ -101,7 +101,7 @@ jobs:
           context: docker-build/group/.
           file: docker-build/group/Dockerfile-OscoreRsServer
           platforms: linux/amd64, linux/arm64, linux/arm
-          push: false
+          push: true
           tags: sifishome/group-manager:latest
       -
         name: Build and push image (Group OSCORE Client)
@@ -110,7 +110,7 @@ jobs:
           context: docker-build/group/.
           file: docker-build/group/Dockerfile-OscoreAsRsClient-Client2
           platforms: linux/amd64, linux/arm64, linux/arm
-          push: false
+          push: true
           tags: sifishome/group-client:latest
       -
         name: Build and push image (Group OSCORE Server 1)
@@ -119,7 +119,7 @@ jobs:
           context: docker-build/group/.
           file: docker-build/group/Dockerfile-OscoreAsRsClient-Server4
           platforms: linux/amd64, linux/arm64, linux/arm
-          push: false
+          push: true
           tags: sifishome/group-server1:latest
       -
         name: Build and push image (Group OSCORE Server 2)
@@ -128,7 +128,7 @@ jobs:
           context: docker-build/group/.
           file: docker-build/group/Dockerfile-OscoreAsRsClient-Server5
           platforms: linux/amd64, linux/arm64, linux/arm
-          push: false
+          push: true
           tags: sifishome/group-server2:latest
       -
         name: Build and push image (Group OSCORE Server 3)
@@ -137,7 +137,7 @@ jobs:
           context: docker-build/group/.
           file: docker-build/group/Dockerfile-OscoreAsRsClient-Server6
           platforms: linux/amd64, linux/arm64, linux/arm
-          push: false
+          push: true
           tags: sifishome/group-server3:latest
       -
         name: Build and push image (CoAP Server)
@@ -146,7 +146,7 @@ jobs:
           context: docker-build/edhoc/.
           file: docker-build/edhoc/Dockerfile-Phase0Server
           platforms: linux/amd64, linux/arm64, linux/arm
-          push: false
+          push: true
           tags: sifishome/coap-server:latest
       -
         name: Build and push image (CoAP Client)
@@ -155,7 +155,7 @@ jobs:
           context: docker-build/edhoc/.
           file: docker-build/edhoc/Dockerfile-Phase0Client
           platforms: linux/amd64, linux/arm64, linux/arm
-          push: false
+          push: true
           tags: sifishome/coap-client:latest
       -
         name: Build and push image (EDHOC Server)
@@ -164,7 +164,7 @@ jobs:
           context: docker-build/edhoc/.
           file: docker-build/edhoc/Dockerfile-Phase4Server
           platforms: linux/amd64, linux/arm64, linux/arm
-          push: false
+          push: true
           tags: sifishome/edhoc-server:latest
       -
         name: Build and push image (EDHOC Client)
@@ -173,6 +173,6 @@ jobs:
           context: docker-build/edhoc/.
           file: docker-build/edhoc/Dockerfile-Phase4Client
           platforms: linux/amd64, linux/arm64, linux/arm
-          push: false
+          push: true
           tags: sifishome/edhoc-client:latest
 
