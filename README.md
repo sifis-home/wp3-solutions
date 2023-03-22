@@ -128,9 +128,9 @@ https://www.andreafortuna.org/2016/06/08/java-tips-how-to-fix-the-invalidkeyexce
 
 ### Docker images
 
-Docker Images for the Group & EDHOC Applications are available on Docker Hub at the following location:
+Docker Images for the Group & EDHOC Applications are automatically pushed to [ghcr.io](ghcr.io).
 
-[https://hub.docker.com/u/sifishome](https://hub.docker.com/u/sifishome)
+Available images are listed in the Packages section of the repository.
 
 
 ### Code coverage reports

@@ -80,11 +80,12 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       -
-        name: Login to Docker Hub
+        name: Login to GitHub container registry (ghcr.io)
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Build and push image (Authorization Server)
         uses: docker/build-push-action@v4
@@ -93,7 +94,8 @@ jobs:
           file: docker-build/group/Dockerfile-OscoreAsServer
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
-          tags: sifishome/authorization-server:latest
+          tags: ghcr.io/sifis-home/authorization-server:latest
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions Authorization Server
       -
         name: Build and push image (Group Manager)
         uses: docker/build-push-action@v4
@@ -102,7 +104,8 @@ jobs:
           file: docker-build/group/Dockerfile-OscoreRsServer
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
-          tags: sifishome/group-manager:latest
+          tags: ghcr.io/sifis-home/group-manager:latest
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions Group Manager
       -
         name: Build and push image (Group OSCORE Client)
         uses: docker/build-push-action@v4
@@ -111,7 +114,8 @@ jobs:
           file: docker-build/group/Dockerfile-OscoreAsRsClient-Client2
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
-          tags: sifishome/group-client:latest
+          tags: ghcr.io/sifis-home/group-client:latest
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions Group OSCORE Client
       -
         name: Build and push image (Group OSCORE Server 1)
         uses: docker/build-push-action@v4
@@ -120,7 +124,8 @@ jobs:
           file: docker-build/group/Dockerfile-OscoreAsRsClient-Server4
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
-          tags: sifishome/group-server1:latest
+          tags: ghcr.io/sifis-home/group-server1:latest
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions Group OSCORE Server 1
       -
         name: Build and push image (Group OSCORE Server 2)
         uses: docker/build-push-action@v4
@@ -129,7 +134,8 @@ jobs:
           file: docker-build/group/Dockerfile-OscoreAsRsClient-Server5
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
-          tags: sifishome/group-server2:latest
+          tags: ghcr.io/sifis-home/group-server2:latest
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions Group OSCORE Server 2
       -
         name: Build and push image (Group OSCORE Server 3)
         uses: docker/build-push-action@v4
@@ -138,7 +144,8 @@ jobs:
           file: docker-build/group/Dockerfile-OscoreAsRsClient-Server6
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
-          tags: sifishome/group-server3:latest
+          tags: ghcr.io/sifis-home/group-server3:latest
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions Group OSCORE Server 3
       -
         name: Build and push image (CoAP Server)
         uses: docker/build-push-action@v4
@@ -147,7 +154,8 @@ jobs:
           file: docker-build/edhoc/Dockerfile-Phase0Server
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
-          tags: sifishome/coap-server:latest
+          tags: ghcr.io/sifis-home/coap-server:latest
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions CoAP Server
       -
         name: Build and push image (CoAP Client)
         uses: docker/build-push-action@v4
@@ -156,7 +164,8 @@ jobs:
           file: docker-build/edhoc/Dockerfile-Phase0Client
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
-          tags: sifishome/coap-client:latest
+          tags: ghcr.io/sifis-home/coap-client:latest
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions CoAP Client
       -
         name: Build and push image (EDHOC Server)
         uses: docker/build-push-action@v4
@@ -165,7 +174,8 @@ jobs:
           file: docker-build/edhoc/Dockerfile-Phase4Server
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
-          tags: sifishome/edhoc-server:latest
+          tags: ghcr.io/sifis-home/edhoc-server:latest
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions EDHOC Server
       -
         name: Build and push image (EDHOC Client)
         uses: docker/build-push-action@v4
@@ -174,5 +184,6 @@ jobs:
           file: docker-build/edhoc/Dockerfile-Phase4Client
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
-          tags: sifishome/edhoc-client:latest
+          tags: ghcr.io/sifis-home/edhoc-client:latest
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions EDHOC Client
 
