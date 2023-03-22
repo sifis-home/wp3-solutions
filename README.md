@@ -130,7 +130,7 @@ https://www.andreafortuna.org/2016/06/08/java-tips-how-to-fix-the-invalidkeyexce
 
 Docker Images for the Group & EDHOC Applications are automatically pushed to [ghcr.io](ghcr.io).
 
-Available images are listed in the Packages section of the repository.
+Available images are listed in the Packages section of the repository [here](https://github.com/orgs/sifis-home/packages?repo_name=wp3-solutions).
 
 
 ### Code coverage reports
