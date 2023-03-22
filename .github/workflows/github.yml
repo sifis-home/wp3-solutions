@@ -56,12 +56,12 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.java-version == '8.0.x' }}
         with:
-          name: my-artifact
+          name: dependencies
           retention-days: 5
           if-no-files-found: error
           path: |
-            ./*/*/target/*.jar
-            ./*/target/*.jar
+            ./*/*/target/*SNAPSHOT.jar
+            ./*/target/*SNAPSHOT.jar
 
 
   docker:
@@ -74,6 +74,10 @@ jobs:
       -
         name: Check out repository
         uses: actions/checkout@v2
+      -
+        uses: actions/download-artifact@v3
+        with:
+          name: dependencies
       -
         uses: actions/setup-java@v1
         with:
