@@ -53,6 +53,16 @@ jobs:
           target-folder: reports
           branch: gh-pages
 
+      - uses: actions/upload-artifact@v3
+        if: ${{ matrix.java-version == '8.0.x' }}
+        with:
+          name: my-artifact
+          retention-days: 5
+          if-no-files-found: error
+          path: |
+            ./*/*/target/*.jar
+            ./*/target/*.jar
+
 
   docker:
 
