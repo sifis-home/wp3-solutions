@@ -25,6 +25,18 @@ OscoreAsRsClient -dht -name Client1
 **Then start the second client. It will listen to commands from the DHT.**  
 OscoreAsRsClient -dht -name Client2
 
+**Full list of command line parameters:**  
+The following is the full list of command line parameters supported by the OscoreAsRsClient application:  
+*Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [ -dht ] [-delay Seconds ]*
+- *-name*: Name/Role of this peer
+- *-gm*: Group Manager base URI
+- *-as*: Authorization Server base URI
+- *-dht*: Use DHT
+- *-delay*: - Delay in seconds before starting
+- *-help*: - Print help
+
+If the Group Manager or Authorization Server are running on a different host, the options *-gm* and *-as* can be used.
+
 **Use the following interactive script to send commands to the DHT (and trigger the clients)**  
 python3 dht_rest_client.py
 
