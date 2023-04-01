@@ -9,6 +9,23 @@
 # Fail script with error if any command fails
 set -e
 
+# Separately install these two dependencies (if needed)
+FILE=~/.m2/repository/org/slf4j/jul-to-slf4j/1.7.36/jul-to-slf4j-1.7.36.jar
+if [ -f "$FILE" ]; then
+    echo "$FILE exists."
+else 
+    echo "$FILE does not exist."
+    mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get -Dartifact=org.slf4j:jul-to-slf4j:1.7.36
+fi
+
+FILE=~/.m2/repository/org/slf4j/slf4j-simple/1.7.36/slf4j-simple-1.7.36.jar
+if [ -f "$FILE" ]; then
+    echo "$FILE exists."
+else 
+    echo "$FILE does not exist."
+    mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get -Dartifact=org.slf4j:slf4j-simple:1.7.36
+fi
+
 # Build Californium (if needed)
 FILE=californium-extended/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT.jar
 if [ -f "$FILE" ]; then
@@ -49,9 +66,6 @@ cp californium-extended/californium-core/target/californium-core-3.1.0-SNAPSHOT.
 cp californium-extended/scandium-core/target/scandium-3.1.0-SNAPSHOT.jar group-applications/lib
 
 cp californium-extended/element-connector/target/element-connector-3.1.0-SNAPSHOT.jar group-applications/lib
-
-#Remove?
-#cp californium-extended/cf-edhoc/target/cf-edhoc-3.1.0-SNAPSHOT.jar group-applications/lib
 
 cp ace/target/ace-0.0.1-SNAPSHOT.jar group-applications/lib
 

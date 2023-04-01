@@ -8,10 +8,6 @@ set -e
 
 ## Build the Jar files for the Group & EDHOC Applications if needed
 
-# Separately install these two dependencies
-mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get -Dartifact=org.slf4j:jul-to-slf4j:1.7.36
-mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get -Dartifact=org.slf4j:slf4j-simple:1.7.36
-
 # Group Applications
 FILE=group-applications/OscoreAsServer.jar
 if [ -f "$FILE" ]; then
