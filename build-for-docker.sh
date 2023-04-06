@@ -29,12 +29,12 @@ fi
 
 ## Create working directory for image building
 
-mkdir docker-build
+mkdir -p docker-build
 cd docker-build
 
 # Create directories for Group Applications and EDHOC Applications
-mkdir group
-mkdir edhoc
+mkdir -p group
+mkdir -p edhoc
 
 # Copy needed files (jar files and library files)
 cp ../group-applications/*.jar group/
@@ -76,6 +76,7 @@ cd group
 # Assumes container name mysql for MySQL server
 # Assumes root password xxxxxx for MySQL server
 # Selected to be pushed to Docker Hub.
+echo "root" > db.pwd
 echo "xxxxxx mysql" >> db.pwd
 dockerfile=Dockerfile-OscoreAsServer
 cp ../Dockerfile.base $dockerfile

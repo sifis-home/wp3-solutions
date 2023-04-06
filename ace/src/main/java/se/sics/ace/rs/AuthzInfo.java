@@ -241,7 +241,7 @@ public class AuthzInfo implements Endpoint, AutoCloseable {
 
 	    //3. Check that the token is not expired (exp)
 	    CBORObject exp = claims.get(Constants.EXP);
-	    if (exp != null && exp.AsInt64() < this.time.getCurrentTime()) { 
+	    if (exp != null && exp.AsNumber().ToInt64Checked() < this.time.getCurrentTime()) { 
 	        CBORObject map = CBORObject.NewMap();
 	        map.Add(Constants.ERROR, Constants.UNAUTHORIZED_CLIENT);
             map.Add(Constants.ERROR_DESCRIPTION, "Token is expired");
@@ -419,7 +419,7 @@ public class AuthzInfo implements Endpoint, AutoCloseable {
     	    }
     		
 	    	CBORObject cbor = CBORObject.DecodeFromBytes(msg.getRawPayload());
-	    	byte[] senderId = cbor.get(Constants.ID1).GetByteString();
+	    	byte[] senderId = cbor.get(Constants.ACE_CLIENT_RECIPIENTID).GetByteString();
 	    	
 	        OSCoreCtxDB db = OscoreCtxDbSingleton.getInstance();
 	        
@@ -700,7 +700,7 @@ public class AuthzInfo implements Endpoint, AutoCloseable {
         
         // Determine the expiration time and add it to the Access Token as value of an 'exp' claim
         Long now = this.time.getCurrentTime();
-        Long exp = now + exi.AsInt64();
+        Long exp = now + exi.AsNumber().ToInt64Checked();
         claims.put(Constants.EXP, CBORObject.FromObject(exp));
         
         // Check that the 'cti' claim is also present

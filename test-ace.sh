@@ -30,7 +30,8 @@ then
   echo "mysql-server mysql-server/root_password_again password root" | sudo debconf-set-selections
   sudo apt-get -y install mysql-server
   sudo systemctl start mysql.service
-  echo "root" > ace/db.pwd
+  echo "root" > ace/db.pwd # Root username
+  echo "root" >> ace/db.pwd # Root pw
 fi
 
 # Run ACE JUnit tests

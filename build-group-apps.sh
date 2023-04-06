@@ -45,7 +45,7 @@ else
     echo "$FILE does not exist."
     
     # Copy library Jar files from Californium to ACE lib folder
-    mkdir ace/lib
+    mkdir -p ace/lib
     cp californium-extended/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT.jar ace/lib
     cp californium-extended/californium-core/target/californium-core-3.1.0-SNAPSHOT.jar ace/lib
     cp californium-extended/scandium-core/target/scandium-3.1.0-SNAPSHOT.jar ace/lib
@@ -58,7 +58,7 @@ fi
 
 # Copy library Jar files from Californium to Group Apps lib folder
 # Dependencies for building with Maven
-mkdir group-applications/lib
+mkdir -p group-applications/lib
 cp californium-extended/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT.jar group-applications/lib
 
 cp californium-extended/californium-core/target/californium-core-3.1.0-SNAPSHOT.jar group-applications/lib

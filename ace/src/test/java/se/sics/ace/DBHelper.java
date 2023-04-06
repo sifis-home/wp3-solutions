@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019, RISE AB
+ * Copyright (c) 2023, RISE AB
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -31,6 +31,7 @@
  *******************************************************************************/
 package se.sics.ace;
 
+import se.sics.ace.AceException;
 import se.sics.ace.coap.as.CoapDBConnector;
 import se.sics.ace.examples.MySQLDBAdapter;
 //import se.sics.ace.examples.PostgreSQLDBAdapter;
@@ -45,122 +46,131 @@ import java.sql.SQLException;
 /**
  * Helper class to set up databases for tests.
  *
- * @author Sebastian Echeverria
+ * @author Sebastian Echeverria and Marco Tiloca
  *
  */
-public class DBHelper
-{
-    /**
-     * Easy place to change which DB adapter wants to be used for all tests.
-     */
-    private static final SQLDBAdapter dbAdapter = new MySQLDBAdapter(); //PostgreSQLDBAdapter();
+public class DBHelper {
 
-    private static final String testUsername = "testuser";
-    private static final String testPassword = "testpwd";
-    private static final String testDBName = "testdb";
+	/**
+	 * Easy place to change which DB adapter wants to be used for all tests.
+	 */
+	private static final SQLDBAdapter dbAdapter = new MySQLDBAdapter(); // PostgreSQLDBAdapter();
 
-    private static String dbRootPwd = null;
-    private static String dbHost = null;
-    private static String dbPort = null;
+	private static final String testUsername = "testuser";
+	private static final String testPassword = "testpwd";
+	private static final String testDBName = "testdb";
 
-    /**
-     * Sets up the DB using the current default adapter.
-     * 
-     * @throws AceException 
-     * @throws IOException 
-     */
-    public static void setUpDB() throws AceException, IOException
-    {
-        // First load the DB root password, and DB host & port from an external file.
-        loadDbParams();
+	private static String dbAdminUser = null;
+	private static String dbAdminPwd = null;
+	private static String dbHost = null;
+	private static String dbPort = null;
 
-        // If dbHost and dbPort was set in external file, use them
-        // Otherwise default will be used in dbAdapter
-        String dbUrl = null;
-        if(dbHost != null && dbPort != null) {
-        	dbUrl = "jdbc:mysql://" + dbHost + ":" + dbPort;
-        	System.out.println("Using DB URL: " + dbUrl);
-        } else if (dbHost != null && dbPort == null) {
-        	dbUrl = "jdbc:mysql://" + dbHost + ":3306";
-        	System.out.println("Using DB URL: " + dbUrl);
-        } else {
-        	System.out.println("Using DB URL: Default");
-        }
-        
-        // Set parameters for the DB.
-        dbAdapter.setParams(testUsername, testPassword, testDBName, dbUrl);
+	/**
+	 * Sets up the DB using the current default adapter.
+	 * 
+	 * @throws AceException on ACE related failure
+	 * @throws IOException on DB related failure
+	 */
+	public static void setUpDB() throws AceException, IOException {
+		// First load the DB root username/password, and DB host & port from
+		// an external file.
+		loadAdminLoginInformation();
 
-        // In case database and/or user already existed.
-        SQLConnector.wipeDatabase(dbAdapter, dbRootPwd);
+		// If dbHost and dbPort was set in external file, use them
+		// Otherwise default will be used in dbAdapter
+		String dbUrl = null;
+		if (dbHost != null && dbPort != null) {
+			dbUrl = "jdbc:mysql://" + dbHost + ":" + dbPort;
+			System.out.println("Using DB URL: " + dbUrl);
+		} else if (dbHost != null && dbPort == null) {
+			dbUrl = "jdbc:mysql://" + dbHost + ":3306";
+			System.out.println("Using DB URL: " + dbUrl);
+		} else {
+			System.out.println("Using DB URL: Default");
+		}
 
-        // Create the DB and user for the tests.
-        SQLConnector.createUser(dbAdapter, dbRootPwd);
-        SQLConnector.createDB(dbAdapter, dbRootPwd);
-    }
+		// Set parameters for the DB.
+		dbAdapter.setParams(testUsername, testPassword, testDBName, dbUrl);
 
-    /**
-     * @return  the SQLConnector instance
-     * @throws SQLException
-     */
-    public static SQLConnector getSQLConnector() throws SQLException
-    {
-        // Get a connection to the test DB.
-        return SQLConnector.getInstance(dbAdapter);
-    }
+		// In case database and/or user already existed.
+		SQLConnector.wipeDatabase(dbAdapter, dbAdminUser, dbAdminPwd);
 
-    /**
-     * @return the CoapDBConnector instance
-     * @throws SQLException
-     */
-    public static CoapDBConnector getCoapDBConnector() throws SQLException
-    {
-        // Get a connection to the test DB.
-        return CoapDBConnector.getInstance(dbAdapter);
-    }
+		// Create the DB and user for the tests.
+		SQLConnector.createUser(dbAdapter, dbAdminUser, dbAdminPwd);
+		SQLConnector.createDB(dbAdapter, dbAdminUser, dbAdminPwd);
+	}
 
-    /**
-     * Destroy the test DB with the default adapter.
-     * @throws AceException
-     */
-    public static void tearDownDB() throws AceException
-    {
-        dbAdapter.setParams(testUsername, testPassword, testDBName, null);
-        SQLConnector.wipeDatabase(dbAdapter, dbRootPwd);
-    }
+	/**
+	 * @return the SQLConnector instance
+	 * @throws SQLException on SQL failure
+	 */
+	public static SQLConnector getSQLConnector() throws SQLException {
+		// Get a connection to the test DB.
+		return SQLConnector.getInstance(dbAdapter);
+	}
 
-    /**
-     * Loads the root password, and the DB host & port from an external file.
-     * @throws IOException
-     */
-    private static void loadDbParams() throws IOException
-    {
-        BufferedReader br = new BufferedReader(new FileReader("db.pwd"));
-        try
-        {
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-            while (line != null)
-            {
-                sb.append(line);
-                sb.append(System.lineSeparator());
-                line = br.readLine();
-            }
-            
-            String[] parts = sb.toString().split(" ");
-           
-            dbRootPwd = parts[0].replace(System.getProperty("line.separator"), "");
-            
-            if(parts.length > 1) {
-            	dbHost = parts[1].replace(System.getProperty("line.separator"), "");
-            }
-            
-            if(parts.length > 2) {
-            	dbPort = parts[2].replace(System.getProperty("line.separator"), "");
-            }
-        }
-        finally
-        {
-            br.close();
-        }
-    }
+	/**
+	 * @return the CoapDBConnector instance
+	 * @throws SQLException on SQL failure
+	 */
+	public static CoapDBConnector getCoapDBConnector() throws SQLException {
+		// Get a connection to the test DB.
+		return CoapDBConnector.getInstance(dbAdapter);
+	}
+
+	/**
+	 * Destroy the test DB with the default adapter.
+	 * 
+	 * @throws AceException on ACE related failure
+	 */
+	public static void tearDownDB() throws AceException {
+		dbAdapter.setParams(testUsername, testPassword, testDBName, null);
+		SQLConnector.wipeDatabase(dbAdapter, dbAdminUser, dbAdminPwd);
+	}
+
+	/**
+	 * Loads the root username/password, and the DB host & port from an external
+	 * file.
+	 * 
+	 * @throws IOException
+	 */
+	private static void loadAdminLoginInformation() throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader("db.pwd"));
+		int readLines = 0;
+		try {
+			StringBuilder sb = new StringBuilder();
+			String line = br.readLine();
+			while (line != null && readLines < 2) {
+				sb.delete(0, sb.length());
+				sb.append(line);
+				sb.append(System.lineSeparator());
+
+				if (readLines == 0) {
+					dbAdminUser = sb.toString().replace(System.getProperty("line.separator"), "");
+				}
+
+				if (readLines == 1) {
+
+					String[] parts = sb.toString().split(" ");
+
+					dbAdminPwd = parts[0].replace(System.getProperty("line.separator"), "");
+
+					if (parts.length > 1) {
+						dbHost = parts[1].replace(System.getProperty("line.separator"), "");
+					}
+
+					if (parts.length > 2) {
+						dbPort = parts[2].replace(System.getProperty("line.separator"), "");
+					}
+
+				}
+
+				readLines++;
+				line = br.readLine();
+			}
+
+		} finally {
+			br.close();
+		}
+	}
 }

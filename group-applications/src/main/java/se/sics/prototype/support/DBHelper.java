@@ -46,7 +46,7 @@ import java.sql.SQLException;
 /**
  * Helper class to set up databases for tests.
  *
- * @author Sebastian Echeverria
+ * @author Sebastian Echeverria and Marco Tiloca
  *
  */
 public class DBHelper {
@@ -60,7 +60,8 @@ public class DBHelper {
 	private static final String testPassword = "testpwd";
 	private static final String testDBName = "testdb";
 
-	private static String dbRootPwd = null;
+	private static String dbAdminUser = null;
+	private static String dbAdminPwd = null;
 	private static String dbHost = null;
 	private static String dbPort = null;
 
@@ -71,9 +72,9 @@ public class DBHelper {
 	 * @throws IOException on DB related failure
 	 */
 	public static void setUpDB() throws AceException, IOException {
-		// First load the DB root password, and DB host & port from an external
-		// file.
-		loadDbParams();
+		// First load the DB root username/password, and DB host & port from
+		// an external file.
+		loadAdminLoginInformation();
 
 		// If dbHost and dbPort was set in external file, use them
 		// Otherwise default will be used in dbAdapter
@@ -92,11 +93,11 @@ public class DBHelper {
 		dbAdapter.setParams(testUsername, testPassword, testDBName, dbUrl);
 
 		// In case database and/or user already existed.
-		SQLConnector.wipeDatabase(dbAdapter, dbRootPwd);
+		SQLConnector.wipeDatabase(dbAdapter, dbAdminUser, dbAdminPwd);
 
 		// Create the DB and user for the tests.
-		SQLConnector.createUser(dbAdapter, dbRootPwd);
-		SQLConnector.createDB(dbAdapter, dbRootPwd);
+		SQLConnector.createUser(dbAdapter, dbAdminUser, dbAdminPwd);
+		SQLConnector.createDB(dbAdapter, dbAdminUser, dbAdminPwd);
 	}
 
 	/**
@@ -124,36 +125,50 @@ public class DBHelper {
 	 */
 	public static void tearDownDB() throws AceException {
 		dbAdapter.setParams(testUsername, testPassword, testDBName, null);
-		SQLConnector.wipeDatabase(dbAdapter, dbRootPwd);
+		SQLConnector.wipeDatabase(dbAdapter, dbAdminUser, dbAdminPwd);
 	}
 
 	/**
-	 * Loads the root password, and the DB host & port from an external file.
+	 * Loads the root username/password, and the DB host & port from an external
+	 * file.
 	 * 
 	 * @throws IOException
 	 */
-	private static void loadDbParams() throws IOException {
+	private static void loadAdminLoginInformation() throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader("db.pwd"));
+		int readLines = 0;
 		try {
 			StringBuilder sb = new StringBuilder();
 			String line = br.readLine();
-			while (line != null) {
+			while (line != null && readLines < 2) {
+				sb.delete(0, sb.length());
 				sb.append(line);
 				sb.append(System.lineSeparator());
+
+				if (readLines == 0) {
+					dbAdminUser = sb.toString().replace(System.getProperty("line.separator"), "");
+				}
+
+				if (readLines == 1) {
+
+					String[] parts = sb.toString().split(" ");
+
+					dbAdminPwd = parts[0].replace(System.getProperty("line.separator"), "");
+
+					if (parts.length > 1) {
+						dbHost = parts[1].replace(System.getProperty("line.separator"), "");
+					}
+
+					if (parts.length > 2) {
+						dbPort = parts[2].replace(System.getProperty("line.separator"), "");
+					}
+
+				}
+
+				readLines++;
 				line = br.readLine();
 			}
 
-			String[] parts = sb.toString().split(" ");
-
-			dbRootPwd = parts[0].replace(System.getProperty("line.separator"), "");
-
-			if (parts.length > 1) {
-				dbHost = parts[1].replace(System.getProperty("line.separator"), "");
-			}
-
-			if (parts.length > 2) {
-				dbPort = parts[2].replace(System.getProperty("line.separator"), "");
-			}
 		} finally {
 			br.close();
 		}

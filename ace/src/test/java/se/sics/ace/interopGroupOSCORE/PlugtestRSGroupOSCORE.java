@@ -1035,9 +1035,9 @@ public class PlugtestRSGroupOSCORE {
     			// The group mode is used. The PoP evidence is a signature
     			if (targetedGroup.getMode() != Constants.GROUP_OSCORE_PAIRWISE_MODE_ONLY) {
 
-    			    if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_EC2))
+					if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_EC2))
         			    signKeyCurve = publicKey.get(KeyKeys.EC2_Curve).AsInt32();
-    			    else if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_OKP))
+					else if (publicKey.get(KeyKeys.KeyType).equals(org.eclipse.californium.cose.KeyKeys.KeyType_OKP))
         			    signKeyCurve = publicKey.get(KeyKeys.OKP_Curve).AsInt32();
 
     			    // This should never happen, due to the previous sanity checks
@@ -3109,15 +3109,7 @@ public class PlugtestRSGroupOSCORE {
         
         //Setup the Group Manager RPK
         CBORObject rpkData = CBORObject.NewMap();
-        rpkData.Add(KeyKeys.KeyType.AsCBOR(), KeyKeys.KeyType_EC2);
-        rpkData.Add(KeyKeys.Algorithm.AsCBOR(), AlgorithmID.ECDSA_256.AsCBOR());
-        rpkData.Add(KeyKeys.EC2_Curve.AsCBOR(), KeyKeys.EC2_P256);
-        CBORObject x = CBORObject.FromObject(PlugtestASGroupOSCORE.hexString2byteArray(rsX));
-        CBORObject y = CBORObject.FromObject(PlugtestASGroupOSCORE.hexString2byteArray(rsY));
-        CBORObject d = CBORObject.FromObject(PlugtestASGroupOSCORE.hexString2byteArray(rsD));
-        rpkData.Add(KeyKeys.EC2_X.AsCBOR(), x);
-        rpkData.Add(KeyKeys.EC2_Y.AsCBOR(), y);
-        rpkData.Add(KeyKeys.EC2_D.AsCBOR(), d);
+        rpkData = Util.buildRpkData(KeyKeys.EC2_P256.AsInt32(), rsX, rsY, rsD);
         OneKey asymmetric = new OneKey(rpkData);
         String keyId = new RawPublicKeyIdentity(asymmetric.AsPublicKey()).getName();
         asymmetric.add(KeyKeys.KeyId, CBORObject.FromObject(keyId.getBytes(Constants.charset)));

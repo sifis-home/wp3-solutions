@@ -37,7 +37,7 @@ fi
 
 # Copy library Jar files from Californium to EDHOC Apps lib folder
 # Dependencies for building with Maven
-mkdir edhoc-applications/lib
+mkdir -p edhoc-applications/lib
 cp californium-extended/cf-oscore/target/cf-oscore-3.1.0-SNAPSHOT.jar edhoc-applications/lib
 
 cp californium-extended/californium-core/target/californium-core-3.1.0-SNAPSHOT.jar edhoc-applications/lib

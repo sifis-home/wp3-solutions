@@ -33,9 +33,7 @@ package se.sics.ace;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import com.upokecenter.cbor.CBORObject;
 import com.upokecenter.cbor.CBORType;
@@ -442,10 +440,10 @@ public class Constants {
 
 	/**
 	 * The outer map key of a OSCORE_Input_Material object
-	 * XXX: not specified yet
+	 * Specified in RFC9203
 	 */
 	public static final CBORObject OSCORE_Input_Material
-	    = CBORObject.FromObject(99);
+	    = CBORObject.FromObject(4);
 
     /**
      * The input material identifier
@@ -497,14 +495,14 @@ public class Constants {
      * Default value for alg
      */
     public static final short OS_DEFAULT_ALG 
-        = AlgorithmID.AES_CCM_16_64_128.AsCBOR().AsInt16();
+        = AlgorithmID.AES_CCM_16_64_128.AsCBOR().AsNumber().ToInt16Checked();
 
     
     /**
      * Default value for hkdf
      */
     public static final short OS_DEFAULT_HKDF 
-        = AlgorithmID.HMAC_SHA_256.AsCBOR().AsInt16();    
+        = AlgorithmID.HMAC_SHA_256.AsCBOR().AsNumber().ToInt16Checked();
     
 	/**
 	 * RESTful action names ===================================================
@@ -588,7 +586,7 @@ public class Constants {
                 throw new AceException("CBOR key was not a Short: "
                         + key.toString());
             }
-            ret.put(key.AsInt16(), cbor.get(key));
+            ret.put(key.AsNumber().ToInt16Checked(), cbor.get(key));
         }
         return ret;
     }
@@ -615,34 +613,34 @@ public class Constants {
 
     
     /**
+     * The abbreviation code for the DTLS profile
+     */
+    public static final short COAP_DTLS = 1;
+    
+    /**
      * The abbreviation code for the OSCORE profile
      */
     public static final short COAP_OSCORE = 2;
-
-    /**
-     * The abbreviation code for the DTLS profile
-     */
-    public static final short COAP_DTLS = 4;
     
     /**
      * Value for the label "nonce1" in the Token POST request for the OSCORE profile
      */
-    public static final short NONCE1 = 65;
+    public static final short NONCE1 = 40;
     
     /**
      * Value for the label "nonce2" in the Token POST request for the OSCORE profile
      */
-    public static final short NONCE2 = 66;
+    public static final short NONCE2 = 42;
     
     /**
-     * Value for the label "id1" in the Token POST request for the OSCORE profile
+     * Value for the label "ace_client_recipientid" in the Token POST request for the OSCORE profile
      */
-    public static final short ID1 = 67;
+    public static final short ACE_CLIENT_RECIPIENTID = 43;
     
     /**
-     * Value for the label "id2" in the Token POST request for the OSCORE profile
+     * Value for the label "ace_server_recipientid" in the Token POST request for the OSCORE profile
      */
-    public static final short ID2 = 68;
+    public static final short ACE_SERVER_RECIPIENTID = 44;
     
     /**
      * Return the abbreviated profile id for the full profile name.
@@ -808,8 +806,8 @@ public class Constants {
         for (CBORObject key : map.getKeys()) {
             String keyStr = null;
             CBORObject obj = map.get(key);
-            if (key.isIntegral()) {
-                short keyInt = key.AsInt16();
+            if (key.isNumber() && key.AsNumber().IsInteger()) {
+                short keyInt = key.AsNumber().ToInt16Checked();
                 if (keyInt > 0 && keyInt < abbrev.length) {
                    keyStr = abbrev[keyInt];
                     if (keyInt == GRANT_TYPE
@@ -872,7 +870,7 @@ public class Constants {
     /**
      * Content-Format ace+cbor
      */
-    public static final int APPLICATION_ACE_CBOR = 65000;
+    public static final int APPLICATION_ACE_CBOR = 19;
     
     /**
      * Content-Format ace-groupcomm+cbor
