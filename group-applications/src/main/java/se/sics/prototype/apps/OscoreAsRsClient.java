@@ -807,8 +807,11 @@ public class OscoreAsRsClient {
 		}
 	}
 
+	/**
+	 * Print help message with valid command line arguments
+	 */
 	private static void printHelp() {
-		System.out.println("Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [ -dht ] [-delay Seconds ]");
+		System.out.println("Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [-delay Seconds ] [ -dht ]");
 
 		System.out.println("Options:");
 
@@ -821,11 +824,11 @@ public class OscoreAsRsClient {
 		System.out.print("-as");
 		System.out.println("\t Authorization Server base URI");
 
-		System.out.print("-dht");
-		System.out.println("\t Use DHT");
-
 		System.out.print("-delay");
 		System.out.println("\t Delay in seconds before starting");
+
+		System.out.print("-dht");
+		System.out.println("\t Use DHT");
 
 		System.out.print("-help");
 		System.out.println("\t Print help");

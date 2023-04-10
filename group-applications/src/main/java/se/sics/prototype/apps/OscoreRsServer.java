@@ -3104,6 +3104,9 @@ public class OscoreRsServer {
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
 				useDht = true;
+			} else if (args[i].toLowerCase().equals("-help")) {
+				printHelp();
+				System.exit(0);
 			}
 		}
 
@@ -3913,6 +3916,21 @@ public class OscoreRsServer {
 
 		return ret;
 
+	}
+
+	/**
+	 * Print help message with valid command line arguments
+	 */
+	private static void printHelp() {
+		System.out.println("Usage: [ -dht ]");
+
+		System.out.println("Options:");
+
+		System.out.print("-dht");
+		System.out.println("\t Use DHT for logging");
+
+		System.out.print("-help");
+		System.out.println("\t Print help");
 	}
 
 }
