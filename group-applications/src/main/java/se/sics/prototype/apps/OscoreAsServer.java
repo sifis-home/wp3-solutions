@@ -459,7 +459,7 @@ public class OscoreAsServer {
 		as = new OscoreAS(asName, db, pdp, time, asymmKey, "token", "introspect", port, null, false, (short) 1, true,
 				peerNamesToIdentities, peerIdentitiesToNames, myIdentities);
 		as.start();
-		System.out.println("OSCORE AS Server starting on port: " + port);
+		System.out.println("OSCORE ACE AS Server started on port: " + port);
 	}
 
 	/**

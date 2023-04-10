@@ -508,7 +508,7 @@ public class OscoreRsServer {
 		public void handlePOST(CoapExchange exchange) {
 
 			Set<String> roles = new HashSet<>();
-			boolean providePublicKeys = false;
+			boolean provideAuthCreds = false;
 
 			String subject = null;
 			Request request = exchange.advanced().getCurrentRequest();
@@ -606,7 +606,7 @@ public class OscoreRsServer {
 				else
 					signInfoEntry.Add(arrayElem);
 
-				// 'pub_key_enc' element
+				// 'cred_fmt' element
 				signInfoEntry.Add(targetedGroup.getAuthCredFormat());
 				signInfo.Add(signInfoEntry);
 				errorResponseMap.Add(Constants.SIGN_INFO, signInfo);
@@ -632,7 +632,7 @@ public class OscoreRsServer {
 				else
 					ecdhInfoEntry.Add(arrayElem);
 
-				// 'pub_key_enc' element
+				// 'cred_fmt' element
 				ecdhInfoEntry.Add(targetedGroup.getAuthCredFormat());
 				ecdhInfo.Add(ecdhInfoEntry);
 				errorResponseMap.Add(Constants.ECDH_INFO, ecdhInfo);
@@ -818,31 +818,31 @@ public class OscoreRsServer {
 				return;
 			}
 
-			// Retrieve 'get_pub_keys'
+			// Retrieve 'get_creds'
 			// If present, this parameter must be a CBOR array or the CBOR
 			// simple value Null
-			CBORObject getPubKeys = joinRequest.get(CBORObject.FromObject((Constants.GET_CREDS)));
-			if (getPubKeys != null) {
+			CBORObject getCreds = joinRequest.get(CBORObject.FromObject((Constants.GET_CREDS)));
+			if (getCreds != null) {
 
-				// Invalid format of 'get_pub_keys'
-				if (!getPubKeys.getType().equals(CBORType.Array) && !getPubKeys.equals(CBORObject.Null)) {
+				// Invalid format of 'get_creds'
+				if (!getCreds.getType().equals(CBORType.Array) && !getCreds.equals(CBORObject.Null)) {
 					byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
-					DhtLogger.sendLog("Invalid format of 'get_pub_keys'" + " [subject: " + subject + ", groupName: "
+					DhtLogger.sendLog("Invalid format of 'get_creds'" + " [subject: " + subject + ", groupName: "
 							+ groupName + "]", PRIO1, SEV1, CATEGORY_GM);
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST, errorResponsePayload,
 							Constants.APPLICATION_ACE_CBOR);
 					return;
 				}
 
-				// Invalid format of 'get_pub_keys'
-				if (getPubKeys.getType().equals(CBORType.Array)) {
-					if (getPubKeys.size() != 3 || !getPubKeys.get(0).getType().equals(CBORType.Boolean)
-							|| getPubKeys.get(0).AsBoolean() != true
-							|| !getPubKeys.get(1).getType().equals(CBORType.Array)
-							|| !getPubKeys.get(2).getType().equals(CBORType.Array) || getPubKeys.get(2).size() != 0) {
+				// Invalid format of 'get_creds'
+				if (getCreds.getType().equals(CBORType.Array)) {
+					if (getCreds.size() != 3 || !getCreds.get(0).getType().equals(CBORType.Boolean)
+							|| getCreds.get(0).AsBoolean() != true
+							|| !getCreds.get(1).getType().equals(CBORType.Array)
+							|| !getCreds.get(2).getType().equals(CBORType.Array) || getCreds.get(2).size() != 0) {
 
 						byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
-						DhtLogger.sendLog("Invalid format of 'get_pub_keys'" + " [subject: " + subject + ", groupName: "
+						DhtLogger.sendLog("Invalid format of 'get_creds'" + " [subject: " + subject + ", groupName: "
 								+ groupName + "]", PRIO1, SEV1, CATEGORY_GM);
 						exchange.respond(CoAP.ResponseCode.BAD_REQUEST, errorResponsePayload,
 								Constants.APPLICATION_ACE_CBOR);
@@ -851,17 +851,17 @@ public class OscoreRsServer {
 					}
 				}
 
-				// Invalid format of 'get_pub_keys'
-				if (getPubKeys.getType().equals(CBORType.Array)) {
-					for (int i = 0; i < getPubKeys.get(1).size(); i++) {
+				// Invalid format of 'get_creds'
+				if (getCreds.getType().equals(CBORType.Array)) {
+					for (int i = 0; i < getCreds.get(1).size(); i++) {
 						// Possible elements of the first array have to be all
 						// integers and express a valid combination of roles
 						// encoded in the AIF data model
-						if (!getPubKeys.get(1).get(i).getType().equals(CBORType.Integer)
-								|| !validRoleCombinations.contains(getPubKeys.get(1).get(i).AsInt32())) {
+						if (!getCreds.get(1).get(i).getType().equals(CBORType.Integer)
+								|| !validRoleCombinations.contains(getCreds.get(1).get(i).AsInt32())) {
 
 							byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
-							DhtLogger.sendLog("Invalid format of 'get_pub_keys'" + " [subject: " + subject
+							DhtLogger.sendLog("Invalid format of 'get_creds'" + " [subject: " + subject
 									+ ", groupName: " + groupName + "]", PRIO1, SEV1, CATEGORY_GM);
 							exchange.respond(CoAP.ResponseCode.BAD_REQUEST, errorResponsePayload,
 									Constants.APPLICATION_ACE_CBOR);
@@ -871,7 +871,7 @@ public class OscoreRsServer {
 					}
 				}
 
-				providePublicKeys = true;
+				provideAuthCreds = true;
 
 			}
 
@@ -885,13 +885,13 @@ public class OscoreRsServer {
 			// Identify reserved Sender IDs for Client1 and Client2
 			byte[] sidClient1 = KeyStorage.clientIds.get("Client1").getBytes();
 			byte[] sidClient2 = KeyStorage.clientIds.get("Client2").getBytes();
-			// If this is Client1 or Client2 joining (check public key), give
+			// If this is Client1 or Client2 joining (check auth cred), give
 			// them a specific Sender ID
-			byte[] clientPubKey = joinRequest.get(CBORObject.FromObject(Constants.CLIENT_CRED)).GetByteString();
-			if (Arrays.equals(clientPubKey, KeyStorage.memberCcs.get("Client1"))) {
+			byte[] clientCredCheck = joinRequest.get(CBORObject.FromObject(Constants.CLIENT_CRED)).GetByteString();
+			if (Arrays.equals(clientCredCheck, KeyStorage.memberCcs.get("Client1"))) {
 				senderId = sidClient1;
 				myGroup.allocateSenderId(senderId);
-			} else if (Arrays.equals(clientPubKey, KeyStorage.memberCcs.get("Client2"))) {
+			} else if (Arrays.equals(clientCredCheck, KeyStorage.memberCcs.get("Client2"))) {
 				senderId = sidClient2;
 				myGroup.allocateSenderId(senderId);
 			}
@@ -926,7 +926,7 @@ public class OscoreRsServer {
 			if (clientCred == null && (roleSet != (1 << Constants.GROUP_OSCORE_MONITOR))) {
 
 				// TODO: check if the Group Manager already owns this client's
-				// public key
+				// cred
 
 			}
 			if (clientCred == null && (roleSet != (1 << Constants.GROUP_OSCORE_MONITOR))) {
@@ -1168,9 +1168,11 @@ public class OscoreRsServer {
 
 				if (!myGroup.storeAuthCred(senderId, clientCred)) {
 					myGroup.deallocateSenderId(senderId);
-					DhtLogger.sendLog("Error when storing the public key" + " [subject: " + subject + ", groupName: "
+					DhtLogger.sendLog("Error when storing the authentication credential" + " [subject: " + subject
+							+ ", groupName: "
 							+ groupName + ", nodeName: " + nodeName + "]", PRIO1, SEV1, CATEGORY_GM);
-					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when storing the public key");
+					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
+							"Error when storing the authentication credential");
 					return;
 
 				}
@@ -1213,7 +1215,7 @@ public class OscoreRsServer {
 				valid.setJoinResources(
 						Collections.singleton(rootGroupMembershipResource + "/" + groupName + "/nodes/" + nodeName));
 				valid.setJoinResources(Collections
-						.singleton(rootGroupMembershipResource + "/" + groupName + "/nodes/" + nodeName + "/pub-key"));
+						.singleton(rootGroupMembershipResource + "/" + groupName + "/nodes/" + nodeName + "/cred"));
 			} catch (AceException e) {
 				myGroup.removeGroupMemberBySubject(subject);
 
@@ -1240,8 +1242,8 @@ public class OscoreRsServer {
 			actions = new HashSet<>();
 			actions.add(Constants.POST);
 			myScopes.get(rootGroupMembershipResource + "/" + groupName)
-					.put(rootGroupMembershipResource + "/" + groupName + "/nodes/" + nodeName + "/pub-key", actions);
-			nodeCoAPResource = new GroupOSCORESubResourceNodenamePubKey("pub-key");
+					.put(rootGroupMembershipResource + "/" + groupName + "/nodes/" + nodeName + "/cred", actions);
+			nodeCoAPResource = new GroupOSCORESubResourceNodenameCred("cred");
 			this.getChild("nodes").getChild(nodeName).add(nodeCoAPResource);
 
 			// Respond to the Join Request
@@ -1300,56 +1302,59 @@ public class OscoreRsServer {
 			// Context derived from the 'k' parameter is not valid anymore.
 			joinResponse.Add(Constants.EXP, CBORObject.FromObject(1000000));
 
-			if (providePublicKeys && getPubKeys != null) {
-				CBORObject pubKeysArray = CBORObject.NewArray();
+			if (provideAuthCreds && getCreds != null) {
+				CBORObject authCredsArray = CBORObject.NewArray();
 				CBORObject peerRoles = CBORObject.NewArray();
 				CBORObject peerIdentifiers = CBORObject.NewArray();
 
-				Map<CBORObject, CBORObject> publicKeys = myGroup.getAuthCreds();
+				Map<CBORObject, CBORObject> authCreds = myGroup.getAuthCreds();
 
-				for (CBORObject sid : publicKeys.keySet()) {
+				for (CBORObject sid : authCreds.keySet()) {
 					// This should never happen; silently ignore
-					if (publicKeys.get(sid) == null)
+					if (authCreds.get(sid) == null)
 						continue;
 
 					byte[] peerSenderId = sid.GetByteString();
-					// Skip the public key of the just-added joining node
+					// Skip the authentication credential of the just-added
+					// joining node
 					if ((senderId != null) && Arrays.equals(senderId, peerSenderId))
 						continue;
 
-					boolean includePublicKey = false;
+					boolean includeAuthCred = false;
 
-					// Public keys of all group members are requested
-					if (getPubKeys.equals(CBORObject.Null)) {
-						includePublicKey = true;
-					}
-					// Only public keys of group members with certain roles are
+					// Authentication credentials of all group members are
 					// requested
+					if (getCreds.equals(CBORObject.Null)) {
+						includeAuthCred = true;
+					}
+					// Only authentication credentials of group members with
+					// certain roles are requested
 					else {
-						for (int i = 0; i < getPubKeys.get(1).size(); i++) {
-							int filterRoles = getPubKeys.get(1).get(i).AsInt32();
+						for (int i = 0; i < getCreds.get(1).size(); i++) {
+							int filterRoles = getCreds.get(1).get(i).AsInt32();
 							int memberRoles = myGroup.getGroupMemberRoles(peerSenderId);
 
-							// The owner of this public key does not have all
-							// its roles indicated in this AIF integer filter
+							// The owner of this authentication credential does
+							// not have all its roles indicated in this AIF
+							// integer filter
 							if (filterRoles != (filterRoles & memberRoles)) {
 								continue;
 							}
 
-							includePublicKey = true;
+							includeAuthCred = true;
 							break;
 						}
 					}
 
-					if (includePublicKey) {
-						pubKeysArray.Add(publicKeys.get(sid));
+					if (includeAuthCred) {
+						authCredsArray.Add(authCreds.get(sid));
 						peerRoles.Add(myGroup.getGroupMemberRoles(peerSenderId));
 						peerIdentifiers.Add(peerSenderId);
 					}
 
 				}
 
-				joinResponse.Add(Constants.CREDS, pubKeysArray);
+				joinResponse.Add(Constants.CREDS, authCredsArray);
 				joinResponse.Add(Constants.PEER_ROLES, peerRoles);
 				joinResponse.Add(Constants.PEER_IDENTIFIERS, peerIdentifiers);
 
@@ -1369,8 +1374,8 @@ public class OscoreRsServer {
 			// Group Policies
 			joinResponse.Add(Constants.GROUP_POLICIES, myGroup.getGroupPolicies());
 
-			// Public key of the Group Manager together with proof-of-possession
-			// evidence
+			// Authentication Credential of the Group Manager together with
+			// proof-of-possession evidence
 			byte[] kdcNonce = new byte[8];
 			new SecureRandom().nextBytes(kdcNonce);
 			joinResponse.Add(Constants.KDC_NONCE, kdcNonce);
@@ -1416,468 +1421,22 @@ public class OscoreRsServer {
 	}
 
 	/**
-	 * Definition of the Group OSCORE group-membership sub-resource /pub-key
+	 * Definition of the Group OSCORE group-membership sub-resource /creds
 	 */
-	public static class GroupOSCORESubResourcePubKey extends CoapResource {
+	public static class GroupOSCORESubResourceCreds extends CoapResource {
 
 		/**
 		 * Constructor
 		 * 
 		 * @param resId the resource identifier
 		 */
-		public GroupOSCORESubResourcePubKey(String resId) {
+		public GroupOSCORESubResourceCreds(String resId) {
 
 			// set resource identifier
 			super(resId);
 
 			// set display name
-			getAttributes().setTitle("Group OSCORE Group-Membership Sub-Resource \"pub-key\" " + resId);
-
-		}
-
-		@Override
-		public void handleGET(CoapExchange exchange) {
-			System.out.println("GET request reached the GM");
-
-			// Retrieve the entry for the target group, using the last path
-			// segment of the URI path as the name of the OSCORE group
-			GroupInfo targetedGroup = activeGroups.get(this.getParent().getName());
-
-			// This should never happen if active groups are maintained properly
-			if (targetedGroup == null) {
-				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
-						"Error when retrieving material for the OSCORE group");
-				return;
-			}
-
-			String groupName = targetedGroup.getGroupName();
-
-			// This should never happen if active groups are maintained properly
-			if (!groupName.equals(this.getParent().getName())) {
-				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
-						"Error when retrieving material for the OSCORE group");
-				return;
-			}
-
-			String subject = null;
-			Request request = exchange.advanced().getCurrentRequest();
-
-			try {
-				subject = CoapReq.getInstance(request).getSenderId();
-			} catch (AceException e) {
-				System.err.println("Error while retrieving the client identity: " + e.getMessage());
-			}
-			if (subject == null) {
-				// At this point, this should not really happen, due to the
-				// earlier check at the Token Repository
-				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
-				return;
-			}
-
-			if (!targetedGroup.isGroupMember(subject)) {
-
-				// The requester is not a current group member.
-				//
-				// This is still fine, as long as at least one Access Tokens
-				// of the requester allows also the role "Verifier" in this
-				// group
-
-				// Check that at least one of the Access Tokens for
-				// this node allows (also) the Verifier role for this group
-
-				int role = 1 << Constants.GROUP_OSCORE_VERIFIER;
-				boolean allowed = false;
-				int[] roleSetToken = getRolesFromToken(subject, groupName);
-				if (roleSetToken == null) {
-					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
-							"Error when retrieving allowed roles from Access Tokens");
-					return;
-				}
-				for (int index = 0; index < roleSetToken.length; index++) {
-					if ((role & roleSetToken[index]) != 0) {
-						// 'scope' in this Access Token admits (also) the
-						// role "Verifier" for this group.
-						// This makes it fine for the requester.
-						allowed = true;
-						break;
-					}
-				}
-
-				if (!allowed) {
-					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
-							"Operation not permitted to a non-member which is not a Verifier");
-					return;
-				}
-
-			}
-
-			// Respond to the Public Key Request
-
-			CBORObject myResponse = CBORObject.NewMap();
-			CBORObject pubKeysArray = CBORObject.NewArray();
-			CBORObject peerRoles = CBORObject.NewArray();
-			CBORObject peerIdentifiers = CBORObject.NewArray();
-
-			Map<CBORObject, CBORObject> publicKeys = targetedGroup.getAuthCreds();
-
-			for (CBORObject sid : publicKeys.keySet()) {
-
-				// This should never happen; silently ignore
-				if (publicKeys.get(sid) == null)
-					continue;
-
-				byte[] peerSenderId = sid.GetByteString();
-				// This should never happen; silently ignore
-				if (peerSenderId == null)
-					continue;
-
-				pubKeysArray.Add(publicKeys.get(sid));
-				peerRoles.Add(targetedGroup.getGroupMemberRoles(peerSenderId));
-				peerIdentifiers.Add(peerSenderId);
-
-			}
-
-			myResponse.Add(Constants.NUM, CBORObject.FromObject(targetedGroup.getVersion()));
-			myResponse.Add(Constants.CREDS, pubKeysArray);
-			myResponse.Add(Constants.PEER_ROLES, peerRoles);
-			myResponse.Add(Constants.PEER_IDENTIFIERS, peerIdentifiers);
-
-			byte[] responsePayload = myResponse.EncodeToBytes();
-
-			Response coapResponse = new Response(CoAP.ResponseCode.CONTENT);
-			coapResponse.setPayload(responsePayload);
-			coapResponse.getOptions().setContentFormat(Constants.APPLICATION_ACE_GROUPCOMM_CBOR);
-
-			exchange.respond(coapResponse);
-
-		}
-
-		@Override
-		public void handleFETCH(CoapExchange exchange) {
-			System.out.println("FETCH request reached the GM");
-
-			// Retrieve the entry for the target group, using the last path
-			// segment
-			// of the URI path as the name of the OSCORE group
-			GroupInfo targetedGroup = activeGroups.get(this.getParent().getName());
-
-			// This should never happen if active groups are maintained properly
-			if (targetedGroup == null) {
-				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
-						"Error when retrieving material for the OSCORE group");
-				return;
-			}
-
-			String groupName = targetedGroup.getGroupName();
-
-			// This should never happen if active groups are maintained properly
-			if (!groupName.equals(this.getParent().getName())) {
-				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
-						"Error when retrieving material for the OSCORE group");
-				return;
-			}
-
-			String subject = null;
-			Request request = exchange.advanced().getCurrentRequest();
-
-			try {
-				subject = CoapReq.getInstance(request).getSenderId();
-			} catch (AceException e) {
-				System.err.println("Error while retrieving the client identity: " + e.getMessage());
-			}
-			if (subject == null) {
-				// At this point, this should not really happen, due to the
-				// earlier check at the Token Repository
-				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
-				return;
-			}
-
-			if (!targetedGroup.isGroupMember(subject)) {
-
-				// The requester is not a current group member.
-				//
-				// This is still fine, as long as at least one Access Tokens
-				// of the requester allows also the role "Verifier" in this
-				// group
-
-				// Check that at least one of the Access Tokens for this node
-				// allows (also) the Verifier role for this group
-
-				int role = 1 << Constants.GROUP_OSCORE_VERIFIER;
-				boolean allowed = false;
-				int[] roleSetToken = getRolesFromToken(subject, groupName);
-				if (roleSetToken == null) {
-					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
-							"Error when retrieving allowed roles from Access Tokens");
-					return;
-				}
-				for (int index = 0; index < roleSetToken.length; index++) {
-					if ((role & roleSetToken[index]) != 0) {
-						// 'scope' in this Access Token admits (also) the
-						// role "Verifier" for this group.
-						// This makes it fine for the requester.
-						allowed = true;
-						break;
-					}
-				}
-
-				if (!allowed) {
-					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
-							"Operation not permitted to a non-member which is not a Verifier");
-					return;
-				}
-
-			}
-
-			byte[] requestPayload = exchange.getRequestPayload();
-
-			if (requestPayload == null) {
-				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "A payload must be present");
-				return;
-			}
-
-			CBORObject requestCBOR = CBORObject.DecodeFromBytes(requestPayload);
-
-			boolean valid = true;
-
-			// The payload of the request must be a CBOR Map
-			if (!requestCBOR.getType().equals(CBORType.Map)) {
-				valid = false;
-
-			}
-
-			// The CBOR Map must include exactly one element, i.e.
-			// 'get_pub_keys'
-			if ((requestCBOR.size() != 1) || (!requestCBOR.ContainsKey(Constants.GET_CREDS))) {
-				valid = false;
-
-			}
-
-			// Invalid format of 'get_pub_keys'
-			if (!valid) {
-				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Invalid format of 'get_pub_keys'");
-				return;
-			}
-
-			// Retrieve 'get_pub_keys'
-			// This parameter must be a CBOR array or the CBOR simple value Null
-			CBORObject getPubKeys = requestCBOR.get(CBORObject.FromObject((Constants.GET_CREDS)));
-
-			// Invalid format of 'get_pub_keys'
-			if (!getPubKeys.getType().equals(CBORType.Array) && !getPubKeys.equals(CBORObject.Null)) {
-				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Invalid format of 'get_pub_keys'");
-				return;
-			}
-
-			if (getPubKeys.getType().equals(CBORType.Array)) {
-
-				// 'get_pub_keys' must include exactly two elements, both of
-				// which CBOR arrays
-				if (getPubKeys.size() != 3 || !getPubKeys.get(0).getType().equals(CBORType.Boolean)
-						|| !getPubKeys.get(1).getType().equals(CBORType.Array)
-						|| !getPubKeys.get(2).getType().equals(CBORType.Array)) {
-
-					valid = false;
-
-				}
-
-				// Invalid format of 'get_pub_keys'
-				if (valid && getPubKeys.get(1).size() == 0 && getPubKeys.get(2).size() == 0) {
-					valid = false;
-				}
-
-				// Invalid format of 'get_pub_keys'
-				if (getPubKeys.get(0).AsBoolean() == false && getPubKeys.get(2).size() == 0) {
-					valid = false;
-				}
-
-				// Invalid format of 'get_pub_keys'
-				if (valid) {
-					for (int i = 0; i < getPubKeys.get(1).size(); i++) {
-						// Possible elements of the first array have to be all
-						// integers and express a valid combination of roles
-						// encoded in the AIF data model
-						if (!getPubKeys.get(1).get(i).getType().equals(CBORType.Integer)
-								|| !validRoleCombinations.contains(getPubKeys.get(1).get(i).AsInt32())) {
-							valid = false;
-							break;
-
-						}
-					}
-				}
-
-				// Invalid format of 'get_pub_keys'
-				if (valid) {
-					for (int i = 0; i < getPubKeys.get(2).size(); i++) {
-						// Possible elements of the second array have to be all
-						// byte strings, specifying Sender IDs of other group
-						// members
-						if (!getPubKeys.get(2).get(i).getType().equals(CBORType.ByteString)) {
-							valid = false;
-							break;
-
-						}
-					}
-				}
-
-				// Invalid format of 'get_pub_keys'
-				if (!valid) {
-					exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Invalid format of 'get_pub_keys'");
-					return;
-				}
-
-			}
-
-			// Respond to the Public Key Request
-
-			CBORObject myResponse = CBORObject.NewMap();
-			CBORObject pubKeysArray = CBORObject.NewArray();
-			CBORObject peerRoles = CBORObject.NewArray();
-			CBORObject peerIdentifiers = CBORObject.NewArray();
-			Set<Integer> requestedRoles = new HashSet<Integer>();
-			Set<ByteBuffer> requestedSenderIDs = new HashSet<ByteBuffer>();
-
-			Map<CBORObject, CBORObject> publicKeys = targetedGroup.getAuthCreds();
-
-			// Provide the public keys of all the group members
-			if (getPubKeys.equals(CBORObject.Null)) {
-
-				for (CBORObject sid : publicKeys.keySet()) {
-
-					// This should never happen; silently ignore
-					if (publicKeys.get(sid) == null)
-						continue;
-
-					byte[] memberSenderId = sid.GetByteString();
-					// This should never happen; silently ignore
-					if (memberSenderId == null)
-						continue;
-
-					int memberRoles = targetedGroup.getGroupMemberRoles(memberSenderId);
-
-					pubKeysArray.Add(publicKeys.get(sid));
-					peerRoles.Add(memberRoles);
-					peerIdentifiers.Add(memberSenderId);
-
-				}
-
-			}
-			// Provide the public keys based on the specified filtering
-			else {
-
-				// Retrieve the inclusion flag
-				boolean inclusionFlag = getPubKeys.get(0).getType().equals(CBORType.Boolean);
-
-				// Retrieve and store the combination of roles specified in the
-				// request
-				for (int i = 0; i < getPubKeys.get(1).size(); i++) {
-					requestedRoles.add((getPubKeys.get(1).get(i).AsInt32()));
-				}
-
-				// Retrieve and store the Sender IDs specified in the request
-				for (int i = 0; i < getPubKeys.get(2).size(); i++) {
-					byte[] myArray = getPubKeys.get(2).get(i).GetByteString();
-					ByteBuffer myBuffer = ByteBuffer.wrap(myArray);
-					requestedSenderIDs.add(myBuffer);
-				}
-
-				for (CBORObject sid : publicKeys.keySet()) {
-
-					// This should never happen; silently ignore
-					if (publicKeys.get(sid) == null)
-						continue;
-
-					byte[] memberSenderId = sid.GetByteString();
-					// This should never happen; silently ignore
-					if (memberSenderId == null)
-						continue;
-
-					int memberRoles = targetedGroup.getGroupMemberRoles(memberSenderId);
-
-					boolean include = false;
-
-					for (Integer filter : requestedRoles) {
-						int filterRoles = filter.intValue();
-
-						// The role(s) of the key owner match with the role
-						// filter
-						if (filterRoles == (filterRoles & memberRoles)) {
-
-							// This public key has to be included anyway,
-							// regardless the Sender ID of the key owner
-							if (inclusionFlag) {
-								include = true;
-							}
-							// This public key has to be included only if the
-							// Sender ID of the key owner is not in the node
-							// identifier filter
-							else if (!requestedSenderIDs.contains(ByteBuffer.wrap(memberSenderId))) {
-								include = true;
-							}
-							// Stop going through the role filter anyway;
-							// this public key has not to be included
-							break;
-						}
-					}
-
-					if (!include) {
-						// This public has to be included if the Sender ID of
-						// the key owner is in the node identifier filter
-						if (inclusionFlag && requestedSenderIDs.contains(ByteBuffer.wrap(memberSenderId))) {
-							include = true;
-						}
-						// This public has to be included if the Sender ID of
-						// the key owner is not in the node identifier filter
-						else if (!inclusionFlag && !requestedSenderIDs.contains(ByteBuffer.wrap(memberSenderId))) {
-							include = true;
-						}
-					}
-
-					if (include) {
-
-						pubKeysArray.Add(publicKeys.get(sid));
-						peerRoles.Add(memberRoles);
-						peerIdentifiers.Add(memberSenderId);
-
-					}
-
-				}
-			}
-
-			myResponse.Add(Constants.NUM, CBORObject.FromObject(targetedGroup.getVersion()));
-			myResponse.Add(Constants.CREDS, pubKeysArray);
-			myResponse.Add(Constants.PEER_ROLES, peerRoles);
-			myResponse.Add(Constants.PEER_IDENTIFIERS, peerIdentifiers);
-
-			byte[] responsePayload = myResponse.EncodeToBytes();
-
-			Response coapResponse = new Response(CoAP.ResponseCode.CONTENT);
-			coapResponse.setPayload(responsePayload);
-			coapResponse.getOptions().setContentFormat(Constants.APPLICATION_ACE_GROUPCOMM_CBOR);
-
-			exchange.respond(coapResponse);
-
-		}
-
-	}
-
-	/**
-	 * Definition of the Group OSCORE group-membership sub-resource /gm-pub-key
-	 */
-	public static class GroupOSCORESubResourceGmPubKey extends CoapResource {
-
-		/**
-		 * Constructor
-		 * 
-		 * @param resId the resource identifier
-		 */
-		public GroupOSCORESubResourceGmPubKey(String resId) {
-
-			// set resource identifier
-			super(resId);
-
-			// set display name
-			getAttributes().setTitle("Group OSCORE Group-Membership Sub-Resource \"gm-pub-key\" " + resId);
+			getAttributes().setTitle("Group OSCORE Group-Membership Sub-Resource \"creds\" " + resId);
 
 		}
 
@@ -1938,14 +1497,15 @@ public class OscoreRsServer {
 					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
 							"Error when retrieving allowed roles from Access Tokens");
 					return;
-				}
-				for (int index = 0; index < roleSetToken.length; index++) {
-					if ((role & roleSetToken[index]) != 0) {
-						// 'scope' in this Access Token admits (also) the
-						// role "Verifier" for this group.
-						// This makes it fine for the requester.
-						allowed = true;
-						break;
+				} else {
+					for (int index = 0; index < roleSetToken.length; index++) {
+						if ((role & roleSetToken[index]) != 0) {
+							// 'scope' in this Access Token admits (also) the
+							// role "Verifier" for this group.
+							// This makes it fine for the requester.
+							allowed = true;
+							break;
+						}
 					}
 				}
 
@@ -1957,19 +1517,476 @@ public class OscoreRsServer {
 
 			}
 
-			// Respond to the Group Manager Public Key Request
+			// Respond to the Authentication Credential Request
 
 			CBORObject myResponse = CBORObject.NewMap();
 
-			// Public key of the Group Manager together with proof-of-possession
-			// evidence
+			CBORObject authCredsArray = CBORObject.NewArray();
+			CBORObject peerRoles = CBORObject.NewArray();
+			CBORObject peerIdentifiers = CBORObject.NewArray();
+
+			Map<CBORObject, CBORObject> authCreds = targetedGroup.getAuthCreds();
+
+			for (CBORObject sid : authCreds.keySet()) {
+
+				// This should never happen; silently ignore
+				if (authCreds.get(sid) == null)
+					continue;
+
+				byte[] peerSenderId = sid.GetByteString();
+				// This should never happen; silently ignore
+				if (peerSenderId == null)
+					continue;
+
+				authCredsArray.Add(authCreds.get(sid));
+				peerRoles.Add(targetedGroup.getGroupMemberRoles(peerSenderId));
+				peerIdentifiers.Add(peerSenderId);
+
+			}
+
+			myResponse.Add(Constants.NUM, CBORObject.FromObject(targetedGroup.getVersion()));
+
+			myResponse.Add(Constants.CREDS, authCredsArray);
+			myResponse.Add(Constants.PEER_ROLES, peerRoles);
+			myResponse.Add(Constants.PEER_IDENTIFIERS, peerIdentifiers);
+
+			byte[] responsePayload = myResponse.EncodeToBytes();
+
+			Response coapResponse = new Response(CoAP.ResponseCode.CONTENT);
+			coapResponse.setPayload(responsePayload);
+			coapResponse.getOptions().setContentFormat(Constants.APPLICATION_ACE_GROUPCOMM_CBOR);
+
+			exchange.respond(coapResponse);
+
+		}
+
+		@Override
+		public void handleFETCH(CoapExchange exchange) {
+			System.out.println("FETCH request reached the GM");
+
+			// Retrieve the entry for the target group, using the last path
+			// segment of the URI path as the name of the OSCORE group
+			GroupInfo targetedGroup = activeGroups.get(this.getParent().getName());
+
+			// This should never happen if active groups are maintained properly
+			if (targetedGroup == null) {
+				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
+						"Error when retrieving material for the OSCORE group");
+				return;
+			}
+
+			String groupName = targetedGroup.getGroupName();
+
+			// This should never happen if active groups are maintained properly
+			if (!groupName.equals(this.getParent().getName())) {
+				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
+						"Error when retrieving material for the OSCORE group");
+				return;
+			}
+
+			String subject = null;
+			Request request = exchange.advanced().getCurrentRequest();
+
+			try {
+				subject = CoapReq.getInstance(request).getSenderId();
+			} catch (AceException e) {
+				System.err.println("Error while retrieving the client identity: " + e.getMessage());
+			}
+			if (subject == null) {
+				// At this point, this should not really happen,
+				// due to the earlier check at the Token Repository
+				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
+				return;
+			}
+
+			if (!targetedGroup.isGroupMember(subject)) {
+
+				// The requester is not a current group member.
+				//
+				// This is still fine, as long as at least one Access Tokens
+				// of the requester allows also the role "Verifier" in this
+				// group
+
+				// Check that at least one of the Access Tokens for this node
+				// allows (also) the Verifier role for this group
+
+				int role = 1 << Constants.GROUP_OSCORE_VERIFIER;
+				boolean allowed = false;
+				int[] roleSetToken = getRolesFromToken(subject, groupName);
+				if (roleSetToken == null) {
+					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
+							"Error when retrieving allowed roles from Access Tokens");
+					return;
+				} else {
+					for (int index = 0; index < roleSetToken.length; index++) {
+						if ((role & roleSetToken[index]) != 0) {
+							// 'scope' in this Access Token admits (also) the
+							// role "Verifier" for this group.
+							// This makes it fine for the requester.
+							allowed = true;
+							break;
+						}
+					}
+				}
+
+				if (!allowed) {
+					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
+							"Operation not permitted to a non-member which is not a Verifier");
+					return;
+				}
+
+			}
+
+			byte[] requestPayload = exchange.getRequestPayload();
+
+			if (requestPayload == null) {
+				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "A payload must be present");
+				return;
+			}
+
+			CBORObject requestCBOR = CBORObject.DecodeFromBytes(requestPayload);
+
+			boolean valid = true;
+
+			// The payload of the request must be a CBOR Map
+			if (!requestCBOR.getType().equals(CBORType.Map)) {
+				valid = false;
+
+			}
+
+			// The CBOR Map must include exactly one element, i.e. 'get_creds'
+			if ((requestCBOR.size() != 1) || (!requestCBOR.ContainsKey(Constants.GET_CREDS))) {
+				valid = false;
+
+			}
+
+			// Invalid format of 'get_creds'
+			if (!valid) {
+				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Invalid format of 'get_creds'");
+				return;
+			}
+
+			// Retrieve 'get_creds'
+			// This parameter must be a CBOR array or the CBOR simple value Null
+			CBORObject getCreds = requestCBOR.get(CBORObject.FromObject((Constants.GET_CREDS)));
+
+			// Invalid format of 'get_creds'
+			if (!getCreds.getType().equals(CBORType.Array) && !getCreds.equals(CBORObject.Null)) {
+				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Invalid format of 'get_creds'");
+				return;
+			}
+
+			if (getCreds.getType().equals(CBORType.Array)) {
+
+				// 'get_creds' must include exactly two elements, both of which
+				// CBOR arrays
+				if (getCreds.size() != 3 || !getCreds.get(0).getType().equals(CBORType.Boolean)
+						|| !getCreds.get(1).getType().equals(CBORType.Array)
+						|| !getCreds.get(2).getType().equals(CBORType.Array)) {
+
+					valid = false;
+
+				}
+
+				// Invalid format of 'get_creds'
+				if (valid && getCreds.get(1).size() == 0 && getCreds.get(2).size() == 0) {
+					valid = false;
+				}
+
+				// Invalid format of 'get_creds'
+				if (getCreds.get(0).AsBoolean() == false && getCreds.get(2).size() == 0) {
+					valid = false;
+				}
+
+				// Invalid format of 'get_creds'
+				if (valid) {
+					for (int i = 0; i < getCreds.get(1).size(); i++) {
+						// Possible elements of the first array have to be all
+						// integers and
+						// express a valid combination of roles encoded in the
+						// AIF data model
+						if (!getCreds.get(1).get(i).getType().equals(CBORType.Integer)
+								|| !validRoleCombinations.contains(getCreds.get(1).get(i).AsInt32())) {
+							valid = false;
+							break;
+
+						}
+					}
+				}
+
+				// Invalid format of 'get_creds'
+				if (valid) {
+					for (int i = 0; i < getCreds.get(2).size(); i++) {
+						// Possible elements of the second array have to be all
+						// byte strings, specifying Sender IDs of other group
+						// members
+						if (!getCreds.get(2).get(i).getType().equals(CBORType.ByteString)) {
+							valid = false;
+							break;
+
+						}
+					}
+				}
+
+				// Invalid format of 'get_creds'
+				if (!valid) {
+					exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Invalid format of 'get_creds'");
+					return;
+				}
+
+			}
+
+			// Respond to the Authentication Credential Request
+
+			CBORObject myResponse = CBORObject.NewMap();
+
+			CBORObject authCredsArray = CBORObject.NewArray();
+			CBORObject peerRoles = CBORObject.NewArray();
+			CBORObject peerIdentifiers = CBORObject.NewArray();
+			Set<Integer> requestedRoles = new HashSet<Integer>();
+			Set<ByteBuffer> requestedSenderIDs = new HashSet<ByteBuffer>();
+
+			Map<CBORObject, CBORObject> authCreds = targetedGroup.getAuthCreds();
+
+			// Provide the authentication credentials of all the group members
+			if (getCreds.equals(CBORObject.Null)) {
+
+				for (CBORObject sid : authCreds.keySet()) {
+
+					// This should never happen; silently ignore
+					if (authCreds.get(sid) == null)
+						continue;
+
+					byte[] memberSenderId = sid.GetByteString();
+					// This should never happen; silently ignore
+					if (memberSenderId == null)
+						continue;
+
+					int memberRoles = targetedGroup.getGroupMemberRoles(memberSenderId);
+
+					authCredsArray.Add(authCreds.get(sid));
+					peerRoles.Add(memberRoles);
+					peerIdentifiers.Add(memberSenderId);
+
+				}
+
+			}
+			// Provide the authentication credentials based on the specified
+			// filtering
+			else {
+
+				// Retrieve the inclusion flag
+				boolean inclusionFlag = getCreds.get(0).getType().equals(CBORType.Boolean);
+
+				// Retrieve and store the combination of roles specified in the
+				// request
+				for (int i = 0; i < getCreds.get(1).size(); i++) {
+					requestedRoles.add((getCreds.get(1).get(i).AsInt32()));
+				}
+
+				// Retrieve and store the Sender IDs specified in the request
+				for (int i = 0; i < getCreds.get(2).size(); i++) {
+					byte[] myArray = getCreds.get(2).get(i).GetByteString();
+					ByteBuffer myBuffer = ByteBuffer.wrap(myArray);
+					requestedSenderIDs.add(myBuffer);
+				}
+
+				for (CBORObject sid : authCreds.keySet()) {
+
+					// This should never happen; silently ignore
+					if (authCreds.get(sid) == null)
+						continue;
+
+					byte[] memberSenderId = sid.GetByteString();
+					// This should never happen; silently ignore
+					if (memberSenderId == null)
+						continue;
+
+					int memberRoles = targetedGroup.getGroupMemberRoles(memberSenderId);
+
+					boolean include = false;
+
+					for (Integer filter : requestedRoles) {
+						int filterRoles = filter.intValue();
+
+						// The role(s) of the key owner match with the role
+						// filter
+						if (filterRoles == (filterRoles & memberRoles)) {
+
+							// This authentication credential has to be included
+							// anyway,
+							// regardless the Sender ID of the key owner
+							if (inclusionFlag) {
+								include = true;
+							}
+							// This authentication credential has to be included
+							// only if the Sender ID
+							// of the key owner is not in the node identifier
+							// filter
+							else if (!requestedSenderIDs.contains(ByteBuffer.wrap(memberSenderId))) {
+								include = true;
+							}
+							// Stop going through the role filter anyway;
+							// this authentication credential has not to be
+							// included
+							break;
+						}
+					}
+
+					if (!include) {
+						// This authentication credential has to be included if
+						// the Sender ID of
+						// the key owner is in the node identifier filter
+						if (inclusionFlag && requestedSenderIDs.contains(ByteBuffer.wrap(memberSenderId))) {
+							include = true;
+						}
+						// This authentication credential has to be included if
+						// the Sender ID of
+						// the key owner is not in the node identifier filter
+						else if (!inclusionFlag && !requestedSenderIDs.contains(ByteBuffer.wrap(memberSenderId))) {
+							include = true;
+						}
+					}
+
+					if (include) {
+
+						authCredsArray.Add(authCreds.get(sid));
+						peerRoles.Add(memberRoles);
+						peerIdentifiers.Add(memberSenderId);
+
+					}
+
+				}
+			}
+
+			myResponse.Add(Constants.NUM, CBORObject.FromObject(targetedGroup.getVersion()));
+
+			myResponse.Add(Constants.CREDS, authCredsArray);
+			myResponse.Add(Constants.PEER_ROLES, peerRoles);
+			myResponse.Add(Constants.PEER_IDENTIFIERS, peerIdentifiers);
+
+			byte[] responsePayload = myResponse.EncodeToBytes();
+
+			Response coapResponse = new Response(CoAP.ResponseCode.CONTENT);
+			coapResponse.setPayload(responsePayload);
+			coapResponse.getOptions().setContentFormat(Constants.APPLICATION_ACE_GROUPCOMM_CBOR);
+
+			exchange.respond(coapResponse);
+
+		}
+
+	}
+
+	/**
+	 * Definition of the Group OSCORE group-membership sub-resource /kdc-cred
+	 */
+	public static class GroupOSCORESubResourceKdcCred extends CoapResource {
+
+		/**
+		 * Constructor
+		 * 
+		 * @param resId the resource identifier
+		 */
+		public GroupOSCORESubResourceKdcCred(String resId) {
+
+			// set resource identifier
+			super(resId);
+
+			// set display name
+			getAttributes().setTitle("Group OSCORE Group-Membership Sub-Resource \"kdc-cred\" " + resId);
+
+		}
+
+		@Override
+		public void handleGET(CoapExchange exchange) {
+			System.out.println("GET request reached the GM");
+
+			// Retrieve the entry for the target group, using the last path
+			// segment of the URI path as the name of the OSCORE group
+			GroupInfo targetedGroup = activeGroups.get(this.getParent().getName());
+
+			// This should never happen if active groups are maintained properly
+			if (targetedGroup == null) {
+				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
+						"Error when retrieving material for the OSCORE group");
+				return;
+			}
+
+			String groupName = targetedGroup.getGroupName();
+
+			// This should never happen if active groups are maintained properly
+			if (!groupName.equals(this.getParent().getName())) {
+				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
+						"Error when retrieving material for the OSCORE group");
+				return;
+			}
+
+			String subject = null;
+			Request request = exchange.advanced().getCurrentRequest();
+
+			try {
+				subject = CoapReq.getInstance(request).getSenderId();
+			} catch (AceException e) {
+				System.err.println("Error while retrieving the client identity: " + e.getMessage());
+			}
+			if (subject == null) {
+				// At this point, this should not really happen,
+				// due to the earlier check at the Token Repository
+				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
+				return;
+			}
+
+			if (!targetedGroup.isGroupMember(subject)) {
+
+				// The requester is not a current group member.
+				//
+				// This is still fine, as long as at least one Access Tokens
+				// of the requester allows also the role "Verifier" in this
+				// group
+
+				// Check that at least one of the Access Tokens for this node
+				// allows (also) the Verifier role for this group
+
+				int role = 1 << Constants.GROUP_OSCORE_VERIFIER;
+				boolean allowed = false;
+				int[] roleSetToken = getRolesFromToken(subject, groupName);
+				if (roleSetToken == null) {
+					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
+							"Error when retrieving allowed roles from Access Tokens");
+					return;
+				} else {
+					for (int index = 0; index < roleSetToken.length; index++) {
+						if ((role & roleSetToken[index]) != 0) {
+							// 'scope' in this Access Token admits (also) the
+							// role "Verifier" for this group.
+							// This makes it fine for the requester.
+							allowed = true;
+							break;
+						}
+					}
+				}
+
+				if (!allowed) {
+					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
+							"Operation not permitted to a non-member which is not a Verifier");
+					return;
+				}
+
+			}
+
+			// Respond to the KDC Authentication Credential Request
+
+			CBORObject myResponse = CBORObject.NewMap();
+
+			// Authentication Credential of the Group Manager together with
+			// proof-of-possession evidence
 			byte[] kdcNonce = new byte[8];
 			new SecureRandom().nextBytes(kdcNonce);
 			myResponse.Add(Constants.KDC_NONCE, kdcNonce);
 
-			CBORObject publicKey = CBORObject.FromObject(targetedGroup.getGmAuthCred());
+			CBORObject authCred = CBORObject.FromObject(targetedGroup.getGmAuthCred());
 
-			myResponse.Add(Constants.KDC_CRED, publicKey);
+			myResponse.Add(Constants.KDC_CRED, authCred);
 
 			PrivateKey gmPrivKey;
 			try {
@@ -2061,8 +2078,8 @@ public class OscoreRsServer {
 				System.err.println("Error while retrieving the client identity: " + e.getMessage());
 			}
 			if (subject == null) {
-				// At this point, this should not really happen, due to the
-				// earlier check at the Token Repository
+				// At this point, this should not really happen,
+				// due to the earlier check at the Token Repository
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
@@ -2081,14 +2098,15 @@ public class OscoreRsServer {
 					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
 							"Error when retrieving allowed roles from Access Tokens");
 					return;
-				}
-				for (int index = 0; index < roleSetToken.length; index++) {
-					if ((role & roleSetToken[index]) != 0) {
-						// 'scope' in this Access Token admits (also) the
-						// role "Verifier" for this group.
-						// This makes it fine for the requester.
-						allowed = true;
-						break;
+				} else {
+					for (int index = 0; index < roleSetToken.length; index++) {
+						if ((role & roleSetToken[index]) != 0) {
+							// 'scope' in this Access Token admits (also) the
+							// role "Verifier" for this group.
+							// This makes it fine for the requester.
+							allowed = true;
+							break;
+						}
 					}
 				}
 
@@ -2099,7 +2117,7 @@ public class OscoreRsServer {
 				return;
 			}
 
-			// Respond to the Public Key Request
+			// Respond to the Authentication Credential Request
 
 			CBORObject myResponse = CBORObject.NewMap();
 
@@ -2107,8 +2125,7 @@ public class OscoreRsServer {
 			// object.
 			myResponse.Add(Constants.GKTY, CBORObject.FromObject(Constants.GROUP_OSCORE_INPUT_MATERIAL_OBJECT));
 
-			// This map is filled as the Group_OSCORE_Input_Material object,
-			// as defined in draft-ace-key-groupcomm-oscore
+			// This map is filled as the Group_OSCORE_Input_Material object
 			CBORObject myMap = CBORObject.NewMap();
 
 			// Fill the 'key' parameter
@@ -2182,8 +2199,7 @@ public class OscoreRsServer {
 			System.out.println("GET request reached the GM");
 
 			// Retrieve the entry for the target group, using the last path
-			// segment
-			// of the URI path as the name of the OSCORE group
+			// segment of the URI path as the name of the OSCORE group
 			GroupInfo targetedGroup = activeGroups.get(this.getParent().getName());
 
 			// This should never happen if active groups are maintained properly
@@ -2211,8 +2227,8 @@ public class OscoreRsServer {
 				System.err.println("Error while retrieving the client identity: " + e.getMessage());
 			}
 			if (subject == null) {
-				// At this point, this should not really happen, due to the
-				// earlier check at the Token Repository
+				// At this point, this should not really happen,
+				// due to the earlier check at the Token Repository
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
@@ -2373,8 +2389,8 @@ public class OscoreRsServer {
 				System.err.println("Error while retrieving the client identity: " + e.getMessage());
 			}
 			if (subject == null) {
-				// At this point, this should not really happen,
-				// due to the earlier check at the Token Repository
+				// At this point, this should not really happen, due to the
+				// earlier check at the Token Repository
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
@@ -2391,9 +2407,8 @@ public class OscoreRsServer {
 			CBORObject groupPolicies = targetedGroup.getGroupPolicies();
 
 			if (groupPolicies == null) {
-				// This should not happen for this Group Manager, since
-				// default policies apply if not specified when creating the
-				// group
+				// This should not happen for this Group Manager, since default
+				// policies apply if not specified when creating the group
 				myResponse = CBORObject.FromObject(new byte[0]);
 			} else {
 				myResponse = CBORObject.NewMap();
@@ -2492,7 +2507,7 @@ public class OscoreRsServer {
 				System.err.println("Error while retrieving the client identity: " + e.getMessage());
 			}
 			if (subject == null) {
-				// At this point, this should not really happen,
+				// At this point, this should not really happen
 				// due to the earlier check at the Token Repository
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
@@ -2514,19 +2529,23 @@ public class OscoreRsServer {
 
 			// Respond to the Key Distribution Request
 
-			// Respond to the Key Distribution Request
-
 			CBORObject myResponse = CBORObject.NewMap();
 
 			// Key Type Value assigned to the Group_OSCORE_Input_Material
 			// object.
 			myResponse.Add(Constants.GKTY, CBORObject.FromObject(Constants.GROUP_OSCORE_INPUT_MATERIAL_OBJECT));
 
-			// This map is filled as the Group_OSCORE_Input_Material object,
-			// as defined in draft-ace-key-groupcomm-oscore
+			// This map is filled as the Group_OSCORE_Input_Material object
 			CBORObject myMap = CBORObject.NewMap();
 
-			byte[] senderId = StringUtil.hex2ByteArray(targetedGroup.getGroupMemberName(subject));
+			byte[] senderId = null;
+			String myString = targetedGroup.getGroupMemberName(subject);
+
+			if (targetedGroup.getGroupMemberRoles(
+					(targetedGroup.getGroupMemberName(subject))) != (1 << Constants.GROUP_OSCORE_MONITOR)) {
+				// The requester is not a monitor, hence it has a Sender ID
+				senderId = StringUtil.hex2ByteArray(myString.substring(myString.indexOf(nodeNameSeparator) + 1));
+			}
 
 			// Fill the 'key' parameter
 			if (senderId != null) {
@@ -2614,8 +2633,8 @@ public class OscoreRsServer {
 				System.err.println("Error while retrieving the client identity: " + e.getMessage());
 			}
 			if (subject == null) {
-				// At this point, this should not really happen, due to the
-				// earlier check at the Token Repository
+				// At this point, this should not really happen,
+				// due to the earlier check at the Token Repository
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
@@ -2665,12 +2684,15 @@ public class OscoreRsServer {
 
 			CBORObject publicKey = targetedGroup.getAuthCred(oldSenderId);
 
-			// Store this client's public key under the new Sender ID
+			// Store this client's authentication credential under the new
+			// Sender ID
 			if (!targetedGroup.storeAuthCred(senderId, publicKey)) {
-				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when storing the public key");
+				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
+						"Error when storing the authentication credential");
 				return;
 			}
-			// Delete this client's public key under the old Sender ID
+			// Delete this client's authentication credential under the old
+			// Sender ID
 			targetedGroup.deleteAuthCred(oldSenderId);
 
 			// Respond to the Key Renewal Request
@@ -2723,8 +2745,8 @@ public class OscoreRsServer {
 				System.err.println("Error while retrieving the client identity: " + e.getMessage());
 			}
 			if (subject == null) {
-				// At this point, this should not really happen, due to the
-				// earlier check at the Token Repository
+				// At this point, this should not really happen,
+				// due to the earlier check at the Token Repository
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
@@ -2758,22 +2780,22 @@ public class OscoreRsServer {
 
 	/**
 	 * Definition of the Group OSCORE group-membership sub-resource
-	 * /nodes/NODENAME/pub-key for the group members with node name "NODENAME"
+	 * /nodes/NODENAME/cred for the group members with node name "NODENAME"
 	 */
-	public static class GroupOSCORESubResourceNodenamePubKey extends CoapResource {
+	public static class GroupOSCORESubResourceNodenameCred extends CoapResource {
 
 		/**
 		 * Constructor
 		 * 
 		 * @param resId the resource identifier
 		 */
-		public GroupOSCORESubResourceNodenamePubKey(String resId) {
+		public GroupOSCORESubResourceNodenameCred(String resId) {
 
 			// set resource identifier
 			super(resId);
 
 			// set display name
-			getAttributes().setTitle("Group OSCORE Group-Membership Sub-Resource \"nodes/NODENAME/pub-key\" " + resId);
+			getAttributes().setTitle("Group OSCORE Group-Membership Sub-Resource \"nodes/NODENAME/cred\" " + resId);
 
 		}
 
@@ -2810,8 +2832,8 @@ public class OscoreRsServer {
 				System.err.println("Error while retrieving the client identity: " + e.getMessage());
 			}
 			if (subject == null) {
-				// At this point, this should not really happen, due to the
-				// earlier check at the Token Repository
+				// At this point, this should not really happen,
+				// due to the earlier check at the Token Repository
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
@@ -2846,31 +2868,32 @@ public class OscoreRsServer {
 				return;
 			}
 
-			CBORObject PublicKeyUpdateRequest = CBORObject.DecodeFromBytes(requestPayload);
+			CBORObject AuthCredUpdateRequest = CBORObject.DecodeFromBytes(requestPayload);
 
-			// The payload of the Public Key Update Request must be a CBOR Map
-			if (!PublicKeyUpdateRequest.getType().equals(CBORType.Map)) {
+			// The payload of the Authentication Credential Update Request must
+			// be a CBOR Map
+			if (!AuthCredUpdateRequest.getType().equals(CBORType.Map)) {
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "The payload must be a CBOR map");
 				return;
 			}
 
-			if (!PublicKeyUpdateRequest.ContainsKey(Constants.CLIENT_CRED)) {
-				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Missing parameter: " + "'client_cred'");
+			if (!AuthCredUpdateRequest.ContainsKey(Constants.CLIENT_CRED)) {
+				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Missing parameter: 'client_cred'");
 				return;
 			}
 
-			if (!PublicKeyUpdateRequest.ContainsKey(Constants.CNONCE)) {
-				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Missing parameter: " + "'cnonce'");
+			if (!AuthCredUpdateRequest.ContainsKey(Constants.CNONCE)) {
+				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Missing parameter: 'cnonce'");
 				return;
 			}
 
-			if (!PublicKeyUpdateRequest.ContainsKey(Constants.CLIENT_CRED_VERIFY)) {
-				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Missing parameter: " + "'client_cred_verify'");
+			if (!AuthCredUpdateRequest.ContainsKey(Constants.CLIENT_CRED_VERIFY)) {
+				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Missing parameter: 'client_cred_verify'");
 				return;
 			}
 
 			// Retrieve 'client_cred'
-			CBORObject clientCred = PublicKeyUpdateRequest.get(CBORObject.FromObject(Constants.CLIENT_CRED));
+			CBORObject clientCred = AuthCredUpdateRequest.get(CBORObject.FromObject(Constants.CLIENT_CRED));
 
 			// client_cred cannot be Null
 			if (clientCred == null) {
@@ -2881,22 +2904,31 @@ public class OscoreRsServer {
 			OneKey publicKey = null;
 			boolean valid = false;
 
+			if (clientCred.getType() != CBORType.ByteString) {
+				exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
+						"The parameter 'client_cred' must be a CBOR byte string");
+				return;
+			}
+
+			byte[] clientCredBytes = clientCred.GetByteString();
 			switch (targetedGroup.getAuthCredFormat()) {
 			case Constants.COSE_HEADER_PARAM_CCS:
-				if (clientCred.getType() == CBORType.Map) {
+				CBORObject ccs = CBORObject.DecodeFromBytes(clientCredBytes);
+				if (ccs.getType() == CBORType.Map) {
 					// Retrieve the public key from the CCS
-					publicKey = Util.ccsToOneKey(clientCred);
+					publicKey = Util.ccsToOneKey(ccs);
 					valid = true;
 				} else {
-					Assert.fail("Invalid format of public key");
+					Assert.fail("Invalid format of authentication credential");
 				}
 				break;
 			case Constants.COSE_HEADER_PARAM_CWT:
-				if (clientCred.getType() == CBORType.Array) {
+				CBORObject cwt = CBORObject.DecodeFromBytes(clientCredBytes);
+				if (cwt.getType() == CBORType.Array) {
 					// Retrieve the public key from the CWT
 					// TODO
 				} else {
-					Assert.fail("Invalid format of public key");
+					Assert.fail("Invalid format of authentication credential");
 				}
 				break;
 			case Constants.COSE_HEADER_PARAM_X5CHAIN:
@@ -2904,11 +2936,11 @@ public class OscoreRsServer {
 				if (clientCred.getType() == CBORType.ByteString) {
 					// TODO
 				} else {
-					Assert.fail("Invalid format of public key");
+					Assert.fail("Invalid format of authentication credential");
 				}
 				break;
 			default:
-				Assert.fail("Invalid format of public key");
+				Assert.fail("Invalid format of authentication credential");
 			}
 			if (publicKey == null || valid == false) {
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Invalid public key format");
@@ -2923,7 +2955,9 @@ public class OscoreRsServer {
 				// Invalid public key format
 				if (!publicKey.get(KeyKeys.KeyType).equals(targetedGroup.getSignParams().get(0).get(0))
 						|| !publicKey.get(KeyKeys.KeyType).equals(targetedGroup.getSignParams().get(1).get(0))
-						|| !publicKey.get(KeyKeys.EC2_Curve).equals(targetedGroup.getSignParams().get(1).get(1))) {
+						|| !publicKey.get(KeyKeys.EC2_Curve).equals(targetedGroup.getSignParams().get(1).get(1)))
+
+				{
 
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 							"Invalid public key for the algorithm and parameters used in the OSCORE group");
@@ -2938,7 +2972,8 @@ public class OscoreRsServer {
 				// Invalid public key format
 				if (!publicKey.get(KeyKeys.KeyType).equals(targetedGroup.getSignParams().get(0).get(0))
 						|| !publicKey.get(KeyKeys.KeyType).equals(targetedGroup.getSignParams().get(1).get(0))
-						|| !publicKey.get(KeyKeys.OKP_Curve).equals(targetedGroup.getSignParams().get(1).get(1))) {
+						|| !publicKey.get(KeyKeys.OKP_Curve).equals(targetedGroup.getSignParams().get(1).get(1)))
+				{
 
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 							"Invalid public key for the algorithm and parameters used in the OSCORE group");
@@ -2949,7 +2984,7 @@ public class OscoreRsServer {
 			}
 
 			// Retrieve the proof-of-possession nonce from the Client
-			CBORObject cnonce = PublicKeyUpdateRequest.get(CBORObject.FromObject(Constants.CNONCE));
+			CBORObject cnonce = AuthCredUpdateRequest.get(CBORObject.FromObject(Constants.CNONCE));
 
 			// A client nonce must be included for proof-of-possession
 			if (cnonce == null) {
@@ -2963,9 +2998,9 @@ public class OscoreRsServer {
 				return;
 			}
 
-			// Check the proof-of-possession evidence over (scope | rsnonce |
-			// cnonce), using the Client's public key
-			CBORObject clientPopEvidence = PublicKeyUpdateRequest
+			// Check the PoP evidence over (scope | rsnonce | cnonce), using the
+			// Client's public key
+			CBORObject clientPopEvidence = AuthCredUpdateRequest
 					.get(CBORObject.FromObject(Constants.CLIENT_CRED_VERIFY));
 
 			// A client PoP evidence must be included
@@ -2974,7 +3009,8 @@ public class OscoreRsServer {
 				return;
 			}
 
-			// The client PoP evidence must be wrapped in a binary string
+			// The client PoP evidence must be wrapped in a binary string for
+			// joining OSCORE groups
 			if (!clientPopEvidence.getType().equals(CBORType.ByteString)) {
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 						"The parameter 'client_cred_verify' must be a CBOR byte string");
@@ -3065,11 +3101,12 @@ public class OscoreRsServer {
 			byte[] senderId = targetedGroup.getGroupMemberSenderId(subject).GetByteString();
 
 			if (!targetedGroup.storeAuthCred(senderId, clientCred)) {
-				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when storing the public key");
+				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
+						"Error when storing the authentication credential");
 				return;
 			}
 
-			// Respond to the Public Key Update Request
+			// Respond to the Authentication Credential Update Request
 
 			Response coapResponse = new Response(CoAP.ResponseCode.CHANGED);
 
@@ -3167,10 +3204,10 @@ public class OscoreRsServer {
 		actions3 = new HashSet<>();
 		actions3.add(Constants.GET);
 		actions3.add(Constants.FETCH);
-		myResource3.put(rootGroupMembershipResource + "/" + groupName1 + "/pub-key", actions3);
+		myResource3.put(rootGroupMembershipResource + "/" + groupName1 + "/creds", actions3);
 		actions3 = new HashSet<>();
 		actions3.add(Constants.GET);
-		myResource3.put(rootGroupMembershipResource + "/" + groupName1 + "/gm-pub-key", actions3);
+		myResource3.put(rootGroupMembershipResource + "/" + groupName1 + "/kdc-cred", actions3);
 		myResource3.put(rootGroupMembershipResource + "/" + groupName1 + "/verif-data", actions3);
 		myResource3.put(rootGroupMembershipResource + "/" + groupName1 + "/num", actions3);
 		myResource3.put(rootGroupMembershipResource + "/" + groupName1 + "/active", actions3);
@@ -3201,10 +3238,10 @@ public class OscoreRsServer {
 		actions5 = new HashSet<>();
 		actions5.add(Constants.GET);
 		actions5.add(Constants.FETCH);
-		myResource5.put(rootGroupMembershipResource + "/" + groupName2 + "/pub-key", actions5);
+		myResource5.put(rootGroupMembershipResource + "/" + groupName2 + "/creds", actions5);
 		actions5 = new HashSet<>();
 		actions5.add(Constants.GET);
-		myResource5.put(rootGroupMembershipResource + "/" + groupName2 + "/gm-pub-key", actions5);
+		myResource5.put(rootGroupMembershipResource + "/" + groupName2 + "/kdc-cred", actions5);
 		myResource5.put(rootGroupMembershipResource + "/" + groupName2 + "/verif-data", actions5);
 		myResource5.put(rootGroupMembershipResource + "/" + groupName2 + "/num", actions5);
 		myResource5.put(rootGroupMembershipResource + "/" + groupName2 + "/active", actions5);
@@ -3229,8 +3266,8 @@ public class OscoreRsServer {
 		// For each OSCORE group, include the associated group-membership
 		// resource and its sub-resources
 		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName1));
-		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName1 + "/pub-key"));
-		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName1 + "/gm-pub-key"));
+		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName1 + "/creds"));
+		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName1 + "/kdc-cred"));
 		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName1 + "/verif-data"));
 		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName1 + "/num"));
 		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName1 + "/active"));
@@ -3239,8 +3276,8 @@ public class OscoreRsServer {
 		// For each OSCORE group, include the associated group-membership
 		// resource and its sub-resources (2nd group)
 		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName2));
-		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName2 + "/pub-key"));
-		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName2 + "/gm-pub-key"));
+		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName2 + "/creds"));
+		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName2 + "/kdc-cred"));
 		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName2 + "/verif-data"));
 		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName2 + "/num"));
 		valid.setJoinResources(Collections.singleton(rootGroupMembershipResource + "/" + groupName2 + "/active"));
@@ -3301,14 +3338,14 @@ public class OscoreRsServer {
 		Resource groupOSCORERootMembership = new GroupOSCORERootMembershipResource(rootGroupMembershipResource);
 		Resource join = new GroupOSCOREJoinResource(groupName1);
 
-		// Add the /pub-key sub-resource
-		Resource pubKeySubResource = new GroupOSCORESubResourcePubKey("pub-key");
-		join.add(pubKeySubResource);
-		// Add the /gm-pub-key sub-resource
-		Resource gmPubKeySubResource = new GroupOSCORESubResourcePubKey("gm-pub-key");
-		join.add(gmPubKeySubResource);
+		// Add the /creds sub-resource
+		Resource credsSubResource = new GroupOSCORESubResourceCreds("creds");
+		join.add(credsSubResource);
+		// Add the /kdc-cred sub-resource
+		Resource kdcCredSubResource = new GroupOSCORESubResourceKdcCred("kdc-cred");
+		join.add(kdcCredSubResource);
 		// Add the /verif-data sub-resource
-		Resource verifDataSubResource = new GroupOSCORESubResourcePubKey("verif-data");
+		Resource verifDataSubResource = new GroupOSCORESubResourceVerifData("verif-data");
 		join.add(verifDataSubResource);
 		// Add the /num sub-resource
 		Resource numSubResource = new GroupOSCORESubResourceNum("num");
@@ -3327,14 +3364,14 @@ public class OscoreRsServer {
 		// For the second group
 		Resource join2 = new GroupOSCOREJoinResource(groupName2);
 
-		// Add the /pub-key sub-resource
-		Resource pubKeySubResource2 = new GroupOSCORESubResourcePubKey("pub-key");
-		join2.add(pubKeySubResource2);
-		// Add the /gm-pub-key sub-resource
-		Resource gmPubKeySubResource2 = new GroupOSCORESubResourcePubKey("gm-pub-key");
-		join2.add(gmPubKeySubResource2);
+		// Add the /creds sub-resource
+		Resource credsSubResource2 = new GroupOSCORESubResourceCreds("creds");
+		join2.add(credsSubResource2);
+		// Add the /kdc-cred sub-resource
+		Resource kdcCredSubResource2 = new GroupOSCORESubResourceKdcCred("kdc-cred");
+		join2.add(kdcCredSubResource2);
 		// Add the /verif-data sub-resource
-		Resource verifDataSubResource2 = new GroupOSCORESubResourcePubKey("verif-data");
+		Resource verifDataSubResource2 = new GroupOSCORESubResourceVerifData("verif-data");
 		join2.add(verifDataSubResource2);
 		// Add the /num sub-resource
 		Resource numSubResource2 = new GroupOSCORESubResourceNum("num");
@@ -3361,7 +3398,7 @@ public class OscoreRsServer {
 				(byte) 0x63, (byte) 0x40 };
 
 		final AlgorithmID hkdf = AlgorithmID.HKDF_HMAC_SHA_256;
-		final int pubKeyEnc = Constants.COSE_HEADER_PARAM_CCS;
+		final int credFmt = Constants.COSE_HEADER_PARAM_CCS;
 
 		// Uncomment to set ECDSA with curve P-256 for countersignatures
 		// int signKeyCurve = KeyKeys.EC2_P256.AsInt32();
@@ -3489,7 +3526,6 @@ public class OscoreRsServer {
 		// The asymmetric key pair and public key of the Group Manager
 		// (ECDSA_256)
 		if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
-			System.out.println("More config required.");
 			gmKeyPairBytes = StringUtil.hex2ByteArray(
 					"a60102032620012158202236658ca675bb62d7b24623db0453a3b90533b7c3b221cc1c2c73c4e919d540225820770916bc4c97c3c46604f430b06170c7b3d6062633756628c31180fa3bb65a1b2358204a7b844a4c97ef91ed232aa564c9d5d373f2099647f9e9bd3fe6417a0d0f91ad");
 		}
@@ -3504,15 +3540,15 @@ public class OscoreRsServer {
 		OneKey gmKeyPair = null;
 		gmKeyPair = new OneKey(CBORObject.DecodeFromBytes(gmKeyPairBytes));
 
-		// Serialization of the public key, according to the format used in the
-		// group
+		// Serialization of the authentication credential, according to the
+		// format used in the group
 		byte[] gmPublicKey = null;
 
 		/*
 		 * // Build the public key according to the format used in the group //
 		 * Note: most likely, the result will NOT follow the required
 		 * deterministic // encoding in byte lexicographic order, and it has to
-		 * be adjusted offline switch (pubKeyEnc) { case
+		 * be adjusted offline switch (credFmt) { case
 		 * Constants.COSE_HEADER_PARAM_CCS: // A CCS including the public key
 		 * String subjectName = ""; gmPublicKey = Util.oneKeyToCCS(gmKeyPair,
 		 * subjectName); break; case Constants.COSE_HEADER_PARAM_CWT: // A CWT
@@ -3520,7 +3556,7 @@ public class OscoreRsServer {
 		 * // A certificate including the public key // }
 		 */
 
-		switch (pubKeyEnc) {
+		switch (credFmt) {
 		case Constants.COSE_HEADER_PARAM_CCS:
 			// A CCS including the public key
 			if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
@@ -3542,13 +3578,13 @@ public class OscoreRsServer {
 			// TODO
 			break;
 		default:
-			System.err.println("Invalid value of pubKeyEnc");
+			System.err.println("Invalid value of credFmt");
 			break;
 		}
 
 		GroupInfo myGroup = new GroupInfo(groupName1, masterSecret, masterSalt, groupIdPrefixSize, groupIdPrefix,
 				groupIdEpoch.length, Util.bytesToInt(groupIdEpoch), prefixMonitorNames, nodeNameSeparator, hkdf,
-				pubKeyEnc, mode, signEncAlg, signAlg, signParams, alg, ecdhAlg, ecdhParams, null, gmKeyPair,
+				credFmt, mode, signEncAlg, signAlg, signParams, alg, ecdhAlg, ecdhParams, null, gmKeyPair,
 				gmPublicKey);
 
 		myGroup.setStatus(true);
@@ -3570,9 +3606,8 @@ public class OscoreRsServer {
 		if (!myGroup.addGroupMember(mySid, myName, roles, mySubject))
 			return;
 
-		// Serialization of the public key, according to the format used in the
-		// group
-		byte[] pubKey1 = null;
+		// Serialization of the COSE Key
+		byte[] authCred1 = null;
 
 		/*
 		 * // Build the public key according to the format used in the group //
@@ -3580,7 +3615,7 @@ public class OscoreRsServer {
 		 * deterministic // encoding in byte lexicographic order, and it has to
 		 * be adjusted offline OneKey coseKeyPub1OneKey = null;
 		 * coseKeyPub1OneKey = new
-		 * OneKey(CBORObject.DecodeFromBytes(coseKeyPub1)); switch (pubKeyEnc) {
+		 * OneKey(CBORObject.DecodeFromBytes(coseKeyPub1)); switch (credFmt) {
 		 * case Constants.COSE_HEADER_PARAM_CCS: // A CCS including the public
 		 * key String subjectName = ""; pubKey1 =
 		 * Util.oneKeyToCCS(coseKeyPub1OneKey, subjectName); break; case
@@ -3589,16 +3624,16 @@ public class OscoreRsServer {
 		 * certificate including the public key // pubKey1 = null; break; }
 		 */
 
-		switch (pubKeyEnc) {
+		switch (credFmt) {
 		case Constants.COSE_HEADER_PARAM_CCS:
 			// A CCS including the public key
 			if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
 				System.out.println("More config required.");
-				pubKey1 = StringUtil.hex2ByteArray(
+				authCred1 = StringUtil.hex2ByteArray(
 						"A2026008A101A501020326200121582035F3656092E1269AAAEE6262CD1C0D9D38ED78820803305BC8EA41702A50B3AF2258205D31247C2959E7B7D3F62F79622A7082FF01325FC9549E61BB878C2264DF4C4F");
 			}
 			if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
-				pubKey1 = StringUtil.hex2ByteArray(
+				authCred1 = StringUtil.hex2ByteArray(
 						"A2026008A101A401010327200621582077EC358C1D344E41EE0E87B8383D23A2099ACD39BDF989CE45B52E887463389B");
 			}
 			break;
@@ -3611,11 +3646,11 @@ public class OscoreRsServer {
 			// TODO
 			break;
 		default:
-			System.err.println("Invalid value of pubKeyEnc");
+			System.err.println("Invalid value of credFmt");
 			break;
 		}
 
-		myGroup.storeAuthCred(mySid, CBORObject.FromObject(pubKey1));
+		myGroup.storeAuthCred(mySid, CBORObject.FromObject(authCred1));
 
 		// Add a group member
 		mySid = idClient3;
@@ -3631,9 +3666,8 @@ public class OscoreRsServer {
 		if (!myGroup.addGroupMember(mySid, myName, roles, mySubject))
 			return;
 
-		// Serialization of the public key, according to the format used in the
-		// group
-		byte[] pubKey2 = null;
+		// Serialization of the COSE key
+		byte[] authCred2 = null;
 
 		/*
 		 * // Build the public key according to the format used in the group //
@@ -3641,7 +3675,7 @@ public class OscoreRsServer {
 		 * deterministic // encoding in byte lexicographic order, and it has to
 		 * be adjusted offline OneKey coseKeyPub2OneKey = null;
 		 * coseKeyPub2OneKey = new
-		 * OneKey(CBORObject.DecodeFromBytes(coseKeyPub2)); switch (pubKeyEnc) {
+		 * OneKey(CBORObject.DecodeFromBytes(coseKeyPub2)); switch (credFmt) {
 		 * case Constants.COSE_HEADER_PARAM_CCS: // A CCS including the public
 		 * key String subjectName = ""; pubKey2 =
 		 * Util.oneKeyToCCS(coseKeyPub2OneKey, subjectName); break; case
@@ -3650,16 +3684,16 @@ public class OscoreRsServer {
 		 * certificate including the public key // pubKey2 = null; break; }
 		 */
 
-		switch (pubKeyEnc) {
+		switch (credFmt) {
 		case Constants.COSE_HEADER_PARAM_CCS:
 			// A CCS including the public key
 			if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
 				System.out.println("More config required.");
-				pubKey2 = StringUtil.hex2ByteArray(
+				authCred2 = StringUtil.hex2ByteArray(
 						"A2026008A101A50102032620012158209DFA6D63FD1515761460B7B02D54F8D7345819D2E5576C160D3148CC7886D5F122582076C81A0C1A872F1730C10317AB4F3616238FB23A08719E8B982B2D9321A2EF7D");
 			}
 			if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
-				pubKey2 = StringUtil.hex2ByteArray(
+				authCred2 = StringUtil.hex2ByteArray(
 						"A2026008A101A4010103272006215820105B8C6A8C88019BF0C354592934130BAA8007399CC2AC3BE845884613D5BA2E");
 			}
 			break;
@@ -3672,7 +3706,7 @@ public class OscoreRsServer {
 			// TODO
 			break;
 		default:
-			System.err.println("Invalid value of pubKeyEnc");
+			System.err.println("Invalid value of credFmt");
 			break;
 		}
 
@@ -3682,7 +3716,7 @@ public class OscoreRsServer {
 		byte[] groupIdEpoch2 = new byte[] { (byte) 0xf0, (byte) 0x3a }; // < 4 b
 		GroupInfo myGroup2 = new GroupInfo(groupName2, masterSecret, masterSalt, groupIdPrefixSize, groupIdPrefix2,
 				groupIdEpoch2.length, Util.bytesToInt(groupIdEpoch2), prefixMonitorNames, nodeNameSeparator, hkdf,
-				pubKeyEnc, mode, signEncAlg, signAlg, signParams, alg, ecdhAlg, ecdhParams, null, gmKeyPair,
+				credFmt, mode, signEncAlg, signAlg, signParams, alg, ecdhAlg, ecdhParams, null, gmKeyPair,
 				gmPublicKey);
 
 		myGroup2.setStatus(true);
@@ -3706,7 +3740,7 @@ public class OscoreRsServer {
 		 * deterministic // encoding in byte lexicographic order, and it has to
 		 * be adjusted offline OneKey coseKeyPub1OneKey = null;
 		 * coseKeyPub1OneKey = new
-		 * OneKey(CBORObject.DecodeFromBytes(coseKeyPub1)); switch (pubKeyEnc) {
+		 * OneKey(CBORObject.DecodeFromBytes(coseKeyPub1)); switch (credFmt) {
 		 * case Constants.COSE_HEADER_PARAM_CCS: // A CCS including the public
 		 * key String subjectName = ""; pubKey1 =
 		 * Util.oneKeyToCCS(coseKeyPub1OneKey, subjectName); break; case
@@ -3715,35 +3749,35 @@ public class OscoreRsServer {
 		 * certificate including the public key // pubKey1 = null; break; }
 		 */
 
-		switch (pubKeyEnc) {
+		switch (credFmt) {
 		case Constants.COSE_HEADER_PARAM_CCS:
 			// A CCS including the public key
 			if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
 				System.out.println("More config required.");
-				pubKey1 = StringUtil.hex2ByteArray(
+				authCred1 = StringUtil.hex2ByteArray(
 						"A2026008A101A501020326200121582035F3656092E1269AAAEE6262CD1C0D9D38ED78820803305BC8EA41702A50B3AF2258205D31247C2959E7B7D3F62F79622A7082FF01325FC9549E61BB878C2264DF4C4F");
 			}
 			if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
-				pubKey1 = StringUtil.hex2ByteArray(
+				authCred1 = StringUtil.hex2ByteArray(
 						"A2026008A101A401010327200621582077EC358C1D344E41EE0E87B8383D23A2099ACD39BDF989CE45B52E887463389B");
 			}
 			break;
 		case Constants.COSE_HEADER_PARAM_CWT:
 			// A CWT including the public key
 			// TODO
-			pubKey1 = null;
+			authCred1 = null;
 			break;
 		case Constants.COSE_HEADER_PARAM_X5CHAIN:
 			// A certificate including the public key
 			// TODO
-			pubKey1 = null;
+			authCred1 = null;
 			break;
 		default:
-			System.err.println("Invalid value of pubKeyEnc");
+			System.err.println("Invalid value of credFmt");
 			break;
 		}
 
-		myGroup2.storeAuthCred(mySid, CBORObject.FromObject(pubKey1));
+		myGroup2.storeAuthCred(mySid, CBORObject.FromObject(authCred1));
 
 		// Add a group member
 		mySid = idClient3;
@@ -3761,8 +3795,8 @@ public class OscoreRsServer {
 
 		// ======= End of creating second group for this GM
 
-		myGroup.storeAuthCred(mySid, CBORObject.FromObject(pubKey2));
-		myGroup2.storeAuthCred(mySid, CBORObject.FromObject(pubKey2));
+		myGroup.storeAuthCred(mySid, CBORObject.FromObject(authCred2));
+		myGroup2.storeAuthCred(mySid, CBORObject.FromObject(authCred2));
 
 		// Add this OSCORE group to the set of active groups
 		// If the groupIdPrefix is 4 bytes in size, the map key can be a
@@ -3785,7 +3819,7 @@ public class OscoreRsServer {
 
 		rs.setMessageDeliverer(dpd);
 		rs.start();
-		System.out.println("Server starting");
+		System.out.println("OSCORE ACE RS Server started on port: " + portNumberNoSec);
 	}
 
 	/**
