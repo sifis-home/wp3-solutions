@@ -837,8 +837,7 @@ public class OscoreRsServer {
 				// Invalid format of 'get_creds'
 				if (getCreds.getType().equals(CBORType.Array)) {
 					if (getCreds.size() != 3 || !getCreds.get(0).getType().equals(CBORType.Boolean)
-							|| getCreds.get(0).AsBoolean() != true
-							|| !getCreds.get(1).getType().equals(CBORType.Array)
+							|| getCreds.get(0).AsBoolean() != true || !getCreds.get(1).getType().equals(CBORType.Array)
 							|| !getCreds.get(2).getType().equals(CBORType.Array) || getCreds.get(2).size() != 0) {
 
 						byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
@@ -1168,9 +1167,10 @@ public class OscoreRsServer {
 
 				if (!myGroup.storeAuthCred(senderId, clientCred)) {
 					myGroup.deallocateSenderId(senderId);
-					DhtLogger.sendLog("Error when storing the authentication credential" + " [subject: " + subject
-							+ ", groupName: "
-							+ groupName + ", nodeName: " + nodeName + "]", PRIO1, SEV1, CATEGORY_GM);
+					DhtLogger.sendLog(
+							"Error when storing the authentication credential" + " [subject: " + subject
+									+ ", groupName: " + groupName + ", nodeName: " + nodeName + "]",
+							PRIO1, SEV1, CATEGORY_GM);
 					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
 							"Error when storing the authentication credential");
 					return;
@@ -2604,6 +2604,7 @@ public class OscoreRsServer {
 
 			// This should never happen if active groups are maintained properly
 			if (targetedGroup == null) {
+				DhtLogger.sendLog("PLACEHOLDER", PRIO1, SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
 						"Error when retrieving material for the OSCORE group");
 				return;
@@ -2613,6 +2614,7 @@ public class OscoreRsServer {
 
 			// This should never happen if active groups are maintained properly
 			if (!groupName.equals(this.getParent().getParent().getName())) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [groupName: " + groupName + "]", PRIO1, SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
 						"Error when retrieving material for the OSCORE group");
 				return;
@@ -2623,6 +2625,8 @@ public class OscoreRsServer {
 
 			if (request.getPayloadSize() != 0) {
 				// This request must not have a payload
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "This request must not have a payload");
 				return;
 			}
@@ -2635,12 +2639,16 @@ public class OscoreRsServer {
 			if (subject == null) {
 				// At this point, this should not really happen,
 				// due to the earlier check at the Token Repository
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
 
 			if (!targetedGroup.isGroupMember(subject)) {
 				// The requester is not a current group member.
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.FORBIDDEN, "Operation permitted only to group members");
 				return;
 			}
@@ -2648,6 +2656,8 @@ public class OscoreRsServer {
 			if (!(targetedGroup.getGroupMemberName(subject)).equals(this.getName())) {
 				// The requester is not the group member associated to this
 				// sub-resource.
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.FORBIDDEN,
 						"Operation permitted only to the group member associated to this sub-resource");
 				return;
@@ -2657,6 +2667,8 @@ public class OscoreRsServer {
 					(targetedGroup.getGroupMemberName(subject))) == (1 << Constants.GROUP_OSCORE_MONITOR)) {
 				// The requester is a monitor, hence it is not supposed to have
 				// a Sender ID.
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 						"Operation not permitted to members that are only monitors");
 				return;
@@ -2674,6 +2686,8 @@ public class OscoreRsServer {
 
 			if (senderId == null) {
 				// All possible values are already in use for this OSCORE group
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE, "No available Sender IDs in this OSCORE group");
 				return;
 			}
@@ -2687,6 +2701,8 @@ public class OscoreRsServer {
 			// Store this client's authentication credential under the new
 			// Sender ID
 			if (!targetedGroup.storeAuthCred(senderId, publicKey)) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
 						"Error when storing the authentication credential");
 				return;
@@ -2708,6 +2724,8 @@ public class OscoreRsServer {
 			coapResponse.setPayload(responsePayload);
 			coapResponse.getOptions().setContentFormat(Constants.APPLICATION_ACE_GROUPCOMM_CBOR);
 
+			DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1, SEV1,
+					CATEGORY_GM);
 			exchange.respond(coapResponse);
 
 		}
@@ -2722,6 +2740,7 @@ public class OscoreRsServer {
 
 			// This should never happen if active groups are maintained properly
 			if (targetedGroup == null) {
+				DhtLogger.sendLog("PLACEHOLDER", PRIO1, SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
 						"Error when retrieving material for the OSCORE group");
 				return;
@@ -2731,6 +2750,7 @@ public class OscoreRsServer {
 
 			// This should never happen if active groups are maintained properly
 			if (!groupName.equals(this.getParent().getParent().getName())) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [groupName: " + groupName + "]", PRIO1, SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
 						"Error when retrieving material for the OSCORE group");
 				return;
@@ -2747,12 +2767,16 @@ public class OscoreRsServer {
 			if (subject == null) {
 				// At this point, this should not really happen,
 				// due to the earlier check at the Token Repository
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
 
 			if (!targetedGroup.isGroupMember(subject)) {
 				// The requester is not a current group member.
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.FORBIDDEN, "Operation permitted only to group members");
 				return;
 			}
@@ -2760,6 +2784,8 @@ public class OscoreRsServer {
 			if (!(targetedGroup.getGroupMemberName(subject)).equals(this.getName())) {
 				// The requester is not the group member associated to this
 				// sub-resource.
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.FORBIDDEN,
 						"Operation permitted only to the group member associated to this sub-resource");
 				return;
@@ -2772,6 +2798,8 @@ public class OscoreRsServer {
 			Response coapResponse = new Response(CoAP.ResponseCode.DELETED);
 
 			delete();
+			DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1, SEV1,
+					CATEGORY_GM);
 			exchange.respond(coapResponse);
 
 		}
@@ -2809,6 +2837,7 @@ public class OscoreRsServer {
 
 			// This should never happen if active groups are maintained properly
 			if (targetedGroup == null) {
+				DhtLogger.sendLog("PLACEHOLDER", PRIO1, SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
 						"Error when retrieving material for the OSCORE group");
 				return;
@@ -2818,6 +2847,7 @@ public class OscoreRsServer {
 
 			// This should never happen if active groups are maintained properly
 			if (!groupName.equals(this.getParent().getParent().getParent().getName())) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [groupName: " + groupName + "]", PRIO1, SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE,
 						"Error when retrieving material for the OSCORE group");
 				return;
@@ -2834,12 +2864,16 @@ public class OscoreRsServer {
 			if (subject == null) {
 				// At this point, this should not really happen,
 				// due to the earlier check at the Token Repository
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
 
 			if (!targetedGroup.isGroupMember(subject)) {
 				// The requester is not a current group member.
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.FORBIDDEN, "Operation permitted only to group members");
 				return;
 			}
@@ -2847,6 +2881,8 @@ public class OscoreRsServer {
 			if (!(targetedGroup.getGroupMemberName(subject)).equals(this.getParent().getName())) {
 				// The requester is not the group member associated to this
 				// sub-resource.
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.FORBIDDEN,
 						"Operation permitted only to the group member associated to this sub-resource");
 				return;
@@ -2856,6 +2892,8 @@ public class OscoreRsServer {
 					(targetedGroup.getGroupMemberName(subject))) == (1 << Constants.GROUP_OSCORE_MONITOR)) {
 				// The requester is a monitor, hence it is not supposed to have
 				// a Sender ID.
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 						"Operation not permitted to members that are only monitors");
 				return;
@@ -2864,6 +2902,8 @@ public class OscoreRsServer {
 			byte[] requestPayload = exchange.getRequestPayload();
 
 			if (requestPayload == null) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "A payload must be present");
 				return;
 			}
@@ -2873,21 +2913,29 @@ public class OscoreRsServer {
 			// The payload of the Authentication Credential Update Request must
 			// be a CBOR Map
 			if (!AuthCredUpdateRequest.getType().equals(CBORType.Map)) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "The payload must be a CBOR map");
 				return;
 			}
 
 			if (!AuthCredUpdateRequest.ContainsKey(Constants.CLIENT_CRED)) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Missing parameter: 'client_cred'");
 				return;
 			}
 
 			if (!AuthCredUpdateRequest.ContainsKey(Constants.CNONCE)) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Missing parameter: 'cnonce'");
 				return;
 			}
 
 			if (!AuthCredUpdateRequest.ContainsKey(Constants.CLIENT_CRED_VERIFY)) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Missing parameter: 'client_cred_verify'");
 				return;
 			}
@@ -2897,6 +2945,8 @@ public class OscoreRsServer {
 
 			// client_cred cannot be Null
 			if (clientCred == null) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "The parameter 'client_cred' cannot be Null");
 				return;
 			}
@@ -2905,6 +2955,8 @@ public class OscoreRsServer {
 			boolean valid = false;
 
 			if (clientCred.getType() != CBORType.ByteString) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 						"The parameter 'client_cred' must be a CBOR byte string");
 				return;
@@ -2943,6 +2995,8 @@ public class OscoreRsServer {
 				Assert.fail("Invalid format of authentication credential");
 			}
 			if (publicKey == null || valid == false) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Invalid public key format");
 				return;
 			}
@@ -2959,6 +3013,8 @@ public class OscoreRsServer {
 
 				{
 
+					DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]",
+							PRIO1, SEV1, CATEGORY_GM);
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 							"Invalid public key for the algorithm and parameters used in the OSCORE group");
 					return;
@@ -2972,9 +3028,10 @@ public class OscoreRsServer {
 				// Invalid public key format
 				if (!publicKey.get(KeyKeys.KeyType).equals(targetedGroup.getSignParams().get(0).get(0))
 						|| !publicKey.get(KeyKeys.KeyType).equals(targetedGroup.getSignParams().get(1).get(0))
-						|| !publicKey.get(KeyKeys.OKP_Curve).equals(targetedGroup.getSignParams().get(1).get(1)))
-				{
+						|| !publicKey.get(KeyKeys.OKP_Curve).equals(targetedGroup.getSignParams().get(1).get(1))) {
 
+					DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]",
+							PRIO1, SEV1, CATEGORY_GM);
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 							"Invalid public key for the algorithm and parameters used in the OSCORE group");
 					return;
@@ -2988,12 +3045,16 @@ public class OscoreRsServer {
 
 			// A client nonce must be included for proof-of-possession
 			if (cnonce == null) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "The parameter 'cnonce' cannot be Null");
 				return;
 			}
 
 			// The client nonce must be wrapped in a binary string
 			if (!cnonce.getType().equals(CBORType.ByteString)) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "The parameter 'cnonce' must be a CBOR byte string");
 				return;
 			}
@@ -3005,6 +3066,8 @@ public class OscoreRsServer {
 
 			// A client PoP evidence must be included
 			if (clientPopEvidence == null) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "The parameter 'client_cred_verify' cannot be Null");
 				return;
 			}
@@ -3012,6 +3075,8 @@ public class OscoreRsServer {
 			// The client PoP evidence must be wrapped in a binary string for
 			// joining OSCORE groups
 			if (!clientPopEvidence.getType().equals(CBORType.ByteString)) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST,
 						"The parameter 'client_cred_verify' must be a CBOR byte string");
 				return;
@@ -3024,11 +3089,15 @@ public class OscoreRsServer {
 				pubKey = publicKey.AsPublicKey();
 			} catch (CoseException e) {
 				System.out.println(e.getMessage());
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
 						"Failed to use the Client's public key to verify the PoP evidence");
 				return;
 			}
 			if (pubKey == null) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
 						"Failed to use the Client's public key to verify the PoP evidence");
 				return;
@@ -3053,6 +3122,8 @@ public class OscoreRsServer {
 				responseMap.Add(Constants.KDCCHALLENGE, rsnonce);
 				TokenRepository.getInstance().setRsnonce(subject, Base64.getEncoder().encodeToString(rsnonce));
 				byte[] responsePayload = responseMap.EncodeToBytes();
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, responsePayload, Constants.APPLICATION_ACE_CBOR);
 				return;
 			}
@@ -3082,6 +3153,8 @@ public class OscoreRsServer {
 
 				// This should never happen, due to the previous sanity checks
 				if (signKeyCurve == 0) {
+					DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]",
+							PRIO1, SEV1, CATEGORY_GM);
 					exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
 							"Error when setting up the signature verification");
 					return;
@@ -3089,6 +3162,8 @@ public class OscoreRsServer {
 
 				// Invalid Client's PoP signature
 				if (!Util.verifySignature(signKeyCurve, pubKey, popInput, rawClientPopEvidence)) {
+					DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]",
+							PRIO1, SEV1, CATEGORY_GM);
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Invalid PoP Signature");
 					return;
 				}
@@ -3101,6 +3176,8 @@ public class OscoreRsServer {
 			byte[] senderId = targetedGroup.getGroupMemberSenderId(subject).GetByteString();
 
 			if (!targetedGroup.storeAuthCred(senderId, clientCred)) {
+				DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1,
+						SEV1, CATEGORY_GM);
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR,
 						"Error when storing the authentication credential");
 				return;
@@ -3110,6 +3187,8 @@ public class OscoreRsServer {
 
 			Response coapResponse = new Response(CoAP.ResponseCode.CHANGED);
 
+			DhtLogger.sendLog("PLACEHOLDER" + " [subject: " + subject + ", groupName: " + groupName + "]", PRIO1, SEV1,
+					CATEGORY_GM);
 			exchange.respond(coapResponse);
 
 		}
@@ -3584,8 +3663,7 @@ public class OscoreRsServer {
 
 		GroupInfo myGroup = new GroupInfo(groupName1, masterSecret, masterSalt, groupIdPrefixSize, groupIdPrefix,
 				groupIdEpoch.length, Util.bytesToInt(groupIdEpoch), prefixMonitorNames, nodeNameSeparator, hkdf,
-				credFmt, mode, signEncAlg, signAlg, signParams, alg, ecdhAlg, ecdhParams, null, gmKeyPair,
-				gmPublicKey);
+				credFmt, mode, signEncAlg, signAlg, signParams, alg, ecdhAlg, ecdhParams, null, gmKeyPair, gmPublicKey);
 
 		myGroup.setStatus(true);
 
@@ -3716,8 +3794,7 @@ public class OscoreRsServer {
 		byte[] groupIdEpoch2 = new byte[] { (byte) 0xf0, (byte) 0x3a }; // < 4 b
 		GroupInfo myGroup2 = new GroupInfo(groupName2, masterSecret, masterSalt, groupIdPrefixSize, groupIdPrefix2,
 				groupIdEpoch2.length, Util.bytesToInt(groupIdEpoch2), prefixMonitorNames, nodeNameSeparator, hkdf,
-				credFmt, mode, signEncAlg, signAlg, signParams, alg, ecdhAlg, ecdhParams, null, gmKeyPair,
-				gmPublicKey);
+				credFmt, mode, signEncAlg, signAlg, signParams, alg, ecdhAlg, ecdhParams, null, gmKeyPair, gmPublicKey);
 
 		myGroup2.setStatus(true);
 
