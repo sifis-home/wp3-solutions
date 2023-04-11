@@ -1579,10 +1579,10 @@ public class Token implements Endpoint, AutoCloseable {
 		}
 		LOGGER.log(Level.INFO, "Returning token: " + ctiStr);
 		DhtLogger.sendLog("Returning token. "
-				+ "ctiStr: " + ctiStr + ". "
+				+ "[ctiStr: " + ctiStr + ". "
 				+ "rsName: " + rsName + ". "
 				+ "audStr: " + audStr + ". "
-				+ "id: " + id , PRIO1, SEV0, CATEGORY_AS);
+				+ "id: " + id + "]", PRIO1, SEV0, CATEGORY_AS);
 		
 		// ctiStr in base64, rsName, audStr, id
 		// If the EXP claim was added after the actual creation of the Access Token,

@@ -17,6 +17,24 @@ import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 
+/*
+ * Log message format:
+{
+   "RequestPostTopicUUID":{
+      "topic_name":"SIFIS:Logs",
+      "topic_uuid":"Logs",
+      "value":{
+         "logs":{
+            "message":"Returning token. ctiStr: cnMyMA\u003d\u003d. rsName: rs2. audStr: rs2. id: Server1",
+            "priority":1,
+            "severity":0,
+            "category":"ACE Authorization Server"
+         }
+      }
+   }
+}
+*/
+
 /**
  * Handles connection establishment and sending of log messages to the DHT.
  *
@@ -28,6 +46,9 @@ public class DhtLogger {
 	private static ClientManager dhtClient = null;
 	private static Session session = null;
 	private static boolean loggingEnabled = false;
+
+	private static String LOG_TOPIC_NAME = "SIFIS:Logs";
+	private static String LOG_TOPIC_UUID = "Logs";
 
 	/**
 	 * Sends a logging message to the DHT
@@ -53,9 +74,12 @@ public class DhtLogger {
 		// Build the outgoing JSON payload for the DHT
 		JsonOut outgoing = new JsonOut();
 
-		Command commandVal = new Command();
+		RequestPostTopicUUID requestVal = new RequestPostTopicUUID();
 		OutValue valueVal = new OutValue();
 		Logs logsVal = new Logs();
+
+		requestVal.setTopicName(LOG_TOPIC_NAME);
+		requestVal.setTopicUuid(LOG_TOPIC_UUID);
 
 		logsVal.setMessage(message);
 		logsVal.setPriority(priority);
@@ -63,8 +87,8 @@ public class DhtLogger {
 		logsVal.setCategory(category);
 
 		valueVal.setLogs(logsVal);
-		commandVal.setValue(valueVal);
-		outgoing.setCommand(commandVal);
+		requestVal.setValue(valueVal);
+		outgoing.setPayload(requestVal);
 
 		Gson gsonOut = new Gson();
 		String jsonOut = gsonOut.toJson(outgoing);
@@ -93,7 +117,7 @@ public class DhtLogger {
 		// Build outgoing JSON to DHT
 		JsonOut outgoing = new JsonOut();
 
-		Command commandVal = new Command();
+		RequestPostTopicUUID commandVal = new RequestPostTopicUUID();
 		OutValue valueVal = new OutValue();
 		Logs logsVal = new Logs();
 
@@ -104,7 +128,7 @@ public class DhtLogger {
 
 		valueVal.setLogs(logsVal);
 		commandVal.setValue(valueVal);
-		outgoing.setCommand(commandVal);
+		outgoing.setPayload(commandVal);
 
 		Gson gsonOut = new Gson();
 		String jsonOut = gsonOut.toJson(outgoing);
