@@ -67,8 +67,14 @@ public class DhtLogger {
 
 		// If a connection is not established yet (which should
 		// have been done from the application), do it now
+		boolean dhtConnected = false;
 		if (dhtClient == null || session == null) {
-			establishConnection();
+			dhtConnected = establishConnection();
+		}
+
+		// If the connection failed to be established, do nothing
+		if (dhtConnected == false) {
+			return;
 		}
 
 		// Build the outgoing JSON payload for the DHT

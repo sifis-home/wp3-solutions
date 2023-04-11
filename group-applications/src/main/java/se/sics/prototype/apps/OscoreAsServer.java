@@ -126,7 +126,6 @@ public class OscoreAsServer {
 			boolean dhtConnected = DhtLogger.establishConnection();
 			if (dhtConnected == false) {
 				System.err.println("Failed to connect to DHT for logging.");
-				DhtLogger.setLogging(false);
 			}
 		}
 
