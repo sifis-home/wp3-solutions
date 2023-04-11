@@ -31,8 +31,8 @@ The following is the full list of command line parameters supported by the Oscor
 - *-name*: Name/Role of this peer
 - *-gm*: Group Manager base URI
 - *-as*: Authorization Server base URI
-- *-dht*: Use DHT
 - *-delay*: - Delay in seconds before starting
+- *-dht*: Use DHT
 - *-help*: - Print help
 
 If the Group Manager or Authorization Server are running on a different host, the options *-gm* and *-as* can be used.

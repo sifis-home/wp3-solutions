@@ -430,8 +430,8 @@ public class OscoreAsRsClient {
 
 		boolean askForSignInfo = true;
 		boolean askForEcdhInfo = true;
-		boolean askForPubKeys = true;
-		boolean providePublicKey = true;
+		boolean askForAuthCreds = true;
+		boolean provideAuthCreds = true;
 
 		// Create the scope
 		CBORObject cborArrayScope = CBORObject.NewArray();
@@ -515,7 +515,7 @@ public class OscoreAsRsClient {
 			ecdhKeyParamsExpected.Add(KeyKeys.OKP_X25519); // Curve
 		}
 
-		CBORObject pubKeyEncExpected = CBORObject.FromObject(Constants.COSE_HEADER_PARAM_CCS);
+		CBORObject credFmtExpected = CBORObject.FromObject(Constants.COSE_HEADER_PARAM_CCS);
 
 		// Now proceed with the Join request
 
@@ -538,30 +538,30 @@ public class OscoreAsRsClient {
 		byteStringScope = cborArrayScope.EncodeToBytes();
 		requestPayload.Add(Constants.SCOPE, CBORObject.FromObject(byteStringScope));
 
-		if (askForPubKeys) {
+		if (askForAuthCreds) {
 
-			CBORObject getPubKeys = CBORObject.NewArray();
+			CBORObject getCreds = CBORObject.NewArray();
 
-			getPubKeys.Add(CBORObject.True); // This must be true
+			getCreds.Add(CBORObject.True); // This must be true
 
-			getPubKeys.Add(CBORObject.NewArray());
-			// The following is required to retrieve the public keys of both the
-			// already present group members
+			getCreds.Add(CBORObject.NewArray());
+			// The following is required to retrieve the authentication
+			// credentials of both the already present group members
 			myRoles = 0;
 			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
-			getPubKeys.get(1).Add(myRoles);
+			getCreds.get(1).Add(myRoles);
 			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
 			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
-			getPubKeys.get(1).Add(myRoles);
+			getCreds.get(1).Add(myRoles);
 
-			getPubKeys.Add(CBORObject.NewArray()); // This must be empty
+			getCreds.Add(CBORObject.NewArray()); // This must be empty
 
-			requestPayload.Add(Constants.GET_CREDS, getPubKeys);
+			requestPayload.Add(Constants.GET_CREDS, getCreds);
 
 		}
 
-		byte[] encodedPublicKey = null;
-		if (providePublicKey) {
+		byte[] authCred = null;
+		if (provideAuthCreds) {
 
 			// This should never happen, if the Group Manager has provided
 			// 'kdc_challenge' in the Token POST response,
@@ -576,7 +576,7 @@ public class OscoreAsRsClient {
 			 * // Note: most likely, the result will NOT follow the required
 			 * deterministic // encoding in byte lexicographic order, and it has
 			 * to be adjusted offline OneKey publicKey = C1keyPair.PublicKey();
-			 * switch (pubKeyEncExpected.AsInt32()) { case
+			 * switch (credFmtExpected.AsInt32()) { case
 			 * Constants.COSE_HEADER_PARAM_CCS: // Build a CCS including the
 			 * public key encodedPublicKey = Util.oneKeyToCCS(publicKey, "");
 			 * break; case Constants.COSE_HEADER_PARAM_CWT: // Build a CWT
@@ -584,16 +584,16 @@ public class OscoreAsRsClient {
 			 * // Build/retrieve the certificate including the public key // }
 			 */
 
-			switch (pubKeyEncExpected.AsInt32()) {
+			switch (credFmtExpected.AsInt32()) {
 			case Constants.COSE_HEADER_PARAM_CCS:
 				// A CCS including the public key
 				if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
 					System.out.println("Needs further configuration");
-					encodedPublicKey = StringUtil.hex2ByteArray(
+					authCred = StringUtil.hex2ByteArray(
 							"A2026008A101A5010203262001215820E8F9A8D5850A533CDA24B9FA8A1EE293F6A0E1E81E1E560A64FF134D65F7ECEC225820164A6D5D4B97F56D1F60A12811D55DE7A055EBAC6164C9EF9302CBCBFF1F0ABE");
 				}
 				if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
-					encodedPublicKey = clientCcsBytes;
+					authCred = clientCcsBytes;
 				}
 				break;
 			case Constants.COSE_HEADER_PARAM_CWT:
@@ -605,11 +605,11 @@ public class OscoreAsRsClient {
 				// TODO
 				break;
 			default:
-				System.err.println("Error: pubKeyEncExpected set incorrectly.");
+				System.err.println("Error: credFmtExpected set incorrectly.");
 				break;
 			}
 
-			requestPayload.Add(Constants.CLIENT_CRED, CBORObject.FromObject(encodedPublicKey));
+			requestPayload.Add(Constants.CLIENT_CRED, CBORObject.FromObject(authCred));
 
 			// Add the nonce for PoP of the Client's private key
 			byte[] cnonce = new byte[8];
@@ -666,7 +666,7 @@ public class OscoreAsRsClient {
 		CBORObject joinResponse = CBORObject.DecodeFromBytes(responsePayload);
 
 		Assert.assertEquals(CBORType.Map, joinResponse.getType());
-		int pubKeyEnc;
+		int credFmt;
 
 		// Check the proof-of-possession evidence over kdc_nonce, using the GM's
 		// public key
@@ -686,19 +686,19 @@ public class OscoreAsRsClient {
 		Assert.assertEquals(CBORType.Map, joinResponse.get(CBORObject.FromObject(Constants.KEY)).getType());
 		Assert.assertEquals(CBORType.Integer, joinResponse.get(CBORObject.FromObject(Constants.KEY))
 				.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.cred_fmt)).getType());
-		pubKeyEnc = joinResponse.get(CBORObject.FromObject(Constants.KEY))
+		credFmt = joinResponse.get(CBORObject.FromObject(Constants.KEY))
 				.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.cred_fmt)).AsInt32();
 
 		OneKey gmPublicKeyRetrieved = null;
 		byte[] kdcCredBytes = joinResponse.get(CBORObject.FromObject(Constants.KDC_CRED)).GetByteString();
-		switch (pubKeyEnc) {
+		switch (credFmt) {
 		case Constants.COSE_HEADER_PARAM_CCS:
 			CBORObject ccs = CBORObject.DecodeFromBytes(kdcCredBytes);
 			if (ccs.getType() == CBORType.Map) {
 				// Retrieve the public key from the CCS
 				gmPublicKeyRetrieved = Util.ccsToOneKey(ccs);
 			} else {
-				Assert.fail("Invalid format of Group Manager public key");
+				Assert.fail("Invalid format of Group Manager authentication credential");
 			}
 			break;
 		case Constants.COSE_HEADER_PARAM_CWT:
@@ -707,7 +707,7 @@ public class OscoreAsRsClient {
 				// Retrieve the public key from the CWT
 				// TODO
 			} else {
-				Assert.fail("Invalid format of Group Manager public key");
+				Assert.fail("Invalid format of Group Manager authentication credential");
 			}
 			break;
 		case Constants.COSE_HEADER_PARAM_X5CHAIN:
@@ -715,10 +715,10 @@ public class OscoreAsRsClient {
 			// TODO
 			break;
 		default:
-			Assert.fail("Invalid format of Group Manager public key");
+			Assert.fail("Invalid format of Group Manager authentication credential");
 		}
 		if (gmPublicKeyRetrieved == null) {
-			Assert.fail("Invalid format of Group Manager public key");
+			Assert.fail("Invalid format of Group Manager authentication credential");
 			return null;
 		}
 
@@ -746,7 +746,7 @@ public class OscoreAsRsClient {
 			printPause(memberName, "Has now joined the OSCORE group.");
 		}
 
-		MultiKey clientKey = new MultiKey(encodedPublicKey, cKeyPair.get(KeyKeys.OKP_D).GetByteString());
+		MultiKey clientKey = new MultiKey(authCred, cKeyPair.get(KeyKeys.OKP_D).GetByteString());
 		GroupCtx groupOscoreCtx = Tools.generateGroupOSCOREContext(joinResponse, clientKey);
 
 		return groupOscoreCtx;
@@ -807,8 +807,11 @@ public class OscoreAsRsClient {
 		}
 	}
 
+	/**
+	 * Print help message with valid command line arguments
+	 */
 	private static void printHelp() {
-		System.out.println("Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [ -dht ] [-delay Seconds ]");
+		System.out.println("Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [-delay Seconds ] [ -dht ]");
 
 		System.out.println("Options:");
 
@@ -821,11 +824,11 @@ public class OscoreAsRsClient {
 		System.out.print("-as");
 		System.out.println("\t Authorization Server base URI");
 
-		System.out.print("-dht");
-		System.out.println("\t Use DHT");
-
 		System.out.print("-delay");
 		System.out.println("\t Delay in seconds before starting");
+
+		System.out.print("-dht");
+		System.out.println("\t Use DHT");
 
 		System.out.print("-help");
 		System.out.println("\t Print help");
