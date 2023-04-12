@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import org.glassfish.tyrus.client.ClientManager;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import jakarta.websocket.ClientEndpoint;
 import jakarta.websocket.CloseReason;
@@ -67,14 +68,13 @@ public class DhtLogger {
 
 		// If a connection is not established yet (which should
 		// have been done from the application), do it now
-		boolean dhtConnected = false;
 		if (dhtClient == null || session == null) {
-			dhtConnected = establishConnection();
-		}
+			boolean dhtConnected = establishConnection();
 
-		// If the connection failed to be established, do nothing
-		if (dhtConnected == false) {
-			return;
+			// If the connection failed to be established, return
+			if (dhtConnected == false) {
+				return;
+			}
 		}
 
 		// Build the outgoing JSON payload for the DHT
@@ -115,30 +115,6 @@ public class DhtLogger {
 	 */
 	static public void setLogging(boolean logging) {
 		loggingEnabled = logging;
-	}
-
-	// {"Command":{"value":{"logs":{"message":"error","priority":1,"severity":5,"category":"AS"}}}}
-	static public void main(String[] args) {
-
-		// Build outgoing JSON to DHT
-		JsonOut outgoing = new JsonOut();
-
-		RequestPostTopicUUID commandVal = new RequestPostTopicUUID();
-		OutValue valueVal = new OutValue();
-		Logs logsVal = new Logs();
-
-		logsVal.setMessage("Error");
-		logsVal.setPriority(10);
-		logsVal.setSeverity(4);
-		logsVal.setCategory("AS");
-
-		valueVal.setLogs(logsVal);
-		commandVal.setValue(valueVal);
-		outgoing.setPayload(commandVal);
-
-		Gson gsonOut = new Gson();
-		String jsonOut = gsonOut.toJson(outgoing);
-		System.out.println("AAAAAAAAAAA " + jsonOut);
 	}
 
 	/**
@@ -199,15 +175,12 @@ public class DhtLogger {
 	@OnOpen
 	public void onOpen(Session session) {
 		System.out.println("--- Connected " + session.getId());
-		// try {
-		// session.getBasicRemote().sendText("start");
-		// } catch (IOException e) {
-		// throw new RuntimeException(e);
-		// }
+
 	}
 
 	@OnMessage
 	public String onMessage(String message, Session session) {
+		// Do nothing for incoming messages from DHT
 		return null;
 	}
 
