@@ -96,7 +96,7 @@ public class DhtLogger {
 		requestVal.setValue(valueVal);
 		outgoing.setPayload(requestVal);
 
-		Gson gsonOut = new Gson();
+		Gson gsonOut = new GsonBuilder().disableHtmlEscaping().create();
 		String jsonOut = gsonOut.toJson(outgoing);
 
 		// Now send the payload to the DHT
