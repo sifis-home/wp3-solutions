@@ -153,19 +153,23 @@ public class OscoreAsRsClient {
 		// Set member name, AS and GM to use from command line arguments
 		String memberName = "Client1";
 		int delay = 0;
-		for (int i = 0; i < args.length; i += 2) {
+		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-name")) {
 				memberName = args[i + 1];
+				i++;
 			} else if (args[i].equals("-gm")) {
 				GM_HOST = new URI(args[i + 1]).getHost();
 				GM_PORT = new URI(args[i + 1]).getPort();
+				i++;
 			} else if (args[i].equals("-as")) {
 				AS_HOST = new URI(args[i + 1]).getHost();
 				AS_PORT = new URI(args[i + 1]).getPort();
+				i++;
 			} else if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
 				useDht = true;
 			} else if (args[i].toLowerCase().equals("-delay")) {
 				delay = Integer.parseInt(args[i + 1]);
+				i++;
 			} else if (args[i].toLowerCase().equals("-help")) {
 				printHelp();
 				System.exit(0);
@@ -811,7 +815,7 @@ public class OscoreAsRsClient {
 	 * Print help message with valid command line arguments
 	 */
 	private static void printHelp() {
-		System.out.println("Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [-delay Seconds ] [ -dht ]");
+		System.out.println("Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [-delay Seconds ] [ -dht ] [ -help ]");
 
 		System.out.println("Options:");
 

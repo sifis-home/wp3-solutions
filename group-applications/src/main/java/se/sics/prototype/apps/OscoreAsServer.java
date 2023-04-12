@@ -495,7 +495,7 @@ public class OscoreAsServer {
 	 * Print help message with valid command line arguments
 	 */
 	private static void printHelp() {
-		System.out.println("Usage: [ -dht ]");
+		System.out.println("Usage: [ -dht ] [ -help ]");
 
 		System.out.println("Options:");
 

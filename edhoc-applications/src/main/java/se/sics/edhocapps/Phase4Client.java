@@ -236,7 +236,7 @@ public class Phase4Client {
 
 		// Parse command line arguments
 		boolean useDht = false;
-		for (int i = 0; i < args.length; i += 2) {
+		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-server")) {
 				String serverUri = args[i + 1];
 
@@ -251,6 +251,7 @@ public class Phase4Client {
 				// OSCORE combined request, conveying both EDHOC message_3 and
 				// the first OSCORE-protected application request
 				edhocCombinedRequestURI = serverUri + "/light";
+				i++;
 
 			} else if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
 				useDht = true;

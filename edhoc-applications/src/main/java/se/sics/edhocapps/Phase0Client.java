@@ -94,12 +94,13 @@ public class Phase0Client {
 		System.out.println("Starting Phase0Client...");
 
 		// Parse command line arguments
-		for (int i = 0; i < args.length; i += 2) {
+		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-server")) {
 				serverUri = args[i + 1];
 
 				// Set URI for light resource
 				lightURI = serverUri + hello1;
+				i++;
 
 			} else if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
 				useDht = true;
