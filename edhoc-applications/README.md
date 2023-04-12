@@ -2,7 +2,7 @@
 
 To setup and run the provided applications, follow the steps below. This will start 1 EDHOC client acting as initiator and 1 EDHOC server acting as responder. The applications support 4 different configuration alternatives (depending on which client and server is launched). Regardless of the option chosen, the client will execute EDHOC, and as its first OSCORE request sent trigger the server to turn on the light. Follow-up requests are then handled by sending messages to the DHT via the provided Python script.
 
-**Configurations** 
+**Configurations**  
 The 4 supported configurations are as follows:  
 1. Method 0. Optimized request: False.
 2. Method 3. Optimized request: False.
