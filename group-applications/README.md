@@ -27,7 +27,7 @@ OscoreAsRsClient -dht -name Client2
 
 **Full list of command line parameters:**  
 The following is the full list of command line parameters supported by the OscoreAsRsClient application:  
-*Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [ -dht ] [-delay Seconds ]*
+*Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [ -delay Seconds ] [ -dht ] [ -help ]*
 - *-name*: Name/Role of this peer
 - *-gm*: Group Manager base URI
 - *-as*: Authorization Server base URI
@@ -35,10 +35,12 @@ The following is the full list of command line parameters supported by the Oscor
 - *-dht*: Use DHT
 - *-help*: - Print help
 
-If the Group Manager or Authorization Server are running on a different host, the options *-gm* and *-as* can be used.
+If the Group Manager or Authorization Server are running on a different host, the options *-gm* and *-as* can be used.  
+
+In addition, the OscoreRsServer and OscoreAsServer applications also support the *-dht* parameter to enable logging to the DHT.
 
 **Use the following interactive script to send commands to the DHT (and trigger the clients)**  
-python3 dht_rest_client.py
+python dht_rest_client.py
 
 **Relevant documentation**  
 https://datatracker.ietf.org/doc/rfc8613/  

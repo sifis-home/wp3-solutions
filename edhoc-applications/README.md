@@ -19,8 +19,8 @@ PhaseXServer
 PhaseXClient -dht  
 
 **Full list of command line parameters:**  
-The following is the full list of command line parameters supported by the OscoreAsRsClient application:  
-*Usage: [ -server URI ] [ -dht ]*
+The following is the full list of command line parameters supported by the PhaseXClient applications:  
+*Usage: [ -server URI ] [ -dht ] [ -help ]*
 - *-server*: EDHOC Server base URI
 - *-dht*: Use DHT
 - *-help*: Print help
@@ -28,7 +28,7 @@ The following is the full list of command line parameters supported by the Oscor
 If the EDHOC Server is running on a different host than the EDHOC Client, the option *-server* can be used.
 
 **Use the following interactive script to send commands to the DHT (and trigger the client)**  
-python3 dht_rest_client.py  
+python dht_rest_client.py
 
 **Relevant documentation**  
 https://datatracker.ietf.org/doc/draft-ietf-lake-edhoc/  
