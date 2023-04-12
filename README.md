@@ -112,6 +112,8 @@ https://www.andreafortuna.org/2016/06/08/java-tips-how-to-fix-the-invalidkeyexce
     - OscoreRsServer: Group Manager (ACE Resource Server)
     - OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
     - Adversary: Adversary for testing attacks against the group(s)
+    
+      **See separate README under *group-applications/* for more detailed information**
 
 - edhoc-applications/
     - **The EDHOC Applications including:**
@@ -125,6 +127,8 @@ https://www.andreafortuna.org/2016/06/08/java-tips-how-to-fix-the-invalidkeyexce
     - Phase3Client: EDHOC client using method 0 and the optimized request
     - Phase4Server: EDHOC server using method 3 and the optimized request
     - Phase4Client: EDHOC client using method 3 and the optimized request
+
+      **See separate README under *edhoc-applications/* for more detailed information**
 
 ### Docker images
 
