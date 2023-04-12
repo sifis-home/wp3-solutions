@@ -85,7 +85,7 @@ echo 'ADD db.pwd /apps' >> $dockerfile
 echo 'ADD OscoreAsServer.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "OscoreAsServer.jar"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsServer.jar", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t oscoreasserver .
 
 # OscoreRsServer: Group Manager (ACE Resource Server)
@@ -96,7 +96,7 @@ echo 'EXPOSE 5783/udp' >> $dockerfile
 echo 'ADD OscoreRsServer.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "OscoreRsServer.jar"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreRsServer.jar", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t oscorersserver .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
@@ -114,6 +114,8 @@ echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
 # Server 4 (for Group B)
+# Assumes container name "authorization-server" for ACE Authorization Server
+# Assumes container name "group-manager" for ACE Resource Server
 # Selected to be pushed to Docker Hub.
 dockerfile=Dockerfile-OscoreAsRsClient-Server4
 cp ../Dockerfile.base $dockerfile
@@ -123,11 +125,13 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "15"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "15", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
 # docker build -f $dockerfile -t oscoreasrsclient-server4 .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
 # Server 5 (for Group B)
+# Assumes container name "authorization-server" for ACE Authorization Server
+# Assumes container name "group-manager" for ACE Resource Server
 # Selected to be pushed to Docker Hub.
 dockerfile=Dockerfile-OscoreAsRsClient-Server5
 cp ../Dockerfile.base $dockerfile
@@ -137,11 +141,13 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "30"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "30", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
 # docker build -f $dockerfile -t oscoreasrsclient-server5 .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
 # Server 6 (for Group B)
+# Assumes container name "authorization-server" for ACE Authorization Server
+# Assumes container name "group-manager" for ACE Resource Server
 # Selected to be pushed to Docker Hub.
 dockerfile=Dockerfile-OscoreAsRsClient-Server6
 cp ../Dockerfile.base $dockerfile
@@ -151,7 +157,7 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "45"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "45", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
 # docker build -f $dockerfile -t oscoreasrsclient-server6 .
 
 # Adversary: Adversary for testing attacks against the group(s)
