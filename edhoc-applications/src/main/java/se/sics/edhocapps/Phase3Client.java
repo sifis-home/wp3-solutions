@@ -1380,9 +1380,14 @@ public class Phase3Client {
 
 	@OnMessage
 	public String onMessage(String message, Session session) {
-		// BufferedReader bufferRead = new BufferedReader(new
-		// InputStreamReader(System.in));
-		// try {
+		// Topic to listen for messages on
+		String topic = "command_ed";
+
+		// Do nothing if message does not contain the topic
+		if (message.contains(topic) == false) {
+			return null;
+		}
+
 		System.out.println("--- Received " + message);
 
 		// Parse incoming JSON string from DHT
@@ -1393,7 +1398,7 @@ public class Phase3Client {
 		String messageField = parsed.getVolatile().getValue().getMessage();
 
 		// Device 1 filter
-		if (topicField.equals("command_ed")) {
+		if (topicField.equals(topic)) {
 			System.out.println("Filter matched message (EDHOC client)!");
 
 			// Send group request and compile responses

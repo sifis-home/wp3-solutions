@@ -362,9 +362,15 @@ public class GroupOscoreClient {
 
 	@OnMessage
 	public String onMessage(String message, Session session) {
-		// BufferedReader bufferRead = new BufferedReader(new
-		// InputStreamReader(System.in));
-		// try {
+		// Topics to listen for messages on
+		String topicDev1 = "command_dev1";
+		String topicDev2 = "command_dev2";
+
+		// Do nothing if message does not contain one of the topics
+		if (message.contains(topicDev1) == false && message.contains(topicDev2) == false) {
+			return null;
+		}
+
 		System.out.println("--- Received " + message);
 
 		// Parse incoming JSON string from DHT
@@ -375,7 +381,7 @@ public class GroupOscoreClient {
 		String messageField = parsed.getVolatile().getValue().getMessage();
 
 		// Device 1 filter
-		if (clientName.equals("Client1") && topicField.equals("command_dev1")) {
+		if (clientName.equals("Client1") && topicField.equals(topicDev1)) {
 			System.out.println("Filter matched message (device 1)!");
 
 			// Send group request and compile responses
@@ -405,7 +411,7 @@ public class GroupOscoreClient {
 		}
 
 		// Device 2 filter
-		else if (clientName.equals("Client2") && topicField.equals("command_dev2")) {
+		else if (clientName.equals("Client2") && topicField.equals(topicDev2)) {
 			System.out.println("Filter matched message (device 2)!");
 
 			// Send group request and compile responses
