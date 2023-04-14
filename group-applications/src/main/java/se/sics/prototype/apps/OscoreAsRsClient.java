@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, RISE AB
+ * Copyright (c) 2023, RISE AB
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
@@ -112,6 +113,10 @@ public class OscoreAsRsClient {
 	// Multicast IP for Group B
 	static final InetAddress groupB_multicastIP = new InetSocketAddress("224.0.1.192", 0).getAddress();
 
+	// Default URI for DHT WebSocket connection. Can be changed using command
+	// line arguments.
+	private static String dhtWebsocketUri = "ws://localhost:3000/ws";
+
 	static HashMapCtxDB db = new HashMapCtxDB();
 
 	private final static int MAX_UNFRAGMENTED_SIZE = 4096;
@@ -167,6 +172,19 @@ public class OscoreAsRsClient {
 				i++;
 			} else if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
 				useDht = true;
+
+				// Check if a WebSocket URI for the DHT is also indicated
+				URI parsed = null;
+				try {
+					parsed = new URI(args[i + 1]);
+				} catch (URISyntaxException | ArrayIndexOutOfBoundsException e) {
+					// No URI indicated
+				}
+				if (parsed != null) {
+					dhtWebsocketUri = parsed.toString();
+					i++;
+				}
+
 			} else if (args[i].toLowerCase().equals("-delay")) {
 				delay = Integer.parseInt(args[i + 1]);
 				i++;
@@ -328,7 +346,7 @@ public class OscoreAsRsClient {
 		// derived context
 		try {
 			if (memberName.equals("Client1") || memberName.equals("Client2")) {
-				GroupOscoreClient.start(derivedCtx, multicastIP, memberName, useDht);
+				GroupOscoreClient.start(derivedCtx, multicastIP, memberName, useDht, dhtWebsocketUri);
 			} else {
 				GroupOscoreServer.start(derivedCtx, multicastIP);
 			}
@@ -815,7 +833,7 @@ public class OscoreAsRsClient {
 	 * Print help message with valid command line arguments
 	 */
 	private static void printHelp() {
-		System.out.println("Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [-delay Seconds ] [ -dht ] [ -help ]");
+		System.out.println("Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [-delay Seconds ] [ -dht {URI} ] [ -help ]");
 
 		System.out.println("Options:");
 
@@ -832,7 +850,7 @@ public class OscoreAsRsClient {
 		System.out.println("\t Delay in seconds before starting");
 
 		System.out.print("-dht");
-		System.out.println("\t Use DHT");
+		System.out.println("\t Use DHT: Optionally specify its WebSocket URI");
 
 		System.out.print("-help");
 		System.out.println("\t Print help");

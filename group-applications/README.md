@@ -27,12 +27,12 @@ OscoreAsRsClient -dht -name Client2
 
 **Full list of command line parameters:**  
 The following is the full list of command line parameters supported by the OscoreAsRsClient application:  
-*Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [ -delay Seconds ] [ -dht ] [ -help ]*
+*Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [ -delay Seconds ] [ -dht {URI} ] [ -help ]*
 - *-name*: Name/Role of this peer
 - *-gm*: Group Manager base URI
 - *-as*: Authorization Server base URI
 - *-delay*: - Delay in seconds before starting
-- *-dht*: Use DHT
+- *-dht*: Use DHT: Optionally specify its WebSocket URI
 - *-help*: - Print help
 
 If the Group Manager or Authorization Server are running on a different host, the options *-gm* and *-as* can be used.  

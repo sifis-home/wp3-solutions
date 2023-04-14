@@ -1,3 +1,34 @@
+/*******************************************************************************
+ * Copyright (c) 2023, RISE AB
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions 
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, 
+ *    this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice, 
+ *    this list of conditions and the following disclaimer in the documentation 
+ *    and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR 
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *******************************************************************************/
 package se.sics.ace.as.logging;
 
 import java.io.IOException;
@@ -50,6 +81,8 @@ public class DhtLogger {
 
 	private static String LOG_TOPIC_NAME = "SIFIS:Logs";
 	private static String LOG_TOPIC_UUID = "Logs";
+
+	private static String websocketUri = "ws://localhost:3000/ws";
 
 	/**
 	 * Sends a logging message to the DHT
@@ -146,6 +179,24 @@ public class DhtLogger {
 	}
 
 	/**
+	 * Get the URI used for the WebSocket connection to the DHT.
+	 * 
+	 * @return the URI
+	 */
+	public static String getWebsocketUri() {
+		return websocketUri;
+	}
+
+	/**
+	 * Set the URI to use for the WebSocket connection to the DHT.
+	 * 
+	 * @param websocketUri the desired URI
+	 */
+	public static void setWebsocketUri(String websocketUri) {
+		DhtLogger.websocketUri = websocketUri;
+	}
+
+	/**
 	 * Establish the connection to the DHT.
 	 * 
 	 * @return if the connection was successfully established
@@ -158,7 +209,7 @@ public class DhtLogger {
 		dhtClient = ClientManager.createClient();
 		try {
 			// wss://socketsbay.com/wss/v2/2/demo/
-			URI uri = new URI("ws://localhost:3000/ws");
+			URI uri = new URI(websocketUri);
 			session = dhtClient.connectToServer(DhtLogger.class, uri);
 			// latch.await();
 		} catch (DeploymentException | URISyntaxException | IOException e) {
@@ -168,6 +219,17 @@ public class DhtLogger {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Establish the connection to the DHT.
+	 * 
+	 * @param dhtWebsocketUri the URI to connect to the DHT using WebSocket
+	 * @return if the connection was successfully established
+	 */
+	public static boolean establishConnection(String dhtWebsocketUri) {
+		setWebsocketUri(dhtWebsocketUri);
+		return establishConnection();
 	}
 
 	// DHT related methods

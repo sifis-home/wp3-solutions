@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, RISE AB
+ * Copyright (c) 2023, RISE AB
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -36,6 +36,8 @@ import java.nio.ByteBuffer;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -108,6 +110,10 @@ public class OscoreRsServer {
 	private static int SEV1 = 1;
 	private static int SEV2 = 2;
 	private static String CATEGORY_GM = "ACE Group Manager";
+
+	// Default URI for DHT WebSocket connection. Can be changed using command
+	// line arguments.
+	private static String dhtWebsocketUri = "ws://localhost:3000/ws";
 
 	// For old tests - PSK to encrypt the token (used for both audiences rs1 and
 	// rs2)
@@ -3237,6 +3243,19 @@ public class OscoreRsServer {
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
 				useDht = true;
+
+				// Check if a WebSocket URI for the DHT is also indicated
+				URI parsed = null;
+				try {
+					parsed = new URI(args[i + 1]);
+				} catch (URISyntaxException | ArrayIndexOutOfBoundsException e) {
+					// No URI indicated
+				}
+				if (parsed != null) {
+					dhtWebsocketUri = parsed.toString();
+					i++;
+				}
+
 			} else if (args[i].toLowerCase().equals("-help")) {
 				printHelp();
 				System.exit(0);
@@ -3247,7 +3266,7 @@ public class OscoreRsServer {
 		if (useDht) {
 			System.out.println("Connecting to the DHT for logging.");
 			DhtLogger.setLogging(true);
-			boolean dhtConnected = DhtLogger.establishConnection();
+			boolean dhtConnected = DhtLogger.establishConnection(dhtWebsocketUri);
 			if (dhtConnected == false) {
 				System.err.println("Failed to connect to DHT for logging.");
 			}
@@ -4049,12 +4068,12 @@ public class OscoreRsServer {
 	 * Print help message with valid command line arguments
 	 */
 	private static void printHelp() {
-		System.out.println("Usage: [ -dht ] [ -help ]");
+		System.out.println("Usage: [ -dht {URI} ] [ -help ]");
 
 		System.out.println("Options:");
 
 		System.out.print("-dht");
-		System.out.println("\t Use DHT for logging");
+		System.out.println("\t Use DHT: Optionally specify its WebSocket URI for logging");
 
 		System.out.print("-help");
 		System.out.println("\t Print help");

@@ -145,11 +145,12 @@ public class GroupOscoreClient {
 	 * @param multicastIP multicast IP to send to
 	 * @param useDht use input/output from/to DHT
 	 * @param setClientName name of this client (Client1 / Client2)
+	 * @param dhtWebsocketUri URI to use for the WebSocket connection to the DHT
 	 * 
 	 * @throws Exception on failure
 	 */
-	public static void start(GroupCtx derivedCtx, InetAddress multicastIP, String setClientName, boolean useDht)
-			throws Exception {
+	public static void start(GroupCtx derivedCtx, InetAddress multicastIP, String setClientName, boolean useDht,
+			String dhtWebsocketUri) throws Exception {
 		/**
 		 * URI to perform request against. Need to check for IPv6 to surround it
 		 * with []
@@ -213,10 +214,11 @@ public class GroupOscoreClient {
 			ClientManager dhtClient = ClientManager.createClient();
 			try {
 				// wss://socketsbay.com/wss/v2/2/demo/
-				URI uri = new URI("ws://localhost:3000/ws");
+				URI uri = new URI(dhtWebsocketUri);
 				dhtClient.connectToServer(GroupOscoreClient.class, uri);
 				latch.await();
 			} catch (DeploymentException | URISyntaxException | InterruptedException e) {
+				System.err.println("Error: Failed to connect to DHT");
 				e.printStackTrace();
 			}
 

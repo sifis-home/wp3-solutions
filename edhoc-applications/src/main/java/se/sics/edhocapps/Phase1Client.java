@@ -224,6 +224,10 @@ public class Phase1Client {
 	// Latch for DHT connection
 	private static CountDownLatch latch;
 
+	// Default URI for DHT WebSocket connection. Can be changed using command
+	// line arguments.
+	private static String dhtWebsocketUri = "ws://localhost:3000/ws";
+
 	// Request timeout
 	static int HANDLER_TIMEOUT = 1000;
 
@@ -268,6 +272,19 @@ public class Phase1Client {
 
 			} else if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
 				useDht = true;
+
+				// Check if a WebSocket URI for the DHT is also indicated
+				URI parsed = null;
+				try {
+					parsed = new URI(args[i + 1]);
+				} catch (URISyntaxException | ArrayIndexOutOfBoundsException e) {
+					// No URI indicated
+				}
+				if (parsed != null) {
+					dhtWebsocketUri = parsed.toString();
+					i++;
+				}
+
 			} else if (args[i].toLowerCase().equals("-help")) {
 				Support.printHelp();
 				System.exit(0);
@@ -367,7 +384,7 @@ public class Phase1Client {
 			ClientManager dhtClient = ClientManager.createClient();
 			try {
 				// wss://socketsbay.com/wss/v2/2/demo/
-				URI uri = new URI("ws://localhost:3000/ws");
+				URI uri = new URI(dhtWebsocketUri);
 				try {
 					dhtClient.connectToServer(Phase1Client.class, uri);
 				} catch (IOException e) {
@@ -376,6 +393,7 @@ public class Phase1Client {
 				}
 				latch.await();
 			} catch (DeploymentException | URISyntaxException | InterruptedException e) {
+				System.err.println("Error: Failed to connect to DHT");
 				e.printStackTrace();
 			}
 

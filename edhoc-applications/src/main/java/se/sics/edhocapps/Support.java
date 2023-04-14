@@ -52,7 +52,7 @@ public class Support {
 	 * Print help for EDHOC clients
 	 */
 	public static void printHelp() {
-		System.out.println("Usage: [ -server URI ] [ -dht ] [ -help ]");
+		System.out.println("Usage: [ -server URI ] [ -dht {URI} ] [ -help ]");
 
 		System.out.println("Options:");
 
@@ -60,7 +60,7 @@ public class Support {
 		System.out.println("\t EDHOC Server base URI");
 
 		System.out.print("-dht");
-		System.out.println("\t Use DHT");
+		System.out.println("\t Use DHT: Optionally specify its WebSocket URI");
 
 		System.out.print("-help");
 		System.out.println("\t Print help");

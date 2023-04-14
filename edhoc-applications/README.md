@@ -20,9 +20,9 @@ PhaseXClient -dht
 
 **Full list of command line parameters:**  
 The following is the full list of command line parameters supported by the PhaseXClient applications:  
-*Usage: [ -server URI ] [ -dht ] [ -help ]*
+*Usage: [ -server URI ] [ -dht {URI} ] [ -help ]*
 - *-server*: EDHOC Server base URI
-- *-dht*: Use DHT
+- *-dht*: Use DHT: Optionally specify its WebSocket URI
 - *-help*: Print help
 
 If the EDHOC Server is running on a different host than the EDHOC Client, the option *-server* can be used.
