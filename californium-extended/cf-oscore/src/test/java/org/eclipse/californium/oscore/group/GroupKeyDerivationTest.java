@@ -40,6 +40,7 @@ import org.eclipse.californium.cose.OneKey;
 import org.eclipse.californium.elements.rule.TestNameLoggerRule;
 import org.eclipse.californium.elements.util.Base64;
 import org.eclipse.californium.elements.util.Bytes;
+import org.eclipse.californium.elements.util.StringUtil;
 import org.eclipse.californium.oscore.HashMapCtxDB;
 import org.eclipse.californium.oscore.OSException;
 import org.junit.BeforeClass;
@@ -50,7 +51,6 @@ import org.junit.Test;
 import com.upokecenter.cbor.CBORObject;
 
 import net.i2p.crypto.eddsa.EdDSASecurityProvider;
-import net.i2p.crypto.eddsa.Utils;
 
 /**
  * Tests key derivation for Group OSCORE for both ECDSA_256 and EdDSA
@@ -80,9 +80,9 @@ public class GroupKeyDerivationTest {
 	static byte[] rid1 = Bytes.EMPTY;
 	static byte[] rid2 = new byte[] { (byte) 0xAA };
 
-	private final static byte[] master_secret = Utils.hexToBytes("0102030405060708090a0b0c0d0e0f10");
-	private final static byte[] master_salt = Utils.hexToBytes("9e7ca92223786340");
-	private final static byte[] context_id = Utils.hexToBytes("37cbf3210017a2d3");
+	private final static byte[] master_secret = StringUtil.hex2ByteArray("0102030405060708090a0b0c0d0e0f10");
+	private final static byte[] master_salt = StringUtil.hex2ByteArray("9e7ca92223786340");
+	private final static byte[] context_id = StringUtil.hex2ByteArray("37cbf3210017a2d3");
 
 	// Key for the GM
 	private static String gmPublicKeyString = "pQF4GmNvYXBzOi8vbXlzaXRlLmV4YW1wbGUuY29tAmxncm91cG1hbmFnZXIDeBpjb2FwczovL2RvbWFpbi5leGFtcGxlLm9yZwQaq5sVTwihAaQDJwEBIAYhWCDN4+/TvD+ZycnuIQQVxsulUGG1BG6WO4pYyRQ6YRZkcg==";
@@ -189,7 +189,7 @@ public class GroupKeyDerivationTest {
 		assertArrayEquals(senderCtxEcdsa.getSenderKey(), senderCtxEddsa.getSenderKey());
 
 		// Check that they match expected value
-		byte[] expectedSenderKey = Utils.hexToBytes("e39a0c7c77b43f03b4b39ab9a268699f");
+		byte[] expectedSenderKey = StringUtil.hex2ByteArray("e39a0c7c77b43f03b4b39ab9a268699f");
 		assertArrayEquals(expectedSenderKey, senderCtxEcdsa.getSenderKey());
 	}
 
@@ -200,10 +200,10 @@ public class GroupKeyDerivationTest {
 		assertArrayEquals(recipient2CtxEcdsa.getRecipientKey(), recipient2CtxEddsa.getRecipientKey());
 
 		// Check that they match expected value
-		byte[] expectedRecipient1Key = Utils.hexToBytes("af2a1300a5e95788b356336eeecd2b92");
+		byte[] expectedRecipient1Key = StringUtil.hex2ByteArray("af2a1300a5e95788b356336eeecd2b92");
 		assertArrayEquals(expectedRecipient1Key, recipient1CtxEcdsa.getRecipientKey());
 
-		byte[] expectedRecipient2Key = Utils.hexToBytes("4d9eabdba0f97f044fc0ee5313b1ebc6");
+		byte[] expectedRecipient2Key = StringUtil.hex2ByteArray("4d9eabdba0f97f044fc0ee5313b1ebc6");
 		assertArrayEquals(expectedRecipient2Key, recipient2CtxEcdsa.getRecipientKey());
 	}
 
@@ -225,11 +225,11 @@ public class GroupKeyDerivationTest {
 		assertFalse(Arrays.equals(recipient1EddsaPairwiseKey, recipient2EddsaPairwiseKey));
 
 		// Check that they match expected value
-		assertArrayEquals(Utils.hexToBytes("47f5d0e5b5f960d32d71ee84251b5b1f"), recipient1EcdsaPairwiseKey);
-		assertArrayEquals(Utils.hexToBytes("062497fcf47ea88ac39891892641bc87"), recipient2EcdsaPairwiseKey);
+		assertArrayEquals(StringUtil.hex2ByteArray("47f5d0e5b5f960d32d71ee84251b5b1f"), recipient1EcdsaPairwiseKey);
+		assertArrayEquals(StringUtil.hex2ByteArray("062497fcf47ea88ac39891892641bc87"), recipient2EcdsaPairwiseKey);
 
-		assertArrayEquals(Utils.hexToBytes("951c4800a1d0cb9af8877dea5b3199b4"), recipient1EddsaPairwiseKey);
-		assertArrayEquals(Utils.hexToBytes("81f67a9c7d618c1799b888f7cdf5da94"), recipient2EddsaPairwiseKey);
+		assertArrayEquals(StringUtil.hex2ByteArray("951c4800a1d0cb9af8877dea5b3199b4"), recipient1EddsaPairwiseKey);
+		assertArrayEquals(StringUtil.hex2ByteArray("81f67a9c7d618c1799b888f7cdf5da94"), recipient2EddsaPairwiseKey);
 
 	}
 
@@ -251,11 +251,11 @@ public class GroupKeyDerivationTest {
 		assertFalse(Arrays.equals(senderEddsaPairwiseKey1, senderEddsaPairwiseKey2));
 
 		// Check that they match expected value
-		assertArrayEquals(Utils.hexToBytes("6df92ed2d895a01d7d3d7e9c630db854"), senderEcdsaPairwiseKey1);
-		assertArrayEquals(Utils.hexToBytes("9c860e8c416dfd32b6ffc2e17a668a2d"), senderEcdsaPairwiseKey2);
+		assertArrayEquals(StringUtil.hex2ByteArray("6df92ed2d895a01d7d3d7e9c630db854"), senderEcdsaPairwiseKey1);
+		assertArrayEquals(StringUtil.hex2ByteArray("9c860e8c416dfd32b6ffc2e17a668a2d"), senderEcdsaPairwiseKey2);
 
-		assertArrayEquals(Utils.hexToBytes("77a2c9e704800930c1b2f5a80cb271d8"), senderEddsaPairwiseKey1);
-		assertArrayEquals(Utils.hexToBytes("c7e00b6631bbed519e359bc6a441c82d"), senderEddsaPairwiseKey2);
+		assertArrayEquals(StringUtil.hex2ByteArray("77a2c9e704800930c1b2f5a80cb271d8"), senderEddsaPairwiseKey1);
+		assertArrayEquals(StringUtil.hex2ByteArray("c7e00b6631bbed519e359bc6a441c82d"), senderEddsaPairwiseKey2);
 
 	}
 
@@ -271,9 +271,9 @@ public class GroupKeyDerivationTest {
 		assertFalse(Arrays.equals(sharedSecret1, sharedSecret2));
 
 		// Check that they match expected value
-		assertArrayEquals(Utils.hexToBytes("fc299b3abaa8e013d3958a3ecc64522c0ba1bfa0979309d9b962280206e5a65d"),
+		assertArrayEquals(StringUtil.hex2ByteArray("fc299b3abaa8e013d3958a3ecc64522c0ba1bfa0979309d9b962280206e5a65d"),
 				sharedSecret1);
-		assertArrayEquals(Utils.hexToBytes("c59c68a927ac138d4b02fa3974da972e42aa2992ba2f74ab7832962d0923d050"),
+		assertArrayEquals(StringUtil.hex2ByteArray("c59c68a927ac138d4b02fa3974da972e42aa2992ba2f74ab7832962d0923d050"),
 				sharedSecret2);
 	}
 
@@ -299,9 +299,9 @@ public class GroupKeyDerivationTest {
 		assertFalse(Arrays.equals(sharedSecret1, sharedSecret2));
 
 		// Check that they match expected value
-		assertArrayEquals(Utils.hexToBytes("86b62ef1516335e1c317c3b66d01228499b2ac3b8f4ec43f5b3139f72c910663"),
+		assertArrayEquals(StringUtil.hex2ByteArray("86b62ef1516335e1c317c3b66d01228499b2ac3b8f4ec43f5b3139f72c910663"),
 				sharedSecret1);
-		assertArrayEquals(Utils.hexToBytes("71b47902d696fc825cd809282c42529689ab1c9028a11c5a5f989f14e4a2688c"),
+		assertArrayEquals(StringUtil.hex2ByteArray("71b47902d696fc825cd809282c42529689ab1c9028a11c5a5f989f14e4a2688c"),
 				sharedSecret2);
 	}
 

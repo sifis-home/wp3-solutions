@@ -23,8 +23,9 @@ import java.util.Arrays;
 
 import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.OneKey;
+import org.eclipse.californium.elements.util.StringUtil;
+
 import net.i2p.crypto.eddsa.EdDSAPrivateKey;
-import net.i2p.crypto.eddsa.Utils;
 import net.i2p.crypto.eddsa.math.Field;
 import net.i2p.crypto.eddsa.math.FieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerFieldElement;
@@ -55,7 +56,7 @@ public class SharedSecretCalculation {
 
 	// Create the ed25519 field
 	private static Field ed25519Field = new Field(256, // b
-			Utils.hexToBytes("edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f"), // q(2^255-19)
+			StringUtil.hex2ByteArray("edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f"), // q(2^255-19)
 			new BigIntegerLittleEndianEncoding());
 
 	/**

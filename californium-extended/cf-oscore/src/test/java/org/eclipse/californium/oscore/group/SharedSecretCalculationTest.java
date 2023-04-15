@@ -66,7 +66,7 @@ public class SharedSecretCalculationTest {
 
 	// Create the ed25519 field
 	private static Field ed25519Field = new Field(256, // b
-			Utils.hexToBytes("edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f"), // q(2^255-19)
+			StringUtil.hex2ByteArray("edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f"), // q(2^255-19)
 			new BigIntegerLittleEndianEncoding());
 
 	// Use the OSCORE stack factory with the client context DB

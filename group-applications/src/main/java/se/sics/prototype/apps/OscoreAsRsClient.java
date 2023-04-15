@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
@@ -411,7 +410,7 @@ public class OscoreAsRsClient {
 		byte[] senderId = KeyStorage.aceSenderIds.get(clientID);
 		byte[] recipientId = KeyStorage.aceSenderIds.get("AS");
 		OSCoreCtx ctx = new OSCoreCtx(key128, true, null, senderId, recipientId, null, null, null, null,
-				MAX_UNFRAGMENTED_SIZE);
+				MAX_UNFRAGMENTED_SIZE, true);
 
 		Response response = OSCOREProfileRequestsGroupOSCORE.getToken(tokenURI, params, ctx, db);
 

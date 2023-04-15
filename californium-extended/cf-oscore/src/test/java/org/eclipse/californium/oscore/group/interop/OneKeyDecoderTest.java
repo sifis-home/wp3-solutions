@@ -17,6 +17,7 @@ import org.eclipse.californium.cose.HeaderKeys;
 import org.eclipse.californium.cose.KeyKeys;
 import org.eclipse.californium.cose.OneKey;
 import org.eclipse.californium.elements.util.Bytes;
+import org.eclipse.californium.elements.util.StringUtil;
 import org.eclipse.californium.oscore.group.OneKeyDecoder;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,7 +25,6 @@ import org.junit.Test;
 import com.upokecenter.cbor.CBORObject;
 
 import net.i2p.crypto.eddsa.EdDSASecurityProvider;
-import net.i2p.crypto.eddsa.Utils;
 
 /**
  * Test decoding functions for COSE OneKey.
@@ -147,7 +147,7 @@ public class OneKeyDecoderTest {
 	 */
 	@Test
 	public void testRawBytesEddsaPublic() throws CoseException {
-		byte[] keyBytes = Utils.hexToBytes("508AFC1C29037EF3614D63AF87E1EA31D891D76B1F906098AF8FA39BBE874019");
+		byte[] keyBytes = StringUtil.hex2ByteArray("508AFC1C29037EF3614D63AF87E1EA31D891D76B1F906098AF8FA39BBE874019");
 
 		OneKey eddsaPublicKey = OneKeyDecoder.fromRawPublicBytes(AlgorithmID.EDDSA, keyBytes);
 

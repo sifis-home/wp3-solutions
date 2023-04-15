@@ -79,6 +79,7 @@ Californium.properties
 *.sql
 *.sqlite
 mvn_res
+**/.resume/*
 
 # OS generated files #
 ######################

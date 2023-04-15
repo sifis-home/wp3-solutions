@@ -39,6 +39,7 @@ import org.eclipse.californium.cose.OneKey;
 import org.eclipse.californium.elements.UdpEndpointContext;
 import org.eclipse.californium.elements.rule.TestNameLoggerRule;
 import org.eclipse.californium.elements.util.Bytes;
+import org.eclipse.californium.elements.util.StringUtil;
 import org.eclipse.californium.oscore.HashMapCtxDB;
 import org.eclipse.californium.oscore.OSCoreCtxDB;
 import org.eclipse.californium.oscore.OSException;
@@ -84,9 +85,9 @@ public class GroupInteropRikardEddsaTests {
 	static byte[] rid1 = new byte[] { 0x51 };
 	static byte[] rid2 = new byte[] { 0x52 };
 
-	private final static byte[] master_secret = Utils.hexToBytes("11223344556677889900AABBCCDDEEFF");
-	private final static byte[] master_salt = Utils.hexToBytes("1F2E3D4C5B6A7081");
-	private final static byte[] context_id = Utils.hexToBytes("DD11");
+	private final static byte[] master_secret = StringUtil.hex2ByteArray("11223344556677889900AABBCCDDEEFF");
+	private final static byte[] master_salt = StringUtil.hex2ByteArray("1F2E3D4C5B6A7081");
+	private final static byte[] context_id = StringUtil.hex2ByteArray("DD11");
 
 	// Keys for sender and recipients
 	// For the public keys only the public part will be added to the context
@@ -160,7 +161,7 @@ public class GroupInteropRikardEddsaTests {
 		System.out.println("Sender key: " + Utils.bytesToHex(senderCtxEddsa.getSenderKey()));
 
 		// Check that they match expected value
-		byte[] expectedSenderKey = Utils.hexToBytes("33badb4d6b487e16bc8dc3f6db382990");
+		byte[] expectedSenderKey = StringUtil.hex2ByteArray("33badb4d6b487e16bc8dc3f6db382990");
 		assertArrayEquals(expectedSenderKey, senderCtxEddsa.getSenderKey());
 	}
 
@@ -171,10 +172,10 @@ public class GroupInteropRikardEddsaTests {
 		System.out.println("Recipient 2 key: " + Utils.bytesToHex(recipient2CtxEddsa.getRecipientKey()));
 
 		// Check that they match expected value
-		byte[] expectedRecipient1Key = Utils.hexToBytes("1809ba2d5dc543e600270023c29c31f8");
+		byte[] expectedRecipient1Key = StringUtil.hex2ByteArray("1809ba2d5dc543e600270023c29c31f8");
 		assertArrayEquals(expectedRecipient1Key, recipient1CtxEddsa.getRecipientKey());
 
-		byte[] expectedRecipient2Key = Utils.hexToBytes("3e55d62e4541dbf594dee14bc425d19b");
+		byte[] expectedRecipient2Key = StringUtil.hex2ByteArray("3e55d62e4541dbf594dee14bc425d19b");
 		assertArrayEquals(expectedRecipient2Key, recipient2CtxEddsa.getRecipientKey());
 
 	}
@@ -194,8 +195,8 @@ public class GroupInteropRikardEddsaTests {
 
 		// Check that they match expected value
 
-		assertArrayEquals(Utils.hexToBytes("2735818179dd21baa586482bf47fd4fb"), recipient1EddsaPairwiseKey);
-		assertArrayEquals(Utils.hexToBytes("41dbb059334de5a63f4fd67562f83561"), recipient2EddsaPairwiseKey);
+		assertArrayEquals(StringUtil.hex2ByteArray("2735818179dd21baa586482bf47fd4fb"), recipient1EddsaPairwiseKey);
+		assertArrayEquals(StringUtil.hex2ByteArray("41dbb059334de5a63f4fd67562f83561"), recipient2EddsaPairwiseKey);
 
 	}
 
@@ -213,8 +214,8 @@ public class GroupInteropRikardEddsaTests {
 
 		// Check that they match expected value
 
-		assertArrayEquals(Utils.hexToBytes("bcc78daf03b2ce75c95b21ae7dee3a99"), senderEddsaPairwiseKey1);
-		assertArrayEquals(Utils.hexToBytes("10fa30c43dbe436954084fcd90c1f6f2"), senderEddsaPairwiseKey2);
+		assertArrayEquals(StringUtil.hex2ByteArray("bcc78daf03b2ce75c95b21ae7dee3a99"), senderEddsaPairwiseKey1);
+		assertArrayEquals(StringUtil.hex2ByteArray("10fa30c43dbe436954084fcd90c1f6f2"), senderEddsaPairwiseKey2);
 
 	}
 
@@ -233,9 +234,9 @@ public class GroupInteropRikardEddsaTests {
 		System.out.println("EdDSA: Shared secret 2 " + Utils.bytesToHex(sharedSecret2));
 
 		// Check that they match expected value
-		assertArrayEquals(Utils.hexToBytes("4546babdb9482396c167af11d21953bfa49eb9f630c45de93ee4d3b9ef059576"),
+		assertArrayEquals(StringUtil.hex2ByteArray("4546babdb9482396c167af11d21953bfa49eb9f630c45de93ee4d3b9ef059576"),
 				sharedSecret1);
-		assertArrayEquals(Utils.hexToBytes("bb11648af3dfebb35e612914a7a21fc751b001aceb0267c5536528e2b9261450"),
+		assertArrayEquals(StringUtil.hex2ByteArray("bb11648af3dfebb35e612914a7a21fc751b001aceb0267c5536528e2b9261450"),
 				sharedSecret2);
 	}
 
@@ -263,7 +264,7 @@ public class GroupInteropRikardEddsaTests {
 		// Create request message from raw byte array
 		String requestString = "58-02-FF-FF-11-84-AF-72-82-CE-23-BA-96-39-01-02-DD-11-0A-FF-42-41-71-AB-DF-18-40-50-29-79-42-02-2C-7A-85-E1-75-17-24-6B-31-DB-B1-0C-50-78-73-0E-9D-08-57-E3-EA-0A-63-0F-AF-D1-B2-24-23-64-7E-C0-9A-5D-60-C7-4F-1A-45-B2-95-DB-10-D5-56-9D-6D-A0-9F-44-3E-79-2D-6A-72-BF-BC-72-E3-2C-0D";
 		requestString = requestString.replace("-", "");
-		byte[] requestBytes = Utils.hexToBytes(requestString);
+		byte[] requestBytes = StringUtil.hex2ByteArray(requestString);
 
 		UdpDataParser parser = new UdpDataParser();
 		Message mess = parser.parseMessage(requestBytes);

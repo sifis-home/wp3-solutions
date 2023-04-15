@@ -19,6 +19,13 @@
  ******************************************************************************/
 package org.eclipse.californium.oscore;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -216,6 +223,32 @@ public class OSCoreCtx {
 	 */
 	public OSCoreCtx(byte[] master_secret, boolean client, AlgorithmID alg, byte[] sender_id, byte[] recipient_id,
 			AlgorithmID kdf, Integer replay_size, byte[] master_salt, byte[] contextId, int maxUnfragmentedSize) throws OSException {
+		this(master_secret, client, alg, sender_id, recipient_id, kdf, replay_size, master_salt, contextId,
+				maxUnfragmentedSize, false);
+	}
+
+	/**
+	 * Constructor. Generates the context from the base parameters.
+	 * 
+	 * @param master_secret the master secret
+	 * @param alg the encryption algorithm as defined in COSE
+	 * @param client is this originally the client's context
+	 * @param sender_id the sender id or null for default
+	 * @param recipient_id the recipient id or null for default
+	 * @param kdf the COSE algorithm abbreviation of the kdf or null for the
+	 *            default
+	 * @param replay_size the replay window size or null for the default
+	 * @param master_salt the optional master salt, can be null
+	 * @param contextId the context id, can be null
+	 * @param maxUnfragmentedSize maximum unfragmented size
+	 * @param appB1Enabled usage of Appendix B.1
+	 *
+	 * @throws OSException if the KDF is not supported
+	 * @since 3.0 (added parameter maxUnfragmentedSize)
+	 */
+	public OSCoreCtx(byte[] master_secret, boolean client, AlgorithmID alg, byte[] sender_id, byte[] recipient_id,
+			AlgorithmID kdf, Integer replay_size, byte[] master_salt, byte[] contextId, int maxUnfragmentedSize,
+			boolean appB1Enabled) throws OSException {
 
 		if (alg == null) {
 			this.common_alg = AlgorithmID.AES_CCM_16_64_128;
@@ -361,6 +394,16 @@ public class OSCoreCtx {
 		// Initialize cipher object
 		initializeCipher(common_alg);
 
+		// Attempt to restore SSN from previous execution (Appendix B.1)
+		this.useAppB1 = appB1Enabled;
+		if (useAppB1) {
+			int resumeSsn = readSsn();
+			if (resumeSsn != -1) {
+				this.sender_seq = resumeSsn;
+				writeSsn();
+				System.out.println("Resuming from SSN: " + resumeSsn);
+			}
+		}
 	}
 
 	/**
@@ -790,6 +833,11 @@ public class OSCoreCtx {
 			LOGGER.error("Sequence number wrapped, get a new OSCore context");
 			throw new OSException("Sequence number wrapped");
 		}
+
+		if (useAppB1 && sender_seq % K == 0) {
+			writeSsn();
+		}
+
 		sender_seq++;
 	}
 
@@ -983,4 +1031,98 @@ public class OSCoreCtx {
 		return null;
 	}
 
+	/**
+	 * Save SSN for resumption (Appendix B.1)
+	 */
+	private void writeSsn() {
+
+		String fileName = getSsnFilePath();
+
+		// Create file and folder if it does not exist
+		File targetFile = new File(fileName);
+		File parent = targetFile.getParentFile();
+		parent.mkdirs();
+
+		// Write file content
+		if (fileName != null) {
+			try (PrintWriter writer = new PrintWriter(fileName, "UTF-8")) {
+				writer.println(String.valueOf(sender_seq));
+				writer.close();
+			} catch (FileNotFoundException | UnsupportedEncodingException e) {
+				// Failed to write SSN for resumption
+			}
+		}
+
+	}
+
+	/**
+	 * Control the usage of Appendix B.1
+	 * 
+	 */
+	private final boolean useAppB1;
+
+	/**
+	 * Get filename to use for writing/reading SSN for resumption (Appendix B.1)
+	 * 
+	 * @return the path to the SSN file
+	 */
+	private String getSsnFilePath() {
+
+		// Build unique filename to use
+		String jarFile = System.getProperty("java.class.path");
+		if (jarFile.length() > 4) {
+			jarFile = jarFile.substring(0, jarFile.length() - 4);
+		}
+
+		String recipientId = toHex(recipient_id);
+		String senderId = toHex(sender_id);
+		String contextId = toHex(context_id);
+
+		String fileName;
+		if (jarFile.contains(":")) {
+			fileName = "." + senderId + "-" + recipientId + "-" + contextId;
+		} else {
+			fileName = "." + jarFile + "-" + senderId + "-" + recipientId + "-" + contextId;
+		}
+
+		return ".resume/" + fileName;
+	}
+
+	/**
+	 * Parameter K for Appendix B.1
+	 */
+	private static int K = 10;
+
+	/**
+	 * Parameter F for Appendix B.1
+	 */
+	private static int F = 2;
+
+	/**
+	 * Read SSN for resumption (Appendix B.1)
+	 * 
+	 * @return the SSN to resume from
+	 */
+	private int readSsn() {
+
+		String filePath = getSsnFilePath();
+
+		// Attempt to read SSN from file
+		int resumeSsn = -1;
+
+		if (filePath == null) {
+			return resumeSsn;
+		}
+
+		try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+			String line = reader.readLine();
+			reader.close();
+			resumeSsn = Integer.parseInt(line);
+		} catch (IOException e) {
+			// Failed to read or parse from file
+			return resumeSsn;
+		}
+
+		return resumeSsn + K + F;
+	}
 }
