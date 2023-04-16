@@ -77,6 +77,8 @@ public abstract class Encryptor {
 			throws OSException {
 		boolean isRequest = message instanceof Request;
 
+		AlgorithmID encryptionAlg = ctx.getAlg();
+
 		try {
 			byte[] key = ctx.getSenderKey();
 			byte[] partialIV = null;
@@ -161,6 +163,7 @@ public abstract class Encryptor {
 					key = ((GroupSenderCtx) ctx).getPairwiseSenderKey(recipientRID);
 				} else {
 					// If group mode is used prepare adding the signature
+					encryptionAlg = ((GroupSenderCtx) ctx).getAlgSignEnc();
 					prepareSignature(enc, ctx, aad, message);
 				}
 
@@ -169,7 +172,7 @@ public abstract class Encryptor {
 			enc.setExternal(aad);
 			
 			enc.addAttribute(HeaderKeys.IV, CBORObject.FromObject(nonce), Attribute.DO_NOT_SEND);
-			enc.addAttribute(HeaderKeys.Algorithm, ctx.getAlg().AsCBOR(), Attribute.DO_NOT_SEND);
+			enc.addAttribute(HeaderKeys.Algorithm, encryptionAlg.AsCBOR(), Attribute.DO_NOT_SEND);
 
 			enc.encrypt(key);
 
@@ -411,9 +414,9 @@ public abstract class Encryptor {
 
 		// Derive the keystream
 		String digest = "";
-		if (ctx.getAlgKeyAgreement().toString().contains("HKDF_256")) {
+		if (ctx.getKdf().toString().contains("SHA_256")) {
 			digest = "SHA256";
-		} else if (ctx.getAlgKeyAgreement().toString().contains("HKDF_512")) {
+		} else if (ctx.getKdf().toString().contains("SHA_512")) {
 			digest = "SHA512";
 		}
 

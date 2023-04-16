@@ -168,7 +168,8 @@ public class GroupOscoreCtxTest {
 		assertArrayEquals("Incorrect GM public key", gmPublicKey, commonCtx.getGmPublicKey());
 		assertArrayEquals("Incorrect master secret", master_secret, commonCtx.getSenderCtx().getMasterSecret());
 
-		byte[] correctGroupEncryptionKey = StringUtil.hex2ByteArray("b2a2df8dca9627613f8a2a9ec7a256c6");
+		byte[] correctGroupEncryptionKey = StringUtil.hex2ByteArray("eaedbbcd9dd887cbe2294fd05b08b43c");
+
 		assertArrayEquals("Incorrect group encryption key", correctGroupEncryptionKey,
 				commonCtx.getGroupEncryptionKey());
 

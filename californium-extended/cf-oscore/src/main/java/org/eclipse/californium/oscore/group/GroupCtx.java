@@ -363,9 +363,9 @@ public class GroupCtx {
 	byte[] deriveGroupEncryptionKey() {
 
 		String digest = "";
-		if (algKeyAgreement.toString().contains("HKDF_256")) {
+		if (senderCtx.getKdf().toString().contains("SHA_256")) {
 			digest = "SHA256";
-		} else if (algKeyAgreement.toString().contains("HKDF_512")) {
+		} else if (senderCtx.getKdf().toString().contains("SHA_512")) {
 			digest = "SHA512";
 		}
 
@@ -402,9 +402,9 @@ public class GroupCtx {
 		}
 
 		String digest = "";
-		if (algKeyAgreement.toString().contains("HKDF_256")) {
+		if (senderCtx.getKdf().toString().contains("SHA_256")) {
 			digest = "SHA256";
-		} else if (algKeyAgreement.toString().contains("HKDF_512")) {
+		} else if (senderCtx.getKdf().toString().contains("SHA_512")) {
 			digest = "SHA512";
 		}
 
@@ -453,9 +453,9 @@ public class GroupCtx {
 		}
 
 		String digest = "";
-		if (algKeyAgreement.toString().contains("HKDF_256")) {
+		if (senderCtx.getKdf().toString().contains("SHA_256")) {
 			digest = "SHA256";
-		} else if (algKeyAgreement.toString().contains("HKDF_512")) {
+		} else if (senderCtx.getKdf().toString().contains("SHA_512")) {
 			digest = "SHA512";
 		}
 
