@@ -23,10 +23,8 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.Provider;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.Security;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.EllipticCurve;
@@ -35,13 +33,7 @@ import java.util.Arrays;
 import javax.crypto.KeyAgreement;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator;
-import org.bouncycastle.crypto.agreement.X25519Agreement;
 import org.bouncycastle.crypto.ec.CustomNamedCurves;
-import org.bouncycastle.crypto.generators.X25519KeyPairGenerator;
-import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
-import org.bouncycastle.crypto.params.X25519KeyGenerationParameters;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -56,7 +48,6 @@ import com.upokecenter.cbor.CBORObject;
 
 import net.i2p.crypto.eddsa.EdDSAPrivateKey;
 import net.i2p.crypto.eddsa.EdDSAPublicKey;
-import net.i2p.crypto.eddsa.EdDSASecurityProvider;
 import net.i2p.crypto.eddsa.math.Field;
 import net.i2p.crypto.eddsa.math.FieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerFieldElement;
@@ -150,36 +141,6 @@ public class SharedSecretCalculation {
 		return key;
 	}
 
-	// https://github.com/bcgit/bc-java/blob/master/core/src/test/java/org/bouncycastle/math/ec/rfc7748/test/X25519Test.java
-	@Deprecated
-	private static void bouncyCastleKeyAgreement() {
-		SecureRandom RANDOM = new SecureRandom();
-		AsymmetricCipherKeyPairGenerator kpGen = new X25519KeyPairGenerator();
-
-		kpGen.init(new X25519KeyGenerationParameters(RANDOM));
-
-		AsymmetricCipherKeyPair kpA = kpGen.generateKeyPair();
-		AsymmetricCipherKeyPair kpB = kpGen.generateKeyPair();
-		X25519Agreement agreeA = new X25519Agreement();
-
-		AsymmetricKeyParameter pub1 = kpA.getPublic();
-		AsymmetricKeyParameter pub2 = kpB.getPublic();
-
-		AsymmetricKeyParameter priv1 = kpA.getPrivate();
-		AsymmetricKeyParameter priv2 = kpB.getPrivate();
-
-		agreeA.init(kpA.getPrivate());
-
-		byte[] secretA = new byte[agreeA.getAgreementSize()];
-		agreeA.calculateAgreement(kpB.getPublic(), secretA, 0);
-		X25519Agreement agreeB = new X25519Agreement();
-		agreeB.init(kpB.getPrivate());
-
-		byte[] secretB = new byte[agreeB.getAgreementSize()];
-		agreeB.calculateAgreement(kpA.getPublic(), secretB, 0);
-
-	}
-
 	/**
 	 * Generate a COSE OneKey using Curve25519 for X25519. Note that this key
 	 * will be lacking the Java keys internally.
@@ -198,9 +159,6 @@ public class SharedSecretCalculation {
 
 		// Start by generating a Curve25519 key pair with BouncyCastle
 
-		// MyRandom rand = new MyRandom();
-		SecureRandom rand = new SecureRandom();
-
 		X9ECParameters curveParams = CustomNamedCurves.getByName("Curve25519");
 		// byte[] seed = StringUtil.hex2ByteArray(
 		//  		"1122334455667788112233445566778811223344556677881122334455667788");
@@ -216,6 +174,7 @@ public class SharedSecretCalculation {
 			kpg.initialize(ecSpec);
 		} catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
 			System.err.println("Failed to generate Curve25519 key: " + e);
+			return null;
 		}
 
 		KeyPair keyPair = kpg.generateKeyPair();
@@ -855,7 +814,7 @@ public class SharedSecretCalculation {
 		// The private key
 		if (initialKey.AsPrivateKey() != null) {
 			EdDSAPrivateKey initialPrivKey = (EdDSAPrivateKey) initialKey.AsPrivateKey();
-			byte[] rgbD_bad = initialKey.get(KeyKeys.OKP_D).GetByteString(); // FIXME
+			initialKey.get(KeyKeys.OKP_D).GetByteString();
 			byte[] privateHash = initialPrivKey.getH();
 			byte[] privateScalar = Arrays.copyOf(privateHash, 32);
 			byte[] rgbD = privateScalar;
@@ -929,448 +888,6 @@ public class SharedSecretCalculation {
 	}
 
 	/**
-	 * Generate a shared secret when using EdDSA.
-	 * 
-	 * @param senderPrivateKey the public/private key of the sender
-	 * @param recipientPublicKey the public key of the recipient
-	 * @return the shared secret
-	 */
-	private static byte[] generateSharedSecretEdDSA(OneKey senderPrivateKey, OneKey recipientPublicKey) {
-
-		byte[] sharedSecret = null;
-		try {
-			sharedSecret = SharedSecretCalculation.calculateSharedSecret(recipientPublicKey, senderPrivateKey);
-		} catch (CoseException e) {
-			System.err.println("Could not generate the shared secret: " + e);
-		}
-
-		return sharedSecret;
-	}
-
-	/**
-	 * Run a number of tests on the code.
-	 * 
-	 * @throws Exception on failure in one of the tests
-	 */
-	private static void runTests() throws Exception {
-		Provider EdDSA = new EdDSASecurityProvider();
-		Security.insertProviderAt(EdDSA, 1);
-
-		/* Start tests */
-
-		/* -- Test decodeLittleEndian -- */
-
-		System.out.println("Test decodeLittleEndian");
-
-		// Input value:
-		// a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4
-		byte[] input = new byte[] { (byte) 0xa5, (byte) 0x46, (byte) 0xe3, (byte) 0x6b, (byte) 0xf0, (byte) 0x52,
-				(byte) 0x7c, (byte) 0x9d, (byte) 0x3b, (byte) 0x16, (byte) 0x15, (byte) 0x4b, (byte) 0x82, (byte) 0x46,
-				(byte) 0x5e, (byte) 0xdd, (byte) 0x62, (byte) 0x14, (byte) 0x4c, (byte) 0x0a, (byte) 0xc1, (byte) 0xfc,
-				(byte) 0x5a, (byte) 0x18, (byte) 0x50, (byte) 0x6a, (byte) 0x22, (byte) 0x44, (byte) 0xba, (byte) 0x44,
-				(byte) 0x9a, (byte) 0xc4 };
-
-		// Output value (from Python code)
-		// 88925887110773138616681052956207043583107764937498542285260013040410376226469
-		BigInteger correct = new BigInteger(
-				"88925887110773138616681052956207043583107764937498542285260013040410376226469");
-
-		BigInteger res = decodeLittleEndian(input, 255);
-
-		System.out.println("Expected: " + correct);
-		System.out.println("Actual: " + res);
-		System.out.println("Same: " + correct.equals(res));
-
-		// --
-
-		// Input value:
-		// e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a493
-		input = new byte[] { (byte) 0xe5, (byte) 0x21, (byte) 0x0f, (byte) 0x12, (byte) 0x78, (byte) 0x68, (byte) 0x11,
-				(byte) 0xd3, (byte) 0xf4, (byte) 0xb7, (byte) 0x95, (byte) 0x9d, (byte) 0x05, (byte) 0x38, (byte) 0xae,
-				(byte) 0x2c, (byte) 0x31, (byte) 0xdb, (byte) 0xe7, (byte) 0x10, (byte) 0x6f, (byte) 0xc0, (byte) 0x3c,
-				(byte) 0x3e, (byte) 0xfc, (byte) 0x4c, (byte) 0xd5, (byte) 0x49, (byte) 0xc7, (byte) 0x15, (byte) 0xa4,
-				(byte) 0x93 };
-
-		// Output value (from Python code)
-		// 66779901969842027605876251890954603246052331132842480964984187926304357556709
-		correct = new BigInteger("66779901969842027605876251890954603246052331132842480964984187926304357556709");
-
-		res = decodeLittleEndian(input, 255);
-
-		System.out.println("Expected: " + correct);
-		System.out.println("Actual: " + res);
-		System.out.println("Same: " + correct.equals(res));
-
-		/* -- Test decodeScalar -- */
-
-		System.out.println("Test decodeScalar");
-
-		// Input value:
-		// 3d262fddf9ec8e88495266fea19a34d28882acef045104d0d1aae121700a779c984c24f8cdd78fbff44943eba368f54b29259a4f1c600ad3
-		input = new byte[] { (byte) 0x3d, (byte) 0x26, (byte) 0x2f, (byte) 0xdd, (byte) 0xf9, (byte) 0xec, (byte) 0x8e,
-				(byte) 0x88, (byte) 0x49, (byte) 0x52, (byte) 0x66, (byte) 0xfe, (byte) 0xa1, (byte) 0x9a, (byte) 0x34,
-				(byte) 0xd2, (byte) 0x88, (byte) 0x82, (byte) 0xac, (byte) 0xef, (byte) 0x04, (byte) 0x51, (byte) 0x04,
-				(byte) 0xd0, (byte) 0xd1, (byte) 0xaa, (byte) 0xe1, (byte) 0x21, (byte) 0x70, (byte) 0x0a, (byte) 0x77,
-				(byte) 0x9c, (byte) 0x98, (byte) 0x4c, (byte) 0x24, (byte) 0xf8, (byte) 0xcd, (byte) 0xd7, (byte) 0x8f,
-				(byte) 0xbf, (byte) 0xf4, (byte) 0x49, (byte) 0x43, (byte) 0xeb, (byte) 0xa3, (byte) 0x68, (byte) 0xf5,
-				(byte) 0x4b, (byte) 0x29, (byte) 0x25, (byte) 0x9a, (byte) 0x4f, (byte) 0x1c, (byte) 0x60, (byte) 0x0a,
-				(byte) 0xd3 };
-
-		// Output value (from Python code)
-		// 41823108910914769844969816812214719139234914957831430028237854386113666295352
-		correct = new BigInteger("41823108910914769844969816812214719139234914957831430028237854386113666295352");
-
-		res = decodeScalar(input);
-
-		System.out.println("Expected: " + correct);
-		System.out.println("Actual: " + res);
-		System.out.println("Same: " + correct.equals(res));
-
-		// --
-
-		// Input value:
-		// 4b66e9d4d1b4673c5ad22691957d6af5c11b6421e0ea01d42ca4169e7918ba0d
-		input = new byte[] { (byte) 0x4b, (byte) 0x66, (byte) 0xe9, (byte) 0xd4, (byte) 0xd1, (byte) 0xb4, (byte) 0x67,
-				(byte) 0x3c, (byte) 0x5a, (byte) 0xd2, (byte) 0x26, (byte) 0x91, (byte) 0x95, (byte) 0x7d, (byte) 0x6a,
-				(byte) 0xf5, (byte) 0xc1, (byte) 0x1b, (byte) 0x64, (byte) 0x21, (byte) 0xe0, (byte) 0xea, (byte) 0x01,
-				(byte) 0xd4, (byte) 0x2c, (byte) 0xa4, (byte) 0x16, (byte) 0x9e, (byte) 0x79, (byte) 0x18, (byte) 0xba,
-				(byte) 0x0d };
-
-		// Output value (from Python code)
-		// 35156891815674817266734212754503633747128614016119564763269015315466259359304
-		correct = new BigInteger("35156891815674817266734212754503633747128614016119564763269015315466259359304");
-
-		res = decodeScalar(input);
-
-		System.out.println("Expected: " + correct);
-		System.out.println("Actual: " + res);
-		System.out.println("Same: " + correct.equals(res));
-
-		/* -- Test decodeUCoordinate -- */
-
-		System.out.println("Test decodeUCoordinate");
-
-		// Input value:
-		// e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a493
-		input = new byte[] { (byte) 0xe5, (byte) 0x21, (byte) 0x0f, (byte) 0x12, (byte) 0x78, (byte) 0x68, (byte) 0x11,
-				(byte) 0xd3, (byte) 0xf4, (byte) 0xb7, (byte) 0x95, (byte) 0x9d, (byte) 0x05, (byte) 0x38, (byte) 0xae,
-				(byte) 0x2c, (byte) 0x31, (byte) 0xdb, (byte) 0xe7, (byte) 0x10, (byte) 0x6f, (byte) 0xc0, (byte) 0x3c,
-				(byte) 0x3e, (byte) 0xfc, (byte) 0x4c, (byte) 0xd5, (byte) 0x49, (byte) 0xc7, (byte) 0x15, (byte) 0xa4,
-				(byte) 0x93 };
-
-		// Output value (from Python code)
-		// 8883857351183929894090759386610649319417338800022198945255395922347792736741
-		correct = new BigInteger("8883857351183929894090759386610649319417338800022198945255395922347792736741");
-
-		res = decodeUCoordinate(input);
-
-		System.out.println("Expected: " + correct);
-		System.out.println("Actual: " + res);
-		System.out.println("Same: " + correct.equals(res));
-
-		// --
-
-		// Input value:
-		// 06fce640fa3487bfda5f6cf2d5263f8aad88334cbd07437f020f08f9814dc031ddbdc38c19c6da2583fa5429db94ada18aa7a7fb4ef8a086
-		input = new byte[] { (byte) 0x06, (byte) 0xfc, (byte) 0xe6, (byte) 0x40, (byte) 0xfa, (byte) 0x34, (byte) 0x87,
-				(byte) 0xbf, (byte) 0xda, (byte) 0x5f, (byte) 0x6c, (byte) 0xf2, (byte) 0xd5, (byte) 0x26, (byte) 0x3f,
-				(byte) 0x8a, (byte) 0xad, (byte) 0x88, (byte) 0x33, (byte) 0x4c, (byte) 0xbd, (byte) 0x07, (byte) 0x43,
-				(byte) 0x7f, (byte) 0x02, (byte) 0x0f, (byte) 0x08, (byte) 0xf9, (byte) 0x81, (byte) 0x4d, (byte) 0xc0,
-				(byte) 0x31, (byte) 0xdd, (byte) 0xbd, (byte) 0xc3, (byte) 0x8c, (byte) 0x19, (byte) 0xc6, (byte) 0xda,
-				(byte) 0x25, (byte) 0x83, (byte) 0xfa, (byte) 0x54, (byte) 0x29, (byte) 0xdb, (byte) 0x94, (byte) 0xad,
-				(byte) 0xa1, (byte) 0x8a, (byte) 0xa7, (byte) 0xa7, (byte) 0xfb, (byte) 0x4e, (byte) 0xf8, (byte) 0xa0,
-				(byte) 0x86 };
-
-		// Output value (from Python code)
-		// 22503099155545401511747743372988183427981498984445290765916415810160808098822
-		correct = new BigInteger("22503099155545401511747743372988183427981498984445290765916415810160808098822");
-
-		res = decodeUCoordinate(input);
-
-		System.out.println("Expected: " + correct);
-		System.out.println("Actual: " + res);
-		System.out.println("Same: " + correct.equals(res));
-
-		/* -- Test encodeUCoordinate -- */
-
-		System.out.println("Test encodeUCoordinate");
-
-		// Input value:
-		// 8883857351183929894090759386610649319417338800022198945255395922347792736741
-		BigInteger inputInt = new BigInteger(
-				"8883857351183929894090759386610649319417338800022198945255395922347792736741");
-
-		// Output value (from Python code)
-		// e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a413
-		byte[] correctArray = new byte[] { (byte) 0xe5, (byte) 0x21, (byte) 0x0f, (byte) 0x12, (byte) 0x78, (byte) 0x68,
-				(byte) 0x11, (byte) 0xd3, (byte) 0xf4, (byte) 0xb7, (byte) 0x95, (byte) 0x9d, (byte) 0x05, (byte) 0x38,
-				(byte) 0xae, (byte) 0x2c, (byte) 0x31, (byte) 0xdb, (byte) 0xe7, (byte) 0x10, (byte) 0x6f, (byte) 0xc0,
-				(byte) 0x3c, (byte) 0x3e, (byte) 0xfc, (byte) 0x4c, (byte) 0xd5, (byte) 0x49, (byte) 0xc7, (byte) 0x15,
-				(byte) 0xa4, (byte) 0x13 };
-
-		byte[] resArray = encodeUCoordinate(inputInt);
-
-		System.out.println("Expected: " + StringUtil.byteArray2HexString(correctArray));
-		System.out.println("Actual: " + StringUtil.byteArray2HexString(resArray));
-		System.out.println("Same: " + Arrays.equals(correctArray, resArray));
-
-		// --
-
-		// Input value:
-		// 5834050823475987305959238492374969056969794868074987349740858586932482375934
-		inputInt = new BigInteger("5834050823475987305959238492374969056969794868074987349740858586932482375934");
-
-		// Output value (from Python code)
-		// e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a413
-		correctArray = new byte[] { (byte) 0xfe, (byte) 0x80, (byte) 0x97, (byte) 0x47, (byte) 0xf0, (byte) 0x4e,
-				(byte) 0x46, (byte) 0xf8, (byte) 0x35, (byte) 0xaa, (byte) 0x79, (byte) 0x60, (byte) 0xdc, (byte) 0x0d,
-				(byte) 0xa8, (byte) 0x52, (byte) 0x1d, (byte) 0x4a, (byte) 0x68, (byte) 0x14, (byte) 0xd9, (byte) 0x0a,
-				(byte) 0xca, (byte) 0x92, (byte) 0x5f, (byte) 0xa0, (byte) 0x85, (byte) 0xfa, (byte) 0xab, (byte) 0xf4,
-				(byte) 0xe5, (byte) 0x0c };
-
-		resArray = encodeUCoordinate(inputInt);
-
-		System.out.println("Expected: " + StringUtil.byteArray2HexString(correctArray));
-		System.out.println("Actual: " + StringUtil.byteArray2HexString(resArray));
-		System.out.println("Same: " + Arrays.equals(correctArray, resArray));
-
-		/* Test cswap */
-
-		System.out.println("Test cswap");
-
-		// First no swap
-
-		BigInteger a_bi = new BigInteger(
-				"8883857351183929894090759386610649319417338800022198945255395922347792736741");
-		BigInteger b_bi = new BigInteger(
-				"5834050823475987305959238492374969056969794868074987349740858586932482375934");
-
-		BigIntegerFieldElement a = new BigIntegerFieldElement(ed25519Field, a_bi);
-		BigIntegerFieldElement b = new BigIntegerFieldElement(ed25519Field, b_bi);
-
-		BigInteger swap = BigInteger.ZERO;
-
-		Tuple result = cswap(swap, a, b);
-		System.out.println("Swap correct: " + result.a.equals(a) + " and " + result.b.equals(b));
-
-		// Now do swap
-
-		swap = BigInteger.ONE;
-		result = cswap(swap, a, b);
-		System.out.println("Swap correct: " + result.a.equals(b) + " and " + result.b.equals(a));
-
-		/* Test X25519 */
-
-		System.out.println("Test X25519");
-
-		byte[] k = new byte[] { (byte) 0xa5, (byte) 0x46, (byte) 0xe3, (byte) 0x6b, (byte) 0xf0, (byte) 0x52,
-				(byte) 0x7c, (byte) 0x9d, (byte) 0x3b, (byte) 0x16, (byte) 0x15, (byte) 0x4b, (byte) 0x82, (byte) 0x46,
-				(byte) 0x5e, (byte) 0xdd, (byte) 0x62, (byte) 0x14, (byte) 0x4c, (byte) 0x0a, (byte) 0xc1, (byte) 0xfc,
-				(byte) 0x5a, (byte) 0x18, (byte) 0x50, (byte) 0x6a, (byte) 0x22, (byte) 0x44, (byte) 0xba, (byte) 0x44,
-				(byte) 0x9a, (byte) 0xc4 };
-		byte[] u = new byte[] { (byte) 0xe6, (byte) 0xdb, (byte) 0x68, (byte) 0x67, (byte) 0x58, (byte) 0x30,
-				(byte) 0x30, (byte) 0xdb, (byte) 0x35, (byte) 0x94, (byte) 0xc1, (byte) 0xa4, (byte) 0x24, (byte) 0xb1,
-				(byte) 0x5f, (byte) 0x7c, (byte) 0x72, (byte) 0x66, (byte) 0x24, (byte) 0xec, (byte) 0x26, (byte) 0xb3,
-				(byte) 0x35, (byte) 0x3b, (byte) 0x10, (byte) 0xa9, (byte) 0x03, (byte) 0xa6, (byte) 0xd0, (byte) 0xab,
-				(byte) 0x1c, (byte) 0x4c };
-		byte[] c = new byte[] { (byte) 0xc3, (byte) 0xda, (byte) 0x55, (byte) 0x37, (byte) 0x9d, (byte) 0xe9,
-				(byte) 0xc6, (byte) 0x90, (byte) 0x8e, (byte) 0x94, (byte) 0xea, (byte) 0x4d, (byte) 0xf2, (byte) 0x8d,
-				(byte) 0x08, (byte) 0x4f, (byte) 0x32, (byte) 0xec, (byte) 0xcf, (byte) 0x03, (byte) 0x49, (byte) 0x1c,
-				(byte) 0x71, (byte) 0xf7, (byte) 0x54, (byte) 0xb4, (byte) 0x07, (byte) 0x55, (byte) 0x77, (byte) 0xa2,
-				(byte) 0x85, (byte) 0x52 };
-
-		byte[] xresult = X25519(k, u);
-
-		System.out.println("R: " + StringUtil.byteArray2HexString(xresult));
-		System.out.println("X25519 result is correct: " + Arrays.equals(c, xresult));
-
-		/* Test X25519 test vectors */
-		// See https://tools.ietf.org/html/rfc7748#section-5.2
-
-		System.out.println("Test X25519 test vectors");
-
-		// First X25519 test vector
-
-		byte[] inputScalar = StringUtil.hex2ByteArray("a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4");
-		byte[] inputUCoordinate = StringUtil.hex2ByteArray("e6db6867583030db3594c1a424b15f7c726624ec26b3353b10a903a6d0ab1c4c");
-		byte[] outputUCoordinate = StringUtil.hex2ByteArray("c3da55379de9c6908e94ea4df28d084f32eccf03491c71f754b4075577a28552");
-
-		byte[] myResult = X25519(inputScalar, inputUCoordinate);
-		System.out.println("First test vector works: " + Arrays.equals(myResult, outputUCoordinate));
-
-		// Second X25519 test vector
-
-		inputScalar = StringUtil.hex2ByteArray("4b66e9d4d1b4673c5ad22691957d6af5c11b6421e0ea01d42ca4169e7918ba0d");
-		inputUCoordinate = StringUtil.hex2ByteArray("e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a493");
-		outputUCoordinate = StringUtil.hex2ByteArray("95cbde9476e8907d7aade45cb4b873f88b595a68799fa152e6f8f7647aac7957");
-
-		myResult = X25519(inputScalar, inputUCoordinate);
-		System.out.println("Second test vector works: " + Arrays.equals(myResult, outputUCoordinate));
-
-		// Third X25519 test vector (iterations)
-
-		inputScalar = StringUtil.hex2ByteArray("0900000000000000000000000000000000000000000000000000000000000000");
-		inputUCoordinate = StringUtil.hex2ByteArray("0900000000000000000000000000000000000000000000000000000000000000");
-		byte[] resultIteration1 = StringUtil.hex2ByteArray("422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079");
-
-		byte[] myResult_1 = X25519(inputScalar, inputUCoordinate);
-		System.out.println("Third test vector works (1 iteration): " + Arrays.equals(myResult_1, resultIteration1));
-
-		// 1000 iterations
-
-		byte[] tU = StringUtil.hex2ByteArray("0900000000000000000000000000000000000000000000000000000000000000");
-		byte[] tK = StringUtil.hex2ByteArray("0900000000000000000000000000000000000000000000000000000000000000");
-		byte[] tR = null;
-		for (int i = 0; i < 1000; i++) {
-
-			tR = X25519(tK.clone(), tU.clone()).clone();
-			tU = tK;
-			tK = tR;
-
-		}
-
-		byte[] resultIteration1000 = StringUtil.hex2ByteArray(
-				"684cf59ba83309552800ef566f2f4d3c1c3887c49360e3875f2eb94d99532c51");
-		byte[] myResult_1000 = tK;
-
-		System.out.println(
-				"Third test vector works (1000 iterations): " + Arrays.equals(myResult_1000, resultIteration1000));
-
-		// 1 000 000 iterations
-		// Takes a very long time ~45 minutes
-
-		boolean runMillionTest = false;
-
-		if (runMillionTest) {
-
-			tU = StringUtil.hex2ByteArray("0900000000000000000000000000000000000000000000000000000000000000");
-			tK = StringUtil.hex2ByteArray("0900000000000000000000000000000000000000000000000000000000000000");
-			tR = null;
-			long startTime = System.nanoTime();
-			for (int i = 0; i < 1000000; i++) {
-
-				tR = X25519(tK, tU);
-				tU = tK;
-				tK = tR;
-
-				if (i % 20000 == 0) {
-					long timeElapsed = System.nanoTime() - startTime;
-					System.out.println("Iteration: " + i + ". Time: " + timeElapsed / 1000000 / 1000 + " seconds");
-				}
-			}
-
-			byte[] resultIteration1000000 = StringUtil.hex2ByteArray(
-					"7c3911e0ab2586fd864497297e575e6f3bc601c0883c30df5f4dd2d24f665424");
-			byte[] myResult_1000000 = tK;
-
-			System.out.println("Third test vector works (1 000 000 iterations): "
-					+ Arrays.equals(myResult_1000000, resultIteration1000000));
-		}
-
-		/* Test Diffie Hellman */
-		// See https://tools.ietf.org/html/rfc7748#section-6.1
-
-		byte[] private_key_a = StringUtil.hex2ByteArray("77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a");
-		byte[] public_key_KA = StringUtil.hex2ByteArray("8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a");
-
-		byte[] private_key_b = StringUtil.hex2ByteArray("5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb");
-		byte[] public_key_KB = StringUtil.hex2ByteArray("de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f");
-
-		byte[] nine = StringUtil.hex2ByteArray("0900000000000000000000000000000000000000000000000000000000000000");
-
-		// Check public keys
-		byte[] public_key_KA_calc = X25519(private_key_a, nine);
-		byte[] public_key_KB_calc = X25519(private_key_b, nine);
-
-		System.out.println("Public Key KA correct: " + Arrays.equals(public_key_KA_calc, public_key_KA));
-		System.out.println("Public Key KB correct: " + Arrays.equals(public_key_KB_calc, public_key_KB));
-
-		byte[] sharedSecret = StringUtil.hex2ByteArray("4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742");
-
-		// Check shared secret
-		byte[] sharedSecret_calc_one = X25519(private_key_a, public_key_KB);
-		byte[] sharedSecret_calc_two = X25519(private_key_b, public_key_KA);
-
-		System.out.println(
-				"Shared secret matches each other: " + Arrays.equals(sharedSecret_calc_one, sharedSecret_calc_two));
-		System.out
-				.println("Shared secret matches correct value: " + Arrays.equals(sharedSecret_calc_one, sharedSecret));
-
-		/* Test starting from COSE Keys */
-
-		/*
-		 * Key section:
-		 * 
-		 * Ed25519 keys start life as a 32-byte (256-bit) uniformly random
-		 * binary seed (e.g. the output of SHA256 on some random input). The
-		 * seed is then hashed using SHA512, which gets you 64 bytes (512 bits),
-		 * which is then split into a "left half" (the first 32 bytes) and a
-		 * "right half". The left half is massaged into a curve25519 private
-		 * scalar "a" by setting and clearing a few high/low-order bits.
-		 * 
-		 * https://blog.mozilla.org/warner/2011/11/29/ed25519-keys/
-		 */
-
-		System.out.println("Test starting from COSE Keys");
-
-		// Key one
-
-		OneKey myKey1 = OneKey.generateKey(AlgorithmID.EDDSA);
-
-		// Get u coordinate from public key
-		FieldElement y_fromKey1 = KeyRemapping.extractCOSE_y(myKey1);
-		FieldElement uuu1 = KeyRemapping.calcCurve25519_u(y_fromKey1);
-		byte[] publicKey1U = uuu1.toByteArray();
-
-		// Get private scalar (from private key)
-		// byte[] privateKey1 = myKey1.get(KeyKeys.OKP_D).GetByteString();
-		byte[] privateKey1H = ((EdDSAPrivateKey) myKey1.AsPrivateKey()).getH();
-		privateKey1H = Arrays.copyOf(privateKey1H, 32);
-
-		System.out.println("H priv1: " + StringUtil.byteArray2HexString(privateKey1H));
-		System.out.println("u from key one (public part): " + uuu1);
-		// System.out.println("From key one (private part): " +
-		// StringUtil.byteArray2HexString(privateKey1H));
-
-		// Key two
-
-		OneKey myKey2 = OneKey.generateKey(AlgorithmID.EDDSA);
-
-		// Get u coordinate from public key
-		FieldElement y_fromKey2 = KeyRemapping.extractCOSE_y(myKey2);
-		FieldElement uuu2 = KeyRemapping.calcCurve25519_u(y_fromKey2);
-		byte[] publicKey2U = uuu2.toByteArray();
-
-		// Get private scalar (from private key)
-		// byte[] privateKey2 = myKey2.get(KeyKeys.OKP_D).GetByteString();
-		byte[] privateKey2H = ((EdDSAPrivateKey) myKey2.AsPrivateKey()).getH();
-		privateKey2H = Arrays.copyOf(privateKey2H, 32);
-
-		System.out.println("H priv2: " + StringUtil.byteArray2HexString(privateKey2H));
-		System.out.println("u from key two (public part): " + uuu2);
-		// System.out.println("From key two (private part): " +
-		// StringUtil.byteArray2HexString(privateKey2H));
-
-		// Calculated shared secrets
-		// X25519(my private scalar, your public key U)
-		byte[] sharedSecret1 = X25519(privateKey1H, publicKey2U);
-		byte[] sharedSecret2 = X25519(privateKey2H, publicKey1U);
-
-		System.out.println("Shared secret 1: " + StringUtil.byteArray2HexString(sharedSecret1));
-		System.out.println("Shared secret 2: " + StringUtil.byteArray2HexString(sharedSecret2));
-		System.out.println("Shared secrets match: " + Arrays.equals(sharedSecret1, sharedSecret2));
-
-		/* End testing */
-
-		sharedSecretTest();
-
-		System.out.println("Testing finished");
-
-		// --
-
-	}
-
-	/**
 	 * Calculate the shared secret from a COSE OneKey using EdDSA. It is first
 	 * converted to Montgomery coordinates and after that the X25519 function is
 	 * used to perform the shared secret calculation.
@@ -1411,46 +928,6 @@ public class SharedSecretCalculation {
 		return sharedSecret;
 	}
 
-	private static void sharedSecretTest() throws CoseException {
-
-		/* -- Key one (Bob) -- */
-
-		OneKey BobKey = OneKey.generateKey(AlgorithmID.EDDSA);
-
-		// Calculate u coordinate from Bob's public key
-		FieldElement bob_y = KeyRemapping.extractCOSE_y(BobKey);
-		FieldElement bob_u = KeyRemapping.calcCurve25519_u(bob_y);
-		byte[] bob_u_array = bob_u.toByteArray();
-
-		// Get private scalar (from Bob's private key)
-		byte[] bob_hash = ((EdDSAPrivateKey) BobKey.AsPrivateKey()).getH();
-		byte[] bob_private_scalar = Arrays.copyOf(bob_hash, 32); // Left half
-
-		/* -- Key two (Alice) -- */
-
-		OneKey AliceKey = OneKey.generateKey(AlgorithmID.EDDSA);
-
-		// Calculate u coordinate from Alice's public key
-		FieldElement alice_y = KeyRemapping.extractCOSE_y(AliceKey);
-		FieldElement alice_u = KeyRemapping.calcCurve25519_u(alice_y);
-		byte[] alice_u_array = alice_u.toByteArray();
-
-		// Get private scalar (from Alice's private key)
-		byte[] alice_hash = ((EdDSAPrivateKey) AliceKey.AsPrivateKey()).getH();
-		byte[] alice_private_scalar = Arrays.copyOf(alice_hash, 32);
-
-		/* -- Calculated shared secrets -- */
-		// secret = X25519(my private scalar, your public key U)
-
-		byte[] sharedSecret1 = X25519(bob_private_scalar, alice_u_array);
-		byte[] sharedSecret2 = X25519(alice_private_scalar, bob_u_array);
-
-		System.out.println("Shared secret 1: " + StringUtil.byteArray2HexString(sharedSecret1));
-		System.out.println("Shared secret 2: " + StringUtil.byteArray2HexString(sharedSecret2));
-		System.out.println("Shared secrets match: " + Arrays.equals(sharedSecret1, sharedSecret2));
-
-	}
-
 	/**
 	 * Wrapper for the X25519 function
 	 * 
@@ -1464,34 +941,6 @@ public class SharedSecretCalculation {
 		u = u.clone(); // Needed?
 
 		BigInteger kn = decodeScalar(k);
-		BigInteger un = decodeUCoordinate(u);
-
-		BigIntegerFieldElement kn_bif = new BigIntegerFieldElement(ed25519Field, kn);
-		BigIntegerFieldElement un_bif = new BigIntegerFieldElement(ed25519Field, un);
-
-		FieldElement res = X25519_calculate(kn_bif, un_bif);
-
-		BigInteger res_bi = new BigInteger(invertArray(res.toByteArray()));
-
-		return encodeUCoordinate(res_bi);
-
-	}
-
-	/**
-	 * Skips decoding the scalar k, since it may not be encoded in the first
-	 * place. But in the end it seems decoding multiple times changes nothing.
-	 * 
-	 * @param k
-	 * @param u
-	 * @return
-	 */
-	@SuppressWarnings("unused")
-	private static byte[] X25519_noDecodeScalar(byte[] k, byte[] u) {
-
-		k = k.clone(); // Needed?
-		u = u.clone(); // Needed?
-
-		BigInteger kn = decodeLittleEndian(k, 255);
 		BigInteger un = decodeUCoordinate(u);
 
 		BigIntegerFieldElement kn_bif = new BigIntegerFieldElement(ed25519Field, kn);
