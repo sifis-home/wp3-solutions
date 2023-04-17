@@ -75,7 +75,6 @@ cd group
 # OscoreAsServer: ACE Authorization Server
 # Assumes container name mysql for MySQL server
 # Assumes root password xxxxxx for MySQL server
-# Selected to be pushed to Docker Hub.
 echo "root" > db.pwd
 echo "xxxxxx mysql" >> db.pwd
 dockerfile=Dockerfile-OscoreAsServer
@@ -89,7 +88,6 @@ echo 'ENTRYPOINT ["java", "-jar", "OscoreAsServer.jar", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t oscoreasserver .
 
 # OscoreRsServer: Group Manager (ACE Resource Server)
-# Selected to be pushed to Docker Hub.
 dockerfile=Dockerfile-OscoreRsServer
 cp ../Dockerfile.base $dockerfile
 echo 'EXPOSE 5783/udp' >> $dockerfile
@@ -100,23 +98,78 @@ echo 'ENTRYPOINT ["java", "-jar", "OscoreRsServer.jar", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t oscorersserver .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
+# Client 1 (for Group A)
+# Assumes container name "authorization-server" for ACE Authorization Server
+# Assumes container name "group-manager" for ACE Resource Server
+dockerfile=Dockerfile-OscoreAsRsClient-Client1
+cp ../Dockerfile.base $dockerfile
+echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
+echo 'ADD lib /apps/lib/' >> $dockerfile
+echo '' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client1", "-delay", "95", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783", "-dht"]' >> $dockerfile
+# docker build -f $dockerfile -t oscoreasrsclient-client1 .
+
+# OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
 # Client 2 (for Group B)
 # Assumes container name "authorization-server" for ACE Authorization Server
 # Assumes container name "group-manager" for ACE Resource Server
-# Selected to be pushed to Docker Hub.
 dockerfile=Dockerfile-OscoreAsRsClient-Client2
 cp ../Dockerfile.base $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-delay", "75", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-delay", "80", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t oscoreasrsclient-client2 .
+
+# OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
+# Server 1 (for Group A)
+# Assumes container name "authorization-server" for ACE Authorization Server
+# Assumes container name "group-manager" for ACE Resource Server
+dockerfile=Dockerfile-OscoreAsRsClient-Server1
+cp ../Dockerfile.base $dockerfile
+echo 'EXPOSE 4683/udp' >> $dockerfile
+echo 'ADD LED-on.py /apps' >> $dockerfile
+echo 'ADD LED-off.py /apps' >> $dockerfile
+echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
+echo 'ADD lib /apps/lib/' >> $dockerfile
+echo '' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server1", "-delay", "65", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
+# docker build -f $dockerfile -t oscoreasrsclient-server1 .
+
+# OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
+# Server 2 (for Group A)
+# Assumes container name "authorization-server" for ACE Authorization Server
+# Assumes container name "group-manager" for ACE Resource Server
+dockerfile=Dockerfile-OscoreAsRsClient-Server2
+cp ../Dockerfile.base $dockerfile
+echo 'EXPOSE 4683/udp' >> $dockerfile
+echo 'ADD LED-on.py /apps' >> $dockerfile
+echo 'ADD LED-off.py /apps' >> $dockerfile
+echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
+echo 'ADD lib /apps/lib/' >> $dockerfile
+echo '' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server2", "-delay", "55", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
+# docker build -f $dockerfile -t oscoreasrsclient-server2 .
+
+# OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
+# Server 3 (for Group A)
+# Assumes container name "authorization-server" for ACE Authorization Server
+# Assumes container name "group-manager" for ACE Resource Server
+dockerfile=Dockerfile-OscoreAsRsClient-Server3
+cp ../Dockerfile.base $dockerfile
+echo 'EXPOSE 4683/udp' >> $dockerfile
+echo 'ADD LED-on.py /apps' >> $dockerfile
+echo 'ADD LED-off.py /apps' >> $dockerfile
+echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
+echo 'ADD lib /apps/lib/' >> $dockerfile
+echo '' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server3", "-delay", "45", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
+# docker build -f $dockerfile -t oscoreasrsclient-server3 .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
 # Server 4 (for Group B)
 # Assumes container name "authorization-server" for ACE Authorization Server
 # Assumes container name "group-manager" for ACE Resource Server
-# Selected to be pushed to Docker Hub.
 dockerfile=Dockerfile-OscoreAsRsClient-Server4
 cp ../Dockerfile.base $dockerfile
 echo 'EXPOSE 4683/udp' >> $dockerfile
@@ -125,14 +178,13 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "15", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "35", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
 # docker build -f $dockerfile -t oscoreasrsclient-server4 .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
 # Server 5 (for Group B)
 # Assumes container name "authorization-server" for ACE Authorization Server
 # Assumes container name "group-manager" for ACE Resource Server
-# Selected to be pushed to Docker Hub.
 dockerfile=Dockerfile-OscoreAsRsClient-Server5
 cp ../Dockerfile.base $dockerfile
 echo 'EXPOSE 4683/udp' >> $dockerfile
@@ -141,14 +193,13 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "30", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "25", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
 # docker build -f $dockerfile -t oscoreasrsclient-server5 .
 
 # OscoreAsRsClient: Group OSCORE Server/Client which will join the group(s)
 # Server 6 (for Group B)
 # Assumes container name "authorization-server" for ACE Authorization Server
 # Assumes container name "group-manager" for ACE Resource Server
-# Selected to be pushed to Docker Hub.
 dockerfile=Dockerfile-OscoreAsRsClient-Server6
 cp ../Dockerfile.base $dockerfile
 echo 'EXPOSE 4683/udp' >> $dockerfile
@@ -157,7 +208,7 @@ echo 'ADD LED-off.py /apps' >> $dockerfile
 echo 'ADD OscoreAsRsClient.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "45", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "15", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]' >> $dockerfile
 # docker build -f $dockerfile -t oscoreasrsclient-server6 .
 
 # Adversary: Adversary for testing attacks against the group(s)
@@ -174,8 +225,7 @@ echo 'ENTRYPOINT ["java", "-jar", "Adversary.jar"]' >> $dockerfile
 
 cd ../edhoc
 
-# Phase0Server: CoAP-only server
-# Selected to be pushed to Docker Hub.
+# Phase0Server: OSCORE-only server
 dockerfile=Dockerfile-Phase0Server
 cp ../Dockerfile.base $dockerfile
 echo 'EXPOSE 5683/udp' >> $dockerfile
@@ -187,15 +237,14 @@ echo '' >> $dockerfile
 echo 'ENTRYPOINT ["java", "-jar", "Phase0Server.jar"]' >> $dockerfile
 # docker build -f $dockerfile -t phase0server .
 
-# Phase0Client: CoAP-only client
-# Assumes container name "coap-server" for server-side
-# Selected to be pushed to Docker Hub.
+# Phase0Client: OSCORE-only client
+# Assumes container name "phase0-server" for server-side
 dockerfile=Dockerfile-Phase0Client
 cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase0Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "Phase0Client.jar", "-server", "coap://coap-server:5683", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase0Client.jar", "-server", "coap://phase0-server:5683", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t phase0client .
 
 # Phase1Server: EDHOC server using method 0 and no optimized request
@@ -211,13 +260,13 @@ echo 'ENTRYPOINT ["java", "-jar", "Phase1Server.jar"]' >> $dockerfile
 # docker build -f $dockerfile -t phase1server .
 
 # Phase1Client: EDHOC client using method 0 and no optimized request
-# Assumes container name phase1server for server-side
+# Assumes container name phase1-server for server-side
 dockerfile=Dockerfile-Phase1Client
 cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase1Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "Phase1Client.jar", "-server", "coap://phase1server:5683", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase1Client.jar", "-server", "coap://phase1-server:5683", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t phase1client .
 
 # Phase2Server: EDHOC server using method 3 and no optimized request
@@ -233,13 +282,13 @@ echo 'ENTRYPOINT ["java", "-jar", "Phase2Server.jar"]' >> $dockerfile
 # docker build -f $dockerfile -t phase2server .
 
 # Phase2Client: EDHOC client using method 3 and no optimized request
-# Assumes container name phase2server for server-side
+# Assumes container name phase2-server for server-side
 dockerfile=Dockerfile-Phase2Client
 cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase2Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "Phase2Client.jar", "-server", "coap://phase2server:5683", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase2Client.jar", "-server", "coap://phase2-server:5683", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t phase2client .
 
 # Phase3Server: EDHOC server using method 0 and the optimized request
@@ -255,17 +304,16 @@ echo 'ENTRYPOINT ["java", "-jar", "Phase3Server.jar"]' >> $dockerfile
 # docker build -f $dockerfile -t phase3server .
 
 # Phase3Client: EDHOC client using method 0 and the optimized request
-# Assumes container name phase3server for server-side
+# Assumes container name phase3-server for server-side
 dockerfile=Dockerfile-Phase3Client
 cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase3Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "Phase3Client.jar", "-server", "coap://phase3server:5683", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase3Client.jar", "-server", "coap://phase3-server:5683", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t phase3client .
 
 # Phase4Server: EDHOC server using method 3 and the optimized request
-# Selected to be pushed to Docker Hub.
 dockerfile=Dockerfile-Phase4Server
 cp ../Dockerfile.base $dockerfile
 echo 'EXPOSE 5683/udp' >> $dockerfile
@@ -278,14 +326,13 @@ echo 'ENTRYPOINT ["java", "-jar", "Phase4Server.jar"]' >> $dockerfile
 # docker build -f $dockerfile -t phase4server .
 
 # Phase4Client: EDHOC client using method 3 and the optimized request
-# Assumes container name "edhoc-server" for server-side
-# Selected to be pushed to Docker Hub.
+# Assumes container name "phase4-server" for server-side
 dockerfile=Dockerfile-Phase4Client
 cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase4Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "Phase4Client.jar", "-server", "coap://edhoc-server:5683", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase4Client.jar", "-server", "coap://phase4-server:5683", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t phase4client .
 
 
@@ -298,7 +345,7 @@ then
   exit
 fi
 
-# Build a selection of the images for the Group Applications
+# Build images for the Group Applications
 
 cd ../group
 
@@ -306,24 +353,46 @@ docker build -f Dockerfile-OscoreAsServer -t authorization-server .
 
 docker build -f Dockerfile-OscoreRsServer -t group-manager .
 
-docker build -f Dockerfile-OscoreAsRsClient-Client2 -t group-client .
+docker build -f Dockerfile-OscoreAsRsClient-Client1 -t group-client1 .
 
-docker build -f Dockerfile-OscoreAsRsClient-Server4 -t group-server1 .
+docker build -f Dockerfile-OscoreAsRsClient-Client2 -t group-client2 .
 
-docker build -f Dockerfile-OscoreAsRsClient-Server5 -t group-server2 .
+docker build -f Dockerfile-OscoreAsRsClient-Server1 -t group-server1 .
 
-docker build -f Dockerfile-OscoreAsRsClient-Server6 -t group-server3 .
+docker build -f Dockerfile-OscoreAsRsClient-Server2 -t group-server2 .
+
+docker build -f Dockerfile-OscoreAsRsClient-Server3 -t group-server3 .
+
+docker build -f Dockerfile-OscoreAsRsClient-Server4 -t group-server4 .
+
+docker build -f Dockerfile-OscoreAsRsClient-Server5 -t group-server5 .
+
+docker build -f Dockerfile-OscoreAsRsClient-Server6 -t group-server6 .
+
+docker build -f Dockerfile-Adversary -t group-adversary .
 
 
-# Build a selection of the images for the EDHOC Applications
+# Build images for the EDHOC Applications
 
 cd ../edhoc
 
-docker build -f Dockerfile-Phase0Server -t coap-server .
+docker build -f Dockerfile-Phase0Server -t phase0-server .
 
-docker build -f Dockerfile-Phase0Client -t coap-client .
+docker build -f Dockerfile-Phase0Client -t phase0-client .
 
-docker build -f Dockerfile-Phase4Server -t edhoc-server .
+docker build -f Dockerfile-Phase1Server -t phase1-server .
 
-docker build -f Dockerfile-Phase4Client -t edhoc-client .
+docker build -f Dockerfile-Phase1Client -t phase1-client .
+
+docker build -f Dockerfile-Phase2Server -t phase2-server .
+
+docker build -f Dockerfile-Phase2Client -t phase2-client .
+
+docker build -f Dockerfile-Phase3Server -t phase3-server .
+
+docker build -f Dockerfile-Phase3Client -t phase3-client .
+
+docker build -f Dockerfile-Phase4Server -t phase4-server .
+
+docker build -f Dockerfile-Phase4Client -t phase4-client .
 
