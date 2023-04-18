@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Builds DHT-enabled standalone Jar files for the EDHOC Applications
-# Phase0Server: CoAP-only server
-# Phase0Client: CoAP-only client
+# Phase0Server: OSCORE-only server
+# Phase0Client: OSCORE-only client
 # Phase1Server: EDHOC server using method 0 and no optimized request
 # Phase1Client: EDHOC client using method 0 and no optimized request
 # Phase2Server: EDHOC server using method 3 and no optimized request

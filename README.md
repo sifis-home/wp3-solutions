@@ -117,8 +117,8 @@ https://www.andreafortuna.org/2016/06/08/java-tips-how-to-fix-the-invalidkeyexce
 
 - edhoc-applications/
     - **The EDHOC Applications including:**
-    - Phase0Server: CoAP-only server
-    - Phase0Client: CoAP-only client
+    - Phase0Server: OSCORE-only server
+    - Phase0Client: OSCORE-only client
     - Phase1Server: EDHOC server using method 0 and no optimized request
     - Phase1Client: EDHOC client using method 0 and no optimized request
     - Phase2Server: EDHOC server using method 3 and no optimized request

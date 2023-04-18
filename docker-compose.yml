@@ -1,0 +1,81 @@
+version: "3"
+
+services:
+  authorization-server:
+    image: ghcr.io/sifis-home/authorization-server:latest
+    entrypoint: ["java", "-jar", "OscoreAsServer.jar", "-dht", "ws://domo-dht-manager:3000/ws"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      domo-dht-manager:
+        condition: service_healthy
+
+  group-manager:
+    image: ghcr.io/sifis-home/group-manager:latest
+    entrypoint: ["java", "-jar", "OscoreRsServer.jar", "-dht", "ws://domo-dht-manager:3000/ws"]
+    depends_on:
+      domo-dht-manager:
+        condition: service_healthy  
+  
+  group-server1:
+    image: ghcr.io/sifis-home/group-server4:latest
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "20", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
+
+  group-server2:
+    image: ghcr.io/sifis-home/group-server5:latest
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "35", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
+  
+  group-server3:
+    image: ghcr.io/sifis-home/group-server6:latest
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "50", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
+  
+  group-client:
+    image: ghcr.io/sifis-home/group-client2:latest
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-delay", "65", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783", "-dht", "ws://domo-dht-manager:3000/ws"]
+    depends_on:
+      domo-dht-manager:
+        condition: service_healthy  
+    
+  oscore-server:
+    image: ghcr.io/sifis-home/phase0-server:latest
+    entrypoint: ["java", "-jar", "Phase0Server.jar"]
+  
+  oscore-client:
+    image: ghcr.io/sifis-home/phase0-client:latest
+    entrypoint: ["java", "-jar", "Phase0Client.jar", "-server", "coap://oscore-server:5683", "-dht", "ws://domo-dht-manager:3000/ws"]
+    depends_on:
+      domo-dht-manager:
+        condition: service_healthy  
+    
+  edhoc-server:
+    image: ghcr.io/sifis-home/phase4-server:latest
+    entrypoint: ["java", "-jar", "Phase4Server.jar"]
+  
+  edhoc-client:
+    image: ghcr.io/sifis-home/phase4-client:latest
+    entrypoint: ["java", "-jar", "Phase4Client.jar", "-server", "coap://edhoc-server:5683", "-dht", "ws://domo-dht-manager:3000/ws"]
+    depends_on:
+      domo-dht-manager:
+        condition: service_healthy  
+   
+  mysql:
+    image: mysql:8.0.32
+    environment:
+      - MYSQL_ROOT_PASSWORD=xxxxxx
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:3306"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+
+  domo-dht-manager:
+    image: domo-dht-manager
+    entrypoint: ["/domo-dht-manager", "/db.sqlite", "true", "5a52aafb2a44ff5c360d4dc04e4a792e28637da07b96072a2f0a5ea5286f2739", "3000", "true"]
+    ports:
+      - 3000:3000/tcp
+    healthcheck:
+      test: timeout 20s bash -c ':> /dev/tcp/127.0.0.1/3000'
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
