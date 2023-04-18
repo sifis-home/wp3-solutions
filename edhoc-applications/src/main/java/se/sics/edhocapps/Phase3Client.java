@@ -1437,20 +1437,22 @@ public class Phase3Client {
 
 			// Compile responses to send back to DHT
 			String responsesString = "";
+			String toDhtString = "";
 			for (int i = 0; i < responsesList.size(); i++) {
 				responsesString += Utils.prettyPrint(responsesList.get(i)) + "\n|\n";
+				toDhtString += "Response #" + i + ": [" + Support.responseToText(responsesList.get(i)) + "]";
 			}
 			responsesString = responsesString.replace(".", "").replace(":", " ").replace("=", "-").replace("[", "")
 					.replace("]", "").replace("/", "-").replace("\"", "").replace(".", "").replace("{", "")
 					.replace("}", "");
-			System.out.println("Compiled string with responses: " + responsesString);
+			System.out.println("Compiled responses: " + responsesString);
 
 			// Build outgoing JSON to DHT
 			JsonOut outgoing = new JsonOut();
 			RequestPubMessage pubMsg = new RequestPubMessage();
 			OutValue outVal = new OutValue();
 			outVal.setTopic("output_ed");
-			outVal.setMessage(responsesString); // Responses
+			outVal.setMessage(toDhtString); // Responses
 			pubMsg.setValue(outVal);
 			outgoing.setRequestPubMessage(pubMsg);
 			Gson gsonOut = new Gson();

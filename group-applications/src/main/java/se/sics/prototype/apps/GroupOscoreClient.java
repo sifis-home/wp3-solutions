@@ -24,6 +24,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapHandler;
@@ -31,8 +32,10 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.Utils;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
+import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.coap.CoAP.Type;
 import org.eclipse.californium.core.coap.Request;
+import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.config.CoapConfig;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.cose.KeyKeys;
@@ -387,20 +390,22 @@ public class GroupOscoreClient {
 			// Send group request and compile responses
 			ArrayList<CoapResponse> responsesList = sendRequest(messageField);
 			String responsesString = "";
+			String toDhtString = "";
 			for (int i = 0; i < responsesList.size(); i++) {
 				responsesString += Utils.prettyPrint(responsesList.get(i)) + "\n|\n";
+				toDhtString += "Response #" + i + ": [" + responseToText(responsesList.get(i)) + "]";
 			}
 			responsesString = responsesString.replace(".", "").replace(":", " ").replace("=", "-").replace("[", "")
 					.replace("]", "").replace("/", "-").replace("\"", "").replace(".", "").replace("{", "")
 					.replace("}", "");
-			System.out.println("Compiled string with responses: " + responsesString);
+			System.out.println("Compiled responses: " + responsesString);
 
 			// Build outgoing JSON to DHT
 			JsonOut outgoing = new JsonOut();
 			RequestPubMessage pubMsg = new RequestPubMessage();
 			OutValue outVal = new OutValue();
 			outVal.setTopic("output_dev1");
-			outVal.setMessage(responsesString); // Responses
+			outVal.setMessage(toDhtString); // Responses
 			pubMsg.setValue(outVal);
 			outgoing.setRequestPubMessage(pubMsg);
 			Gson gsonOut = new Gson();
@@ -417,20 +422,22 @@ public class GroupOscoreClient {
 			// Send group request and compile responses
 			ArrayList<CoapResponse> responsesList = sendRequest(messageField);
 			String responsesString = "";
+			String toDhtString = "";
 			for (int i = 0; i < responsesList.size(); i++) {
 				responsesString += Utils.prettyPrint(responsesList.get(i)) + "\n|\n";
+				toDhtString += "Response #" + i + ": [" + responseToText(responsesList.get(i)) + "]";
 			}
 			responsesString = responsesString.replace(".", "").replace(":", " ").replace("=", "-").replace("[", "")
 					.replace("]", "").replace("/", "-").replace("\"", "").replace(".", "").replace("{", "")
 					.replace("}", "");
-			System.out.println("Compiled string with responses: " + responsesString);
+			System.out.println("Compiled responses: " + responsesString);
 
 			// Build outgoing JSON to DHT
 			JsonOut outgoing = new JsonOut();
 			RequestPubMessage pubMsg = new RequestPubMessage();
 			OutValue outVal = new OutValue();
 			outVal.setTopic("output_dev2");
-			outVal.setMessage(responsesString); // Responses
+			outVal.setMessage(toDhtString); // Responses
 			pubMsg.setValue(outVal);
 			outgoing.setRequestPubMessage(pubMsg);
 			Gson gsonOut = new Gson();
@@ -454,4 +461,42 @@ public class GroupOscoreClient {
 		latch.countDown();
 	}
 
+	// Print function
+
+	/**
+	 * Convert a CoAP response to a textual representation.
+	 * 
+	 * @param resp the response
+	 * @return a textual representation
+	 */
+	public static String responseToText(CoapResponse resp) {
+		StringBuilder sb = new StringBuilder();
+		Response response = resp.advanced();
+
+		sb.append("CoAP Response. ");
+		sb.append(String.format("MID: %d. ", response.getMID()));
+		sb.append(String.format("Token: %s. ", response.getTokenString()));
+		sb.append(String.format("Type: %s. ", response.getType()));
+		ResponseCode code = response.getCode();
+		sb.append(String.format("Status: %s - %s. ", code, code.name()));
+		Long rtt = response.getApplicationRttNanos();
+		if (response.getOffloadMode() != null) {
+			if (rtt != null) {
+				sb.append(String.format("RTT: %d ms", TimeUnit.NANOSECONDS.toMillis(rtt)));
+			}
+			sb.append("(offloaded). ");
+		} else {
+			sb.append(String.format("Options: %s: ", response.getOptions()));
+			if (rtt != null) {
+				sb.append(String.format("RTT: %d ms. ", TimeUnit.NANOSECONDS.toMillis(rtt)));
+			}
+			sb.append(String.format("Payload: %d Bytes. ", response.getPayloadSize()));
+			if (response.getPayloadSize() > 0
+					&& MediaTypeRegistry.isPrintable(response.getOptions().getContentFormat())) {
+				sb.append("Payload: " + response.getPayloadString());
+			}
+		}
+
+		return sb.toString();
+	}
 }

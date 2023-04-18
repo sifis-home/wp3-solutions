@@ -18,6 +18,13 @@
 package se.sics.edhocapps;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import org.eclipse.californium.core.CoapResponse;
+import org.eclipse.californium.core.Utils;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
+import org.eclipse.californium.core.coap.Response;
+import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 
 /**
  * Supporting methods for the EDHOC applications.
@@ -64,6 +71,43 @@ public class Support {
 
 		System.out.print("-help");
 		System.out.println("\t Print help");
+	}
+
+	/**
+	 * Convert a CoAP response to a textual representation.
+	 * 
+	 * @param resp the response
+	 * @return a textual representation
+	 */
+	public static String responseToText(CoapResponse resp) {
+		StringBuilder sb = new StringBuilder();
+		Response response = resp.advanced();
+
+		sb.append("CoAP Response. ");
+		sb.append(String.format("MID: %d. ", response.getMID()));
+		sb.append(String.format("Token: %s. ", response.getTokenString()));
+		sb.append(String.format("Type: %s. ", response.getType()));
+		ResponseCode code = response.getCode();
+		sb.append(String.format("Status: %s - %s. ", code, code.name()));
+		Long rtt = response.getApplicationRttNanos();
+		if (response.getOffloadMode() != null) {
+			if (rtt != null) {
+				sb.append(String.format("RTT: %d ms", TimeUnit.NANOSECONDS.toMillis(rtt)));
+			}
+			sb.append("(offloaded). ");
+		} else {
+			sb.append(String.format("Options: %s: ", response.getOptions()));
+			if (rtt != null) {
+				sb.append(String.format("RTT: %d ms. ", TimeUnit.NANOSECONDS.toMillis(rtt)));
+			}
+			sb.append(String.format("Payload: %d Bytes. ", response.getPayloadSize()));
+			if (response.getPayloadSize() > 0
+					&& MediaTypeRegistry.isPrintable(response.getOptions().getContentFormat())) {
+				sb.append("Payload: " + response.getPayloadString());
+			}
+		}
+
+		return sb.toString();
 	}
 
 }
