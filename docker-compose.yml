@@ -17,15 +17,15 @@ services:
       domo-dht-manager:
         condition: service_healthy  
   
-  group-server1:
+  group-server-one:
     image: ghcr.io/sifis-home/group-server4:latest
     entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "20", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
 
-  group-server2:
+  group-server-two:
     image: ghcr.io/sifis-home/group-server5:latest
     entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "35", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
   
-  group-server3:
+  group-server-three:
     image: ghcr.io/sifis-home/group-server6:latest
     entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "50", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
   
