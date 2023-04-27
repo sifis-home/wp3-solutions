@@ -33,10 +33,10 @@ package se.sics.ace.as.logging;
 
 public class Logs {
 
-	private String message;
-	private int priority;
-	private int severity;
+	private String type;
+	private String priority;
 	private String category;
+	private String message;
 
 	public Logs() {
 
@@ -50,20 +50,20 @@ public class Logs {
 		return message;
 	}
 
-	public void setPriority(int priority) {
+	public void setPriority(String priority) {
 		this.priority = priority;
 	}
 
-	public int getPriority() {
+	public String getPriority() {
 		return priority;
 	}
 
-	public int getSeverity() {
-		return severity;
+	public String getType() {
+		return type;
 	}
 
-	public void setSeverity(int severity) {
-		this.severity = severity;
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public String getCategory() {

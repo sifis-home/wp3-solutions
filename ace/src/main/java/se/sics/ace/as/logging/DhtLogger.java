@@ -49,24 +49,6 @@ import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 
-/*
- * Log message format:
-{
-   "RequestPostTopicUUID":{
-      "topic_name":"SIFIS:Logs",
-      "topic_uuid":"Logs",
-      "value":{
-         "logs":{
-            "message":"Returning token. ctiStr: cnMyMA\u003d\u003d. rsName: rs2. audStr: rs2. id: Server1",
-            "priority":1,
-            "severity":0,
-            "category":"ACE Authorization Server"
-         }
-      }
-   }
-}
-*/
-
 /**
  * Handles connection establishment and sending of log messages to the DHT.
  *
@@ -84,15 +66,19 @@ public class DhtLogger {
 
 	private static String websocketUri = "ws://localhost:3000/ws";
 
+	private static int LOG_MAX_LEN = 200;
+
 	/**
 	 * Sends a logging message to the DHT
 	 * 
-	 * @param message the message
+	 * @param type the type
 	 * @param priority the priority
-	 * @param severity the severity
 	 * @param category the category
+	 * @param message the message
+	 * @param device the name of the device sending the log message
+	 * 
 	 */
-	static public void sendLog(String message, int priority, int severity, String category) {
+	static public void sendLog(String type, String priority, String category, String device, String message) {
 
 		// Return if DHT logging is not used
 		if (loggingEnabled == false) {
@@ -120,10 +106,13 @@ public class DhtLogger {
 		requestVal.setTopicName(LOG_TOPIC_NAME);
 		requestVal.setTopicUuid(LOG_TOPIC_UUID);
 
-		logsVal.setMessage(message);
+		logsVal.setType(type);
 		logsVal.setPriority(priority);
-		logsVal.setSeverity(severity);
 		logsVal.setCategory(category);
+
+		message = device + ": " + message;
+		int maxLen = Math.min(message.length(), LOG_MAX_LEN);
+		logsVal.setMessage(message.substring(0, maxLen));
 
 		valueVal.setLogs(logsVal);
 		requestVal.setValue(valueVal);
