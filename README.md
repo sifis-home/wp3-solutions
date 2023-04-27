@@ -136,6 +136,7 @@ Docker Images for the Group & EDHOC Applications are automatically pushed to [gh
 
 Available images are listed in the Packages section of the repository [here](https://github.com/orgs/sifis-home/packages?repo_name=wp3-solutions).
 
+Docker Images are available for all the applications listed above. Additionally, a Docker Compose file using a selection of images is available in the root folder of the repository.
 
 ### Code coverage reports
 
