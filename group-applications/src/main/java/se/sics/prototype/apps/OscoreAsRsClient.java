@@ -102,7 +102,7 @@ public class OscoreAsRsClient {
 	private static String GM_HOST = "localhost";
 
 	// Sets the default AS port to use
-	private static int AS_PORT = CoAP.DEFAULT_COAP_PORT;
+	private static int AS_PORT = CoAP.DEFAULT_COAP_PORT - 100;
 	// Sets the default AS hostname/IP to use
 	private static String AS_HOST = "localhost";
 

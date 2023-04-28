@@ -60,7 +60,7 @@ import com.upokecenter.cbor.CBORObject;
  */
 public class Phase1Server extends CoapServer {
 
-	private static final int COAP_PORT = Configuration.getStandard().get(CoapConfig.COAP_PORT);
+	private static final int COAP_PORT = Configuration.getStandard().get(CoapConfig.COAP_PORT) + 11;
 
 	// private static final int COAP_PORT = 5690;
 
@@ -196,7 +196,7 @@ public class Phase1Server extends CoapServer {
 		server.addEndpoints(udp);
 		server.start();
 
-		System.out.println("Server started");
+		System.out.println("Server started on port " + COAP_PORT);
 
 		// Use to dynamically generate a key pair
 		// keyPair = Util.generateKeyPair(keyCurve);

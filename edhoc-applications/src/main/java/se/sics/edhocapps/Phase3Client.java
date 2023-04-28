@@ -78,6 +78,8 @@ import org.eclipse.californium.edhoc.Util;
 @ClientEndpoint
 public class Phase3Client {
 
+	private static final int COAP_PORT = Configuration.getStandard().get(CoapConfig.COAP_PORT) + 13;
+
 	private static final File CONFIG_FILE = new File("Californium.properties");
 	private static final String CONFIG_HEADER = "Californium CoAP Properties file for Fileclient";
 	private static final int DEFAULT_MAX_RESOURCE_SIZE = 2 * 1024 * 1024; // 2MB
@@ -187,10 +189,10 @@ public class Phase3Client {
 	};
 
 	// URI of the EDHOC resource
-	private static String edhocURI = "coap://localhost/.well-known/edhoc";
+	private static String edhocURI = "coap://localhost" + ":" + COAP_PORT + "/.well-known/edhoc";
 
 	// URI of the application resource to target, following an EDHOC execution
-	private static String appRequestURI = "coap://localhost/light";
+	private static String appRequestURI = "coap://localhost" + ":" + COAP_PORT + "/light";
 
 	// CoAP method to use for the application request sent after the EDHOC
 	// execution
@@ -207,7 +209,7 @@ public class Phase3Client {
 	// combined request,
 	// conveying both EDHOC message_3 and the first OSCORE-protected application
 	// request
-	private static String edhocCombinedRequestURI = "coap://localhost/light";
+	private static String edhocCombinedRequestURI = "coap://localhost" + ":" + COAP_PORT + "/light";
 
 	// CoAP method to use for the application request sent within an EDHOC +
 	// OSCORE combined request

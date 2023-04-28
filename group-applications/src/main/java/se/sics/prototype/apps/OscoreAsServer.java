@@ -103,7 +103,7 @@ public class OscoreAsServer {
 	// SenderID.
 	private static Map<String, String> myIdentities = new HashMap<>();
 
-	static int port = CoAP.DEFAULT_COAP_PORT;
+	static int port = CoAP.DEFAULT_COAP_PORT - 100;
 
 	/**
 	 * An OSCORE AS.

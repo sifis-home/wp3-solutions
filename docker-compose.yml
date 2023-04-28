@@ -5,6 +5,8 @@ services:
   authorization-server:
     image: ghcr.io/sifis-home/authorization-server:latest
     entrypoint: ["java", "-jar", "OscoreAsServer.jar", "-dht", "ws://domo-dht-manager:3000/ws", "-db", "mysql://root:xxxxxx@mysql-db:3306"]
+    expose:
+      - "5583/udp"
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -15,29 +17,37 @@ services:
   group-manager:
     image: ghcr.io/sifis-home/group-manager:latest
     entrypoint: ["java", "-jar", "OscoreRsServer.jar", "-dht", "ws://domo-dht-manager:3000/ws"]
+    expose:
+      - "5783/udp"
     depends_on:
       domo-dht-manager:
         condition: service_healthy  
-  
+
   # Group OSCORE server (will join the group using AS and GM)
   group-server-one:
     image: ghcr.io/sifis-home/group-server4:latest
-    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "20", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "20", "-as", "coap://authorization-server:5583", "-gm", "coap://group-manager:5783"]
+    expose:
+      - "4683/udp"
 
   # Group OSCORE server (will join the group using AS and GM)
   group-server-two:
     image: ghcr.io/sifis-home/group-server5:latest
-    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "35", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
-  
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "35", "-as", "coap://authorization-server:5583", "-gm", "coap://group-manager:5783"]
+    expose:
+      - "4683/udp"
+
   # Group OSCORE server (will join the group using AS and GM)
   group-server-three:
     image: ghcr.io/sifis-home/group-server6:latest
-    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "50", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
-  
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "50", "-as", "coap://authorization-server:5583", "-gm", "coap://group-manager:5783"]
+    expose:
+      - "4683/udp"
+
   # Group OSCORE client (will join the group using AS and GM). Listens for commands from DHT to trigger request sending.
   group-client:
     image: ghcr.io/sifis-home/group-client2:latest
-    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-delay", "65", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783", "-dht", "ws://domo-dht-manager:3000/ws"]
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-delay", "65", "-as", "coap://authorization-server:5583", "-gm", "coap://group-manager:5783", "-dht", "ws://domo-dht-manager:3000/ws"]
     depends_on:
       domo-dht-manager:
         condition: service_healthy  
@@ -46,11 +56,13 @@ services:
   oscore-server:
     image: ghcr.io/sifis-home/phase0-server:latest
     entrypoint: ["java", "-jar", "Phase0Server.jar"]
-  
+    expose:
+      - "5693/udp"
+
   # OSCORE-only client. Listens for commands from DHT to trigger request sending.
   oscore-client:
     image: ghcr.io/sifis-home/phase0-client:latest
-    entrypoint: ["java", "-jar", "Phase0Client.jar", "-server", "coap://oscore-server:5683", "-dht", "ws://domo-dht-manager:3000/ws"]
+    entrypoint: ["java", "-jar", "Phase0Client.jar", "-server", "coap://oscore-server:5693", "-dht", "ws://domo-dht-manager:3000/ws"]
     depends_on:
       domo-dht-manager:
         condition: service_healthy  
@@ -59,11 +71,13 @@ services:
   edhoc-server:
     image: ghcr.io/sifis-home/phase4-server:latest
     entrypoint: ["java", "-jar", "Phase4Server.jar"]
-  
+    expose:
+      - "5697/udp"
+
   # EDHOC client (using method 3 and the optimized request). Listens for commands from DHT to trigger request sending.
   edhoc-client:
     image: ghcr.io/sifis-home/phase4-client:latest
-    entrypoint: ["java", "-jar", "Phase4Client.jar", "-server", "coap://edhoc-server:5683", "-dht", "ws://domo-dht-manager:3000/ws"]
+    entrypoint: ["java", "-jar", "Phase4Client.jar", "-server", "coap://edhoc-server:5697", "-dht", "ws://domo-dht-manager:3000/ws"]
     depends_on:
       domo-dht-manager:
         condition: service_healthy  
@@ -73,6 +87,8 @@ services:
     image: mysql:8.0.32
     environment:
       - MYSQL_ROOT_PASSWORD=xxxxxx
+    expose:
+      - "3306/tcp"
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:3306"]
         interval: 30s
@@ -83,6 +99,8 @@ services:
   domo-dht-manager:
     image: domo-dht-manager
     entrypoint: ["/domo-dht-manager", "/db.sqlite", "true", "5a52aafb2a44ff5c360d4dc04e4a792e28637da07b96072a2f0a5ea5286f2739", "3000", "true"]
+    expose:
+      - "3000/tcp"
     ports:
       - 3000:3000/tcp
     healthcheck:
@@ -90,3 +108,4 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+

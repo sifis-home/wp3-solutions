@@ -30,8 +30,10 @@ import org.eclipse.californium.core.CoapHandler;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.Utils;
 import org.eclipse.californium.core.coap.CoAP.Code;
+import org.eclipse.californium.core.config.CoapConfig;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.cose.AlgorithmID;
+import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.californium.elements.util.Bytes;
 import org.eclipse.californium.oscore.HashMapCtxDB;
 import org.eclipse.californium.oscore.OSCoreCoapStackFactory;
@@ -61,6 +63,8 @@ import se.sics.edhocapps.json.outgoing.RequestPubMessage;
 @ClientEndpoint
 public class Phase0Client {
 
+	private static final int COAP_PORT = Configuration.getStandard().get(CoapConfig.COAP_PORT) + 10;
+
 	private static CountDownLatch latch;
 	static int HANDLER_TIMEOUT = 1000;
 	static boolean useDht = false;
@@ -72,7 +76,7 @@ public class Phase0Client {
 
 	// Set accordingly
 	private final static HashMapCtxDB db = new HashMapCtxDB();
-	private static String serverUri = "coap://localhost";
+	private static String serverUri = "coap://localhost" + ":" + COAP_PORT;
 	private final static String hello1 = "/light";
 	private static String lightURI = serverUri + hello1;
 	private final static AlgorithmID alg = AlgorithmID.AES_CCM_16_64_128;

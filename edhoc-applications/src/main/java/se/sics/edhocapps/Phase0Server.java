@@ -22,10 +22,12 @@ import java.io.IOException;
 
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
+import org.eclipse.californium.core.config.CoapConfig;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.cose.AlgorithmID;
+import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.californium.oscore.HashMapCtxDB;
 import org.eclipse.californium.oscore.OSCoreCoapStackFactory;
 import org.eclipse.californium.oscore.OSCoreCtx;
@@ -38,6 +40,8 @@ import org.eclipse.californium.oscore.OSException;
  *
  */
 public class Phase0Server {
+
+	private static final int COAP_PORT = Configuration.getStandard().get(CoapConfig.COAP_PORT) + 10;
 
 	private final static HashMapCtxDB db = new HashMapCtxDB();
 	private final static String uriLocal = "coap://localhost";
@@ -61,14 +65,13 @@ public class Phase0Server {
 	 */
 	public static void main(String[] args) throws OSException {
 
-		System.out.println("Starting Phase0Server...");
-
 		OSCoreCtx ctx = new OSCoreCtx(master_secret, false, alg, sid, rid, kdf, 32, master_salt, null,
 				MAX_UNFRAGMENTED_SIZE);
 		db.addContext(uriLocal, ctx);
 		OSCoreCoapStackFactory.useAsDefault(db);
 
-		final CoapServer server = new CoapServer(5683);
+		System.out.println("Server started on port " + COAP_PORT);
+		final CoapServer server = new CoapServer(COAP_PORT);
 
 		OSCoreResource hello = new OSCoreResource("hello", true) {
 
