@@ -37,7 +37,10 @@ The following is the full list of command line parameters supported by the Oscor
 
 If the Group Manager or Authorization Server are running on a different host, the options *-gm* and *-as* can be used.  
 
-In addition, the OscoreRsServer and OscoreAsServer applications also support the *-dht* parameter to enable logging to the DHT.
+In addition, the OscoreRsServer and OscoreAsServer applications also support the *-dht* parameter to enable logging to the DHT.  
+
+Furthermore, the OscoreAsServer supports the *-db* parameter to indicate a connection string for the database.  
+Example: "mysql://root:password@localhost:3306"  
 
 **Use the following interactive script to send commands to the DHT (and trigger the clients)**  
 python dht_rest_client.py

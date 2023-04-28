@@ -41,6 +41,7 @@ import se.sics.ace.examples.SQLDBAdapter;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
 import java.sql.SQLException;
 
 /**
@@ -66,6 +67,47 @@ public class DBHelper {
 	private static String dbPort = null;
 
 	/**
+	 * Parse configuration settings for connection to the DB from string input
+	 * parameter.
+	 * 
+	 * @param dbConnStr configuration settings for the DB. Example:
+	 *            "mysql://root:password@localhost:3306"
+	 * 
+	 * @throws AceException on ACE related failure
+	 * @throws IOException on DB related failure
+	 */
+	public static void setUpDB(String dbConnStr) throws AceException, IOException {
+
+		// Load as normal from db.pwd if string is null
+		if (dbConnStr == null) {
+			setUpDB();
+			return;
+		}
+
+		// Parse user, password, host and port of DB from string
+		URI dbConn = URI.create(dbConnStr);
+
+		dbHost = dbConn.getHost();
+
+		String userInfo = dbConn.getUserInfo();
+		String[] userInfoSplit = userInfo.split(":");
+
+		if (userInfoSplit.length >= 1) {
+			dbAdminUser = userInfoSplit[0];
+		}
+		if (userInfoSplit.length >= 2) {
+			dbAdminPwd = userInfoSplit[1];
+		}
+
+		String parsedPort = String.valueOf(dbConn.getPort());
+		if (parsedPort.equals("-1") == false) {
+			dbPort = parsedPort;
+		}
+
+		setDbParams();
+	}
+
+	/**
 	 * Sets up the DB using the current default adapter.
 	 * 
 	 * @throws AceException on ACE related failure
@@ -76,6 +118,16 @@ public class DBHelper {
 		// an external file.
 		loadAdminLoginInformation();
 
+		setDbParams();
+	}
+
+	/**
+	 * Actually set the parameters for the connection to the DB. Either based on
+	 * was read from the config file, or input as parameters to setUpDB.
+	 * 
+	 * @throws AceException on ACE related failure
+	 */
+	private static void setDbParams() throws AceException {
 		// If dbHost and dbPort was set in external file, use them
 		// Otherwise default will be used in dbAdapter
 		String dbUrl = null;

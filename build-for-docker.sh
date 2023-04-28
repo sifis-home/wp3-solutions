@@ -72,6 +72,9 @@ echo '' >> Dockerfile.base
 
 cd group
 
+# Note that entrypoints must be adapted according to the location of entities, including the Servers, SQL database and DHT.
+# See the docker-compose.yml for a prepared setup.
+
 # OscoreAsServer: ACE Authorization Server
 # Assumes container name mysql for MySQL server
 # Assumes root password xxxxxx for MySQL server

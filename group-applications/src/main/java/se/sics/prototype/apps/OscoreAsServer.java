@@ -117,6 +117,7 @@ public class OscoreAsServer {
 
 		// Parse command line arguments
 		boolean useDht = false;
+		String dbConnStr = null;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
 				useDht = true;
@@ -133,6 +134,9 @@ public class OscoreAsServer {
 					i++;
 				}
 
+			} else if (args[i].toLowerCase().equals("-db")) {
+				dbConnStr = args[i + 1];
+				i++;
 			} else if (args[i].toLowerCase().equals("-help")) {
 				printHelp();
 				System.exit(0);
@@ -153,7 +157,7 @@ public class OscoreAsServer {
 		String myIdentity = buildOscoreIdentity(KeyStorage.aceSenderIds.get("AS"), idContext);
 		String asName = "AS";
 
-		DBHelper.setUpDB();
+		DBHelper.setUpDB(dbConnStr);
 		db = DBHelper.getCoapDBConnector();
 
 		CBORObject keyData = CBORObject.NewMap();
@@ -515,12 +519,16 @@ public class OscoreAsServer {
 	 * Print help message with valid command line arguments
 	 */
 	private static void printHelp() {
-		System.out.println("Usage: [ -dht {URI} ] [ -help ]");
+		System.out.println("Usage: [ -dht {URI} ] [ -db {URI} ] [ -help ]");
 
 		System.out.println("Options:");
 
 		System.out.print("-dht");
 		System.out.println("\t Use DHT: Optionally specify its WebSocket URI for logging");
+
+		System.out.print("-db");
+		System.out.println(
+				"\t URI indicating configuration settings for connection to SQL database. Example: \"mysql://root:password@localhost:3306\"");
 
 		System.out.print("-help");
 		System.out.println("\t Print help");
