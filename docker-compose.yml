@@ -1,6 +1,7 @@
 version: "3"
 
 services:
+  # ACE Authorization Server (AS)
   authorization-server:
     image: ghcr.io/sifis-home/authorization-server:latest
     entrypoint: ["java", "-jar", "OscoreAsServer.jar", "-dht", "ws://domo-dht-manager:3000/ws"]
@@ -10,6 +11,7 @@ services:
       domo-dht-manager:
         condition: service_healthy
 
+  # ACE Group Manager (GM)
   group-manager:
     image: ghcr.io/sifis-home/group-manager:latest
     entrypoint: ["java", "-jar", "OscoreRsServer.jar", "-dht", "ws://domo-dht-manager:3000/ws"]
@@ -17,18 +19,22 @@ services:
       domo-dht-manager:
         condition: service_healthy  
   
+  # Group OSCORE server (will join the group using AS and GM)
   group-server-one:
     image: ghcr.io/sifis-home/group-server4:latest
     entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "20", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
 
+  # Group OSCORE server (will join the group using AS and GM)
   group-server-two:
     image: ghcr.io/sifis-home/group-server5:latest
     entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "35", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
   
+  # Group OSCORE server (will join the group using AS and GM)
   group-server-three:
     image: ghcr.io/sifis-home/group-server6:latest
     entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "50", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783"]
   
+  # Group OSCORE client (will join the group using AS and GM). Listens for commands from DHT to trigger request sending.
   group-client:
     image: ghcr.io/sifis-home/group-client2:latest
     entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-delay", "65", "-as", "coap://authorization-server:5683", "-gm", "coap://group-manager:5783", "-dht", "ws://domo-dht-manager:3000/ws"]
@@ -36,10 +42,12 @@ services:
       domo-dht-manager:
         condition: service_healthy  
     
+  # OSCORE-only server  
   oscore-server:
     image: ghcr.io/sifis-home/phase0-server:latest
     entrypoint: ["java", "-jar", "Phase0Server.jar"]
   
+  # OSCORE-only client. Listens for commands from DHT to trigger request sending.
   oscore-client:
     image: ghcr.io/sifis-home/phase0-client:latest
     entrypoint: ["java", "-jar", "Phase0Client.jar", "-server", "coap://oscore-server:5683", "-dht", "ws://domo-dht-manager:3000/ws"]
@@ -47,10 +55,12 @@ services:
       domo-dht-manager:
         condition: service_healthy  
     
+  # EDHOC server (using method 3 and the optimized request)
   edhoc-server:
     image: ghcr.io/sifis-home/phase4-server:latest
     entrypoint: ["java", "-jar", "Phase4Server.jar"]
   
+  # EDHOC client (using method 3 and the optimized request). Listens for commands from DHT to trigger request sending.
   edhoc-client:
     image: ghcr.io/sifis-home/phase4-client:latest
     entrypoint: ["java", "-jar", "Phase4Client.jar", "-server", "coap://edhoc-server:5683", "-dht", "ws://domo-dht-manager:3000/ws"]
@@ -58,6 +68,7 @@ services:
       domo-dht-manager:
         condition: service_healthy  
    
+  # MySQL server needed for AS. The AS -db parameter contents matches the MySQL server config.
   mysql:
     image: mysql:8.0.32
     environment:
@@ -68,6 +79,7 @@ services:
         timeout: 10s
         retries: 5
 
+  # The DHT. The AS and GM uses it for logging. The clients use it to receive commands and relay back responses from the server(s).
   domo-dht-manager:
     image: domo-dht-manager
     entrypoint: ["/domo-dht-manager", "/db.sqlite", "true", "5a52aafb2a44ff5c360d4dc04e4a792e28637da07b96072a2f0a5ea5286f2739", "3000", "true"]
