@@ -1,6 +1,8 @@
 **Codebase for SIFIS-HOME including applications using OSCORE, Group OSCORE, ACE and Group Joining.**
 
-To setup and run the provided applications, follow the steps below. This will start 3 clients and 1 server in one group, and 3 clients and 1 server in another group. The servers and clients all start by first requesting an ACE Token from the Authorization Server, then posting it to the Group Manager and performing the group join procedure. After that they are ready to securely communicate with Group OSCORE in the group. The clients can be triggered to send requests by sending a message to the SIFIS-Home DHT. The clients will received this command using WebSockets from the DHT.
+To setup and run the provided applications, follow the steps below. This will start 3 clients and 1 server in one group, and 3 clients and 1 server in another group. The servers and clients all start by first requesting an ACE Token from the Authorization Server, then posting it to the Group Manager and performing the group join procedure. After that they are ready to securely communicate with Group OSCORE in the group.  
+
+The clients can be triggered to send requests by sending a message to the SIFIS-Home DHT. The clients will received this command using WebSockets from the DHT.
 
 **Start the Group Manager**  
 OscoreRsServer
