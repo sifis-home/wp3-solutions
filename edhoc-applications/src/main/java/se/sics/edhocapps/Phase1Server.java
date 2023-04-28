@@ -297,7 +297,10 @@ public class Phase1Server extends CoapServer {
 			Response r = new Response(ResponseCode.CHANGED);
 			r.getOptions().setContentFormat(MediaTypeRegistry.TEXT_PLAIN);
 
-			if (exchange.getRequestText().equals("1") || exchange.getRequestText().toLowerCase().equals("on")) {
+			if (exchange.getRequestText().toLowerCase().equals("on")
+					|| exchange.getRequestText().toLowerCase().equals("close")
+					|| exchange.getRequestText().toLowerCase().equals("lock")
+					|| exchange.getRequestText().toLowerCase().equals("1")) {
 				r.setPayload("Turning on light ");
 				System.out.println("Turning on light ");
 
@@ -309,7 +312,10 @@ public class Phase1Server extends CoapServer {
 					System.err.print("Failed to run python script: ");
 					e.printStackTrace();
 				}
-			} else if (exchange.getRequestText().equals("0") || exchange.getRequestText().toLowerCase().equals("off")) {
+			} else if (exchange.getRequestText().toLowerCase().equals("off")
+					|| exchange.getRequestText().toLowerCase().equals("open")
+					|| exchange.getRequestText().toLowerCase().equals("unlock")
+					|| exchange.getRequestText().toLowerCase().equals("0")) {
 				r.setPayload("Turning off light");
 				System.out.println("Turning off light");
 

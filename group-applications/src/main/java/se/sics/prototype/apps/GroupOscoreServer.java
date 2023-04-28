@@ -233,7 +233,8 @@ public class GroupOscoreServer {
 
 			if (exchange.getRequestText().toLowerCase().equals("off")
 					|| exchange.getRequestText().toLowerCase().equals("open")
-					|| exchange.getRequestText().toLowerCase().equals("unlock")) {
+					|| exchange.getRequestText().toLowerCase().equals("unlock")
+					|| exchange.getRequestText().toLowerCase().equals("0")) {
 				System.out.println("*** Turning OFF LEDs/solenoids ***");
 				stateOn = false;
 
@@ -247,7 +248,8 @@ public class GroupOscoreServer {
 				}
 			} else if (exchange.getRequestText().toLowerCase().equals("on")
 					|| exchange.getRequestText().toLowerCase().equals("close")
-					|| exchange.getRequestText().toLowerCase().equals("lock")) {
+					|| exchange.getRequestText().toLowerCase().equals("lock")
+					|| exchange.getRequestText().toLowerCase().equals("1")) {
 				System.out.println("*** Turning ON LEDs/solenoids ***");
 				stateOn = true;
 
