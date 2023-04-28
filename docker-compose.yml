@@ -4,9 +4,9 @@ services:
   # ACE Authorization Server (AS)
   authorization-server:
     image: ghcr.io/sifis-home/authorization-server:latest
-    entrypoint: ["java", "-jar", "OscoreAsServer.jar", "-dht", "ws://domo-dht-manager:3000/ws", "-db", "mysql://root:xxxxxx@mysql-database:3306"]
+    entrypoint: ["java", "-jar", "OscoreAsServer.jar", "-dht", "ws://domo-dht-manager:3000/ws", "-db", "mysql://root:xxxxxx@mysql-db:3306"]
     depends_on:
-      mysql:
+      mysql-db:
         condition: service_healthy
       domo-dht-manager:
         condition: service_healthy
@@ -69,7 +69,7 @@ services:
         condition: service_healthy  
    
   # MySQL server needed for AS. The AS -db parameter contents matches the MySQL server config.
-  mysql-database:
+  mysql-db:
     image: mysql:8.0.32
     environment:
       - MYSQL_ROOT_PASSWORD=xxxxxx
@@ -90,4 +90,3 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
