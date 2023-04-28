@@ -54,7 +54,7 @@ jobs:
           branch: gh-pages
 
   
-  # Build files neccessary for building of Docker Images
+  # Build files neccessary for building of Docker Images (Dockerfiles and Contexts)
   build-for-docker:
 
     runs-on: ubuntu-latest
@@ -88,7 +88,7 @@ jobs:
   
 
   # Build multiarch Docker Images and push as Github Packages
-  docker:
+  docker-image-push:
 
     if: ${{ github.repository == 'sifis-home/wp3-solutions' }}
     needs: [build-and-test, build-for-docker]

@@ -8,7 +8,7 @@ on:
 jobs:
 
   # Build executable Jar files and package as a Release
-  deploy:
+  deploy-release:
 
     runs-on: ubuntu-latest
 
