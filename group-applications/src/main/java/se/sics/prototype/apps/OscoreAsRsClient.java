@@ -169,7 +169,7 @@ public class OscoreAsRsClient {
 				AS_HOST = new URI(args[i + 1]).getHost();
 				AS_PORT = new URI(args[i + 1]).getPort();
 				i++;
-			} else if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
+			} else if (args[i].toLowerCase().endsWith("-dht") || args[i].toLowerCase().endsWith("-usedht")) {
 				useDht = true;
 
 				// Check if a WebSocket URI for the DHT is also indicated
@@ -184,10 +184,10 @@ public class OscoreAsRsClient {
 					i++;
 				}
 
-			} else if (args[i].toLowerCase().equals("-delay")) {
+			} else if (args[i].toLowerCase().endsWith("-delay")) {
 				delay = Integer.parseInt(args[i + 1]);
 				i++;
-			} else if (args[i].toLowerCase().equals("-help")) {
+			} else if (args[i].toLowerCase().endsWith("-help")) {
 				printHelp();
 				System.exit(0);
 			}

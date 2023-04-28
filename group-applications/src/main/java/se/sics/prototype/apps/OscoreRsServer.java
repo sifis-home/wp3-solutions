@@ -3268,7 +3268,7 @@ public class OscoreRsServer {
 		// Parse command line arguments
 		boolean useDht = false;
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
+			if (args[i].toLowerCase().endsWith("-dht") || args[i].toLowerCase().endsWith("-usedht")) {
 				useDht = true;
 
 				// Check if a WebSocket URI for the DHT is also indicated
@@ -3283,7 +3283,7 @@ public class OscoreRsServer {
 					i++;
 				}
 
-			} else if (args[i].toLowerCase().equals("-help")) {
+			} else if (args[i].toLowerCase().endsWith("-help")) {
 				printHelp();
 				System.exit(0);
 			}

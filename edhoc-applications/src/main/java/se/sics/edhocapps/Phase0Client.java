@@ -106,7 +106,7 @@ public class Phase0Client {
 				lightURI = serverUri + hello1;
 				i++;
 
-			} else if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
+			} else if (args[i].toLowerCase().endsWith("-dht") || args[i].toLowerCase().endsWith("-usedht")) {
 				useDht = true;
 
 				// Check if a WebSocket URI for the DHT is also indicated
@@ -121,7 +121,7 @@ public class Phase0Client {
 					i++;
 				}
 
-			} else if (args[i].toLowerCase().equals("-help")) {
+			} else if (args[i].toLowerCase().endsWith("-help")) {
 				Support.printHelp();
 				System.exit(0);
 			}
