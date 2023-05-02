@@ -31,6 +31,7 @@
  *******************************************************************************/
 package se.sics.ace.coap.dtlsProfile;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -316,7 +317,7 @@ public class TestDtlspClient2RS {
         params.put(Constants.AUD, CBORObject.FromObject("aud1"));
         params.put(Constants.CTI, CBORObject.FromObject("tokenRPK".getBytes(Constants.charset)));
         params.put(Constants.ISS, CBORObject.FromObject("TestAS"));
-
+        
         CBORObject cnf = CBORObject.NewMap();
         cnf.Add(Constants.COSE_KEY_CBOR, key.AsCBOR());
         params.put(Constants.CNF, cnf);
@@ -325,7 +326,7 @@ public class TestDtlspClient2RS {
         CoapResponse r = DTLSProfileRequests.postToken(rsAddrC, payload, null);
         CBORObject cbor = CBORObject.FromObject(r.getPayload());
         Assert.assertNotNull(cbor);
-              
+        
         CoapClient c = DTLSProfileRequests.getRpkClient(key, rsRPK);
         c.setURI("coaps://localhost/helloWorld");
         CoapResponse r2 = c.get();
@@ -414,7 +415,7 @@ public class TestDtlspClient2RS {
         params.put(Constants.AUD, CBORObject.FromObject("aud1"));
         params.put(Constants.CTI, CBORObject.FromObject("tokenPSK".getBytes(Constants.charset)));
         params.put(Constants.ISS, CBORObject.FromObject("TestAS"));
-
+        
         CBORObject cnf = CBORObject.NewMap();
         cnf.Add(Constants.COSE_KEY_CBOR, key.AsCBOR());
         params.put(Constants.CNF, cnf);

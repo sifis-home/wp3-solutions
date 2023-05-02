@@ -3951,10 +3951,11 @@ public class OscoreRsServer {
 		groupOSCORERootMembership.add(join2);
 		rs.add(authzInfo);
 
-		dpd = new CoapDeliverer(rs.getRoot(), null, asi);
+		CoapEndpoint coapEndpoint = new CoapEndpoint.Builder().setCoapStackFactory(new OSCoreCoapStackFactory())
+				.setPort(portNumberNoSec).setCustomCoapStackArgument(OscoreCtxDbSingleton.getInstance()).build();
+		rs.addEndpoint(coapEndpoint);
 
-		rs.addEndpoint(new CoapEndpoint.Builder().setCoapStackFactory(new OSCoreCoapStackFactory())
-				.setPort(portNumberNoSec).setCustomCoapStackArgument(OscoreCtxDbSingleton.getInstance()).build());
+		dpd = new CoapDeliverer(rs.getRoot(), null, asi, coapEndpoint);
 
 		rs.setMessageDeliverer(dpd);
 		rs.start();
