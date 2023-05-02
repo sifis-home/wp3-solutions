@@ -35,10 +35,6 @@ import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.californium.elements.util.Bytes;
-import org.eclipse.californium.oscore.HashMapCtxDB;
-import org.eclipse.californium.oscore.OSCoreCoapStackFactory;
-import org.eclipse.californium.oscore.OSCoreCtx;
-import org.eclipse.californium.oscore.OSException;
 import org.glassfish.tyrus.client.ClientManager;
 
 import com.google.gson.Gson;
@@ -57,7 +53,7 @@ import se.sics.edhocapps.json.outgoing.RequestPubMessage;
 
 /**
  * 
- * HelloWorldClient to display the basic OSCORE mechanics
+ * CoAP-only Client
  *
  */
 @ClientEndpoint
@@ -75,29 +71,16 @@ public class Phase0Client {
 	private static String dhtWebsocketUri = "ws://localhost:3000/ws";
 
 	// Set accordingly
-	private final static HashMapCtxDB db = new HashMapCtxDB();
 	private static String serverUri = "coap://localhost" + ":" + COAP_PORT;
 	private final static String hello1 = "/light";
 	private static String lightURI = serverUri + hello1;
-	private final static AlgorithmID alg = AlgorithmID.AES_CCM_16_64_128;
-	private final static AlgorithmID kdf = AlgorithmID.HKDF_HMAC_SHA_256;
-
-	// test vector OSCORE draft Appendix C.1.1
-	private final static byte[] master_secret = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
-			0x0C, 0x0D, 0x0E, 0x0F, 0x10 };
-	private final static byte[] master_salt = { (byte) 0x9e, (byte) 0x7c, (byte) 0xa9, (byte) 0x22, (byte) 0x23,
-			(byte) 0x78, (byte) 0x63, (byte) 0x40 };
-	private final static byte[] sid = new byte[0];
-	private final static byte[] rid = new byte[] { 0x01 };
-	private final static int MAX_UNFRAGMENTED_SIZE = 4096;
 
 	/**
-	 * Initiates and starts a simple client which supports OSCORE.
+	 * Initiates and starts a simple CoAP-only client
 	 * 
 	 * @param args command line arguments
-	 * @throws OSException on OSCORE processing failure
 	 */
-	public static void main(String[] args) throws OSException {
+	public static void main(String[] args) {
 
 		System.out.println("Starting Phase0Client...");
 
@@ -131,8 +114,6 @@ public class Phase0Client {
 			}
 		}
 
-		OSCoreCoapStackFactory.useAsDefault(db);
-
 		// Wait for EDHOC Server to become available
 		boolean serverAvailable = false;
 		do {
@@ -150,10 +131,6 @@ public class Phase0Client {
 			}
 		} while (!serverAvailable);
 		System.out.println("EDHOC Server is available.");
-
-		OSCoreCtx ctx = new OSCoreCtx(master_secret, true, alg, sid, rid, kdf, 32, master_salt, null,
-				MAX_UNFRAGMENTED_SIZE);
-		db.addContext(serverUri, ctx);
 
 		c = new CoapClient(lightURI);
 
@@ -201,16 +178,14 @@ public class Phase0Client {
 	}
 
 	/**
-	 * 
-	 * /** Method for building and sending OSCORE requests.
+	 * Method for building and sending CoAP requests.
 	 * 
 	 * @param client to use for sending
-	 * @param payload of the Group OSCORE request
+	 * @param payload of the CoAP request
 	 * @return list with responses from servers
 	 */
 	private static ArrayList<CoapResponse> sendRequest(String payload) {
 		Request r = new Request(Code.POST);
-		r.getOptions().setOscore(Bytes.EMPTY);
 		r.setPayload(payload);
 		r.setURI(lightURI);
 

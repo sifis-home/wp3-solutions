@@ -51,18 +51,11 @@ services:
     depends_on:
       domo-dht-manager:
         condition: service_healthy  
-    
-  # OSCORE-only server  
-  oscore-server:
-    image: ghcr.io/sifis-home/phase0-server:latest
-    entrypoint: ["java", "-jar", "Phase0Server.jar"]
-    expose:
-      - "5693/udp"
 
-  # OSCORE-only client. Listens for commands from DHT to trigger request sending.
-  oscore-client:
+  # CoAP-only client. Listens for commands from DHT to trigger request sending.
+  coap-client:
     image: ghcr.io/sifis-home/phase0-client:latest
-    entrypoint: ["java", "-jar", "Phase0Client.jar", "-server", "coap://oscore-server:5693", "-dht", "ws://domo-dht-manager:3000/ws"]
+    entrypoint: ["java", "-jar", "Phase0Client.jar", "-server", "coap://edhoc-server:5697", "-dht", "ws://domo-dht-manager:3000/ws"]
     depends_on:
       domo-dht-manager:
         condition: service_healthy  

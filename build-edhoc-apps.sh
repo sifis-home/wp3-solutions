@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Builds DHT-enabled standalone Jar files for the EDHOC Applications
-# Phase0Server: OSCORE-only server
-# Phase0Client: OSCORE-only client
+# Phase0Client: CoAP-only client
 # Phase1Server: EDHOC server using method 0 and no optimized request
 # Phase1Client: EDHOC client using method 0 and no optimized request
 # Phase2Server: EDHOC server using method 3 and no optimized request
@@ -72,8 +71,6 @@ echo "*** Building EDHOC Applications ***"
 mkdir -p lib
 
 # Servers
-mvn clean package -Dfully.qualified.main.class="se.sics.edhocapps.Phase0Server" -DjarName="Phase0Server"
-mv target/Phase0Server.jar .
 mvn clean package -Dfully.qualified.main.class="se.sics.edhocapps.Phase1Server" -DjarName="Phase1Server"
 mv target/Phase1Server.jar .
 mvn clean package -Dfully.qualified.main.class="se.sics.edhocapps.Phase2Server" -DjarName="Phase2Server"

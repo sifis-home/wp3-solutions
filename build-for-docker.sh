@@ -228,26 +228,14 @@ echo 'ENTRYPOINT ["java", "-jar", "Adversary.jar"]' >> $dockerfile
 
 cd ../edhoc
 
-# Phase0Server: OSCORE-only server
-dockerfile=Dockerfile-Phase0Server
-cp ../Dockerfile.base $dockerfile
-echo 'EXPOSE 5693/udp' >> $dockerfile
-echo 'ADD LED-on.py /apps' >> $dockerfile
-echo 'ADD LED-off.py /apps' >> $dockerfile
-echo 'ADD Phase0Server.jar /apps' >> $dockerfile
-echo 'ADD lib /apps/lib/' >> $dockerfile
-echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "Phase0Server.jar"]' >> $dockerfile
-# docker build -f $dockerfile -t phase0server .
-
-# Phase0Client: OSCORE-only client
-# Assumes container name "phase0-server" for server-side
+# Phase0Client: CoAP-only client
+# Assumes container name "phase4-server" for server-side
 dockerfile=Dockerfile-Phase0Client
 cp ../Dockerfile.base $dockerfile
 echo 'ADD Phase0Client.jar /apps' >> $dockerfile
 echo 'ADD lib /apps/lib/' >> $dockerfile
 echo '' >> $dockerfile
-echo 'ENTRYPOINT ["java", "-jar", "Phase0Client.jar", "-server", "coap://phase0-server:5693", "-dht"]' >> $dockerfile
+echo 'ENTRYPOINT ["java", "-jar", "Phase0Client.jar", "-server", "coap://phase4-server:5697", "-dht"]' >> $dockerfile
 # docker build -f $dockerfile -t phase0client .
 
 # Phase1Server: EDHOC server using method 0 and no optimized request
@@ -378,8 +366,6 @@ docker build -f Dockerfile-Adversary -t group-adversary .
 # Build images for the EDHOC Applications
 
 cd ../edhoc
-
-docker build -f Dockerfile-Phase0Server -t phase0-server .
 
 docker build -f Dockerfile-Phase0Client -t phase0-client .
 

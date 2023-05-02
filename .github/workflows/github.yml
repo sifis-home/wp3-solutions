@@ -223,17 +223,7 @@ jobs:
           tags: ghcr.io/sifis-home/group-server6:latest
           outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions - Group OSCORE Server 6 (Group B)
 
-      - name: Build and push image (OSCORE Phase0Server)
-        uses: docker/build-push-action@v4
-        with:
-          context: docker-build/edhoc/.
-          file: docker-build/edhoc/Dockerfile-Phase0Server
-          platforms: linux/amd64, linux/arm64, linux/arm
-          push: true
-          tags: ghcr.io/sifis-home/phase0-server:latest
-          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions - Phase0Server (OSCORE-only Server)
-
-      - name: Build and push image (OSCORE Phase0Client)
+      - name: Build and push image (CoAP Phase0Client)
         uses: docker/build-push-action@v4
         with:
           context: docker-build/edhoc/.
@@ -241,7 +231,7 @@ jobs:
           platforms: linux/amd64, linux/arm64, linux/arm
           push: true
           tags: ghcr.io/sifis-home/phase0-client:latest
-          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions - Phase0Client (OSCORE-only Client)
+          outputs: type=registry, annotation-index.org.opencontainers.image.description=wp3-solutions - Phase0Client (CoAP-only Client)
 
       - name: Build and push image (EDHOC Phase1Server)
         uses: docker/build-push-action@v4
