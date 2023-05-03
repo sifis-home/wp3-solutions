@@ -353,6 +353,7 @@ public class Token implements Endpoint, AutoCloseable {
             this.db.purgeExpiredTokens(this.time.getCurrentTime());
         } catch (AceException e) {
             LOGGER.severe("Database error: " + e.getMessage());
+			DhtLogger.sendLog(TYPE_ERROR, PRIO_HIGH, CAT_STATUS, DEVICE_NAME, "Database error");
             return msg.failReply(Message.FAIL_INTERNAL_SERVER_ERROR, null);
         }
 
@@ -367,7 +368,9 @@ public class Token implements Endpoint, AutoCloseable {
         if (id == null) {
             CBORObject map = CBORObject.NewMap();
             map.Add(Constants.ERROR, Constants.UNAUTHORIZED_CLIENT);
-            LOGGER.log(Level.INFO, "Message processing aborted: " + "unauthorized client: " + id);
+            LOGGER.log(Level.INFO, "Message processing aborted: " + "unauthorized client");
+			DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
+					"Message processing aborted: " + "unauthorized client: " + id);
             return msg.failReply(Message.FAIL_UNAUTHORIZED, map);
         }
 
@@ -376,7 +379,9 @@ public class Token implements Endpoint, AutoCloseable {
             if (id == null) {
                 CBORObject map = CBORObject.NewMap();
                 map.Add(Constants.ERROR, Constants.UNAUTHORIZED_CLIENT);
-                LOGGER.log(Level.INFO, "Message processing aborted: " + "unauthorized client: " + id);
+				LOGGER.log(Level.INFO, "Message processing aborted: " + "unauthorized client");
+				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
+						"Message processing aborted: " + "unauthorized client: " + id);
                 return msg.failReply(Message.FAIL_UNAUTHORIZED, map);
             }
         }
@@ -385,11 +390,14 @@ public class Token implements Endpoint, AutoCloseable {
             if (!this.pdp.canAccessToken(id)) {
                 CBORObject map = CBORObject.NewMap();
                 map.Add(Constants.ERROR, Constants.UNAUTHORIZED_CLIENT);
-                LOGGER.log(Level.INFO, "Message processing aborted: " + "unauthorized client: " + id);
+                LOGGER.log(Level.INFO, "Message processing aborted: " + "unauthorized client");
+				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
+						"Message processing aborted: " + "unauthorized client: " + id);
                 return msg.failReply(Message.FAIL_UNAUTHORIZED, map);
             }
         } catch (AceException e) {
             LOGGER.severe("Database error: " + e.getMessage());
+			DhtLogger.sendLog(TYPE_ERROR, PRIO_HIGH, CAT_STATUS, DEVICE_NAME, "Database error");
             return msg.failReply(Message.FAIL_INTERNAL_SERVER_ERROR, null);
         }
 
@@ -404,6 +412,8 @@ public class Token implements Endpoint, AutoCloseable {
         CBORObject map = CBORObject.NewMap();
         map.Add(Constants.ERROR, Constants.UNSUPPORTED_GRANT_TYPE);
         LOGGER.log(Level.INFO, "Message processing aborted: " + "unsupported_grant_type");
+		DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
+				"Message processing aborted: " + "unsupported_grant_type");
         return msg.failReply(Message.FAIL_BAD_REQUEST, map);
     }
 

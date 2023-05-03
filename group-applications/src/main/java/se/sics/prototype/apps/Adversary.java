@@ -40,6 +40,7 @@ import java.net.URI;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
@@ -84,7 +85,7 @@ import se.sics.prototype.support.Tools;
  *
  * 1. Invalid request for Access Token from AS
  * 
- * 2. Invalid roles when joining group at GM
+ * 2. Invalid request to join group at GM
  * 
  * 3. Injecting Group messages (which will be rejected)
  *
@@ -95,17 +96,13 @@ import se.sics.prototype.support.Tools;
  */
 public class Adversary {
 
-	/**
-	 * File name for network configuration.
-	 */
+	// File name for network configuration.
 	private static final File CONFIG_FILE = new File("CaliforniumMulticast.properties");
-	/**
-	 * Header for network configuration.
-	 */
+
+	// Header for network configuration.
 	private static final String CONFIG_HEADER = "Californium CoAP Properties file for Multicast Client";
-	/**
-	 * Special network configuration defaults handler.
-	 */
+
+	// Special network configuration defaults handler.
 	private static DefinitionsProvider DEFAULTS = new DefinitionsProvider() {
 
 		@Override
@@ -115,14 +112,10 @@ public class Adversary {
 
 	};
 
-	/**
-	 * Time to wait for replies to the multicast request
-	 */
+	// Time to wait for replies to the multicast request
 	private static final int HANDLER_TIMEOUT = 2000;
 
-	/**
-	 * Port to send to.
-	 */
+	// Port to send multicast requests to (injected requests)
 	private static final int destinationPort = CoAP.DEFAULT_COAP_PORT - 1000;
 
 	// Sets the default GM port to use
@@ -131,15 +124,9 @@ public class Adversary {
 	private static String GM_HOST = "localhost";
 
 	// Sets the default AS port to use
-	private static int AS_PORT = CoAP.DEFAULT_COAP_PORT;
+	private static int AS_PORT = CoAP.DEFAULT_COAP_PORT - 100;
 	// Sets the default AS hostname/IP to use
 	private static String AS_HOST = "localhost";
-
-	// Port to send to using multicast
-	static final int sendPortMulticast = CoAP.DEFAULT_COAP_PORT - 1000;
-
-	// Multicast IP for Group A
-	static final InetAddress groupA_multicastIP = new InetSocketAddress("224.0.1.191", 0).getAddress();
 
 	// Multicast IP for Group B
 	static final InetAddress groupB_multicastIP = new InetSocketAddress("224.0.1.192", 0).getAddress();
@@ -160,20 +147,8 @@ public class Adversary {
 	// Uncomment to set curve X25519 for pairwise key derivation
 	private static int ecdhKeyCurve = KeyKeys.OKP_X25519.AsInt32();
 
-	static byte[] replayMessageBytes_groupB = new byte[] { (byte) 0x58, (byte) 0x02, (byte) 0xff, (byte) 0xaf,
-			(byte) 0x8a, (byte) 0xe6, (byte) 0xef, (byte) 0xb7, (byte) 0x5a, (byte) 0x2f, (byte) 0x41, (byte) 0xd9,
-			(byte) 0x9a, (byte) 0x39, (byte) 0x01, (byte) 0x06, (byte) 0xbb, (byte) 0xbb, (byte) 0xbb, (byte) 0x57,
-			(byte) 0xf0, (byte) 0x3a, (byte) 0x22, (byte) 0xff, (byte) 0xce, (byte) 0x88, (byte) 0x00, (byte) 0xf4,
-			(byte) 0x52, (byte) 0x45, (byte) 0x54, (byte) 0x73, (byte) 0x2f, (byte) 0x3b, (byte) 0xaa, (byte) 0x85,
-			(byte) 0x7b, (byte) 0xb9, (byte) 0xc9, (byte) 0x28, (byte) 0x74, (byte) 0x58, (byte) 0xc1, (byte) 0x96,
-			(byte) 0x1a, (byte) 0x37, (byte) 0x0e, (byte) 0x6c, (byte) 0xa9, (byte) 0x60, (byte) 0x3c, (byte) 0x57,
-			(byte) 0x2f, (byte) 0x50, (byte) 0x17, (byte) 0x89, (byte) 0x8d, (byte) 0x65, (byte) 0xb8, (byte) 0x2b,
-			(byte) 0x65, (byte) 0x1f, (byte) 0x2a, (byte) 0x4f, (byte) 0x5b, (byte) 0x24, (byte) 0xe7, (byte) 0x92,
-			(byte) 0xc9, (byte) 0xea, (byte) 0x10, (byte) 0xdd, (byte) 0x0b, (byte) 0xb0, (byte) 0x97, (byte) 0x20,
-			(byte) 0xba, (byte) 0xa1, (byte) 0x40, (byte) 0xa3, (byte) 0x95, (byte) 0xce, (byte) 0x59, (byte) 0xb9,
-			(byte) 0xe3, (byte) 0x25, (byte) 0x67, (byte) 0x6b, (byte) 0xd0, (byte) 0x2f, (byte) 0x4c, (byte) 0xe6,
-			(byte) 0x69, (byte) 0x8b, (byte) 0xb9, (byte) 0xde, (byte) 0xc7, (byte) 0xf9, (byte) 0xc4, (byte) 0x0e,
-			(byte) 0x86, (byte) 0x63, (byte) 0x3f, (byte) 0x5b, (byte) 0xec, (byte) 0x90, (byte) 0xc8, (byte) 0x75 };
+	static byte[] injectedRequest_groupB = StringUtil.hex2ByteArray(
+			"5802fec87e39b970d4f952779a390006bbbbbb57f03a22ff0245768cf835da1d58c887e5717d49979ceef353a547607568810f0092a88a7e903aff35bb4948a46d3507e549fb45708d2924df1eef8a18b08b43b3a1a7345ff95d252a08219dab64a3a01cab6d2e2f5c9e4f62");
 
 	/**
 	 * Main method for Token request followed by Group joining
@@ -230,7 +205,6 @@ public class Adversary {
 			e.printStackTrace();
 		}
 
-
 		// Build empty sets of assigned Sender IDs; one set for each possible
 		for (int i = 0; i < 4; i++) {
 			// Sender ID size in bytes.
@@ -243,8 +217,7 @@ public class Adversary {
 		InetAddress multicastIP = groupB_multicastIP;
 
 		// Set key (OSCORE master secret) to use towards AS
-		byte[] keyToAS;
-		keyToAS = KeyStorage.memberAsKeys.get(memberName);
+		byte[] keyToAS = KeyStorage.memberAsKeys.get(memberName);
 
 		System.out.println("Adversary configured with parameters:");
 		System.out.println("\tAS: " + AS_HOST + ":" + AS_PORT);
@@ -257,12 +230,13 @@ public class Adversary {
 
 			System.out.println("");
 			System.out.println("Enter attack type: ");
-			System.out.println("1. Invalid request for Access Token from AS");
-			System.out.println("2. Invalid roles when joining group at GM");
-			System.out.println("3. Injecting Group messages (which will be rejected)");
+			System.out.println("1. Request Access Token from AS without correct credentials");
+			System.out.println("2. Attempt to Join group without correct rights");
+			System.out.println("3. Injecting a request message to the Group");
 			attackType = scanner.next();
 		}
 
+		// Enable (Group) OSCORE stack for ACE-based attacks
 		if (attackType.equals("1") || attackType.equals("2")) {
 			// Explicitly enable the OSCORE Stack
 			if (CoapEndpoint.isDefaultCoapStackFactorySet() == false) {
@@ -292,6 +266,8 @@ public class Adversary {
 	}
 
 	/**
+	 * Inject a message to the group (group B)
+	 * 
 	 * @param multicastIP targeted multicast IP for this group
 	 */
 	private static void injectGroupRequest(InetAddress multicastIP) {
@@ -299,7 +275,7 @@ public class Adversary {
 		UdpDataParser parser = new UdpDataParser();
 		Request replayRequest = null;
 
-		replayRequest = (Request) parser.parseMessage(replayMessageBytes_groupB);
+		replayRequest = (Request) parser.parseMessage(injectedRequest_groupB);
 
 		Request multicastRequest = replayRequest;
 
@@ -337,18 +313,37 @@ public class Adversary {
 		for (int i = 0; i < responseList.size(); i++) {
 			System.out.println(Utils.prettyPrint(responseList.get(i)));
 		}
+		handler.clearResponses();
 	}
 
 	/**
+	 * Perform an invalid Join request towards the GM
+	 * 
 	 * @param memberName the member name
 	 * @param group the group name
 	 * @param keyToAS this peer's shared key with the AS
 	 * @throws Exception on failure
 	 */
 	private static void invalidJoinRequest(String memberName, String group, byte[] keyToAS) throws Exception {
+		waitforAs();
 		System.out.println("Will now request Token from Authorization Server");
 		Response responseFromAS = requestToken(memberName, group, keyToAS, false);
 
+		waitForGm();
+		System.out.println("GM is available. Proceeding to post Token to GM.");
+
+		// Perform invalid join request
+		OneKey cKeyPair = new MultiKey(KeyStorage.memberCcs.get(memberName),
+				KeyStorage.memberPrivateKeys.get(memberName)).getCoseKey();
+		byte[] memberCcs = KeyStorage.memberCcs.get(memberName);
+		testGroupOSCOREMultipleRoles(memberName, group, GM_HOST, GM_PORT, db, cKeyPair, responseFromAS,
+				memberCcs, true);
+	}
+
+	/**
+	 * Waits for Group Manager to become accessible
+	 */
+	private static void waitForGm() {
 		// Wait for Group Manager to become available
 		boolean gmAvailable = false;
 		do {
@@ -366,17 +361,11 @@ public class Adversary {
 				System.err.println("GM hostname not available. Retrying...");
 			}
 		} while (!gmAvailable);
-		System.out.println("GM is available. Proceeding to post Token to GM.");
-
-		// Perform invalid join request
-		OneKey cKeyPair = new MultiKey(KeyStorage.memberCcs.get(memberName),
-				KeyStorage.memberPrivateKeys.get(memberName)).getCoseKey();
-		byte[] memberCcs = KeyStorage.memberCcs.get(memberName);
-		testSuccessGroupOSCOREMultipleRoles(memberName, group, GM_HOST, GM_PORT, db, cKeyPair, responseFromAS,
-				memberCcs, true);
 	}
 
 	/**
+	 * Perform an invalid request for a Token from the AS
+	 * 
 	 * @param memberName the member name
 	 * @param group the group name
 	 * @param keyToAS this peer's shared key with the AS
@@ -384,6 +373,18 @@ public class Adversary {
 	 */
 	private static void invalidTokenRequest(String memberName, String group, byte[] keyToAS) throws Exception {
 		// Wait for Authorization Server to become available
+		waitforAs();
+		System.out.println("AS is available.");
+
+		// Now request Token
+		System.out.println("Will now request Token from Authorization Server");
+		requestToken(memberName, group, keyToAS, true);
+	}
+
+	/**
+	 * Wait for Authorization Server to become accessible
+	 */
+	private static void waitforAs() {
 		boolean asAvailable = false;
 		do {
 			String asUri = "coap://" + AS_HOST + ":" + AS_PORT + "/token";
@@ -400,10 +401,6 @@ public class Adversary {
 				System.err.println("AS hostname not available. Retrying...");
 			}
 		} while (!asAvailable);
-		System.out.println("AS is available.");
-
-		System.out.println("Will now request Token from Authorization Server");
-		requestToken(memberName, group, keyToAS, true);
 	}
 
 	/**
@@ -464,6 +461,10 @@ public class Adversary {
 		}
 
 		byte[] senderId = KeyStorage.aceSenderIds.get(clientID);
+
+		if (invalid) {
+			senderId = new byte[] { (byte) 0xFF, (byte) 0xFF };
+		}
 		byte[] recipientId = KeyStorage.aceSenderIds.get("AS");
 		OSCoreCtx ctx = new OSCoreCtx(key128, true, null, senderId, recipientId, null, null, null, null,
 				MAX_UNFRAGMENTED_SIZE, true);
@@ -480,7 +481,15 @@ public class Adversary {
 		// Map<Short, CBORObject> map = Constants.getParams(res);
 		// System.out.println(map);
 
-		System.out.println("Received response from AS to Token request: " + res.toString());
+		System.out.println("\nReceived response from AS to Token request: " + res.toString());
+
+		Collection<CBORObject> keys = res.getKeys();
+		if (keys.contains(CBORObject.FromObject(Constants.ERROR))) {
+			System.out.print("Error: ");
+		}
+		if (res.get(Constants.ERROR).AsInt32() == Constants.UNAUTHORIZED_CLIENT) {
+			System.out.println("Unauthorized Client");
+		}
 
 		db.purge();
 		return response;
@@ -503,7 +512,7 @@ public class Adversary {
 	 * @return the generated Group OSCORE context after joining
 	 * @throws Exception on failure
 	 */
-	public static GroupCtx testSuccessGroupOSCOREMultipleRoles(String memberName, String groupName, String rsAddr,
+	public static GroupCtx testGroupOSCOREMultipleRoles(String memberName, String groupName, String rsAddr,
 			int portNumberRSnosec, OSCoreCtxDB ctxDB, OneKey cKeyPair, Response responseFromAS, byte[] clientCcsBytes,
 			boolean invalid) throws Exception {
 
@@ -520,9 +529,14 @@ public class Adversary {
 
 		int myRoles = 0;
 		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
-		// myRoles = Util.addGroupOSCORERole(myRoles,
-		// Constants.GROUP_OSCORE_RESPONDER);
 		cborArrayEntry.Add(myRoles);
+
+		if (invalid) {
+			myRoles = 0;
+			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
+			cborArrayEntry.Add(myRoles);
+		}
 
 		cborArrayScope.Add(cborArrayEntry);
 		byte[] byteStringScope = cborArrayScope.EncodeToBytes();
@@ -725,9 +739,6 @@ public class Adversary {
 			System.out.println(r2.getOptions().getLocationPathString());
 		}
 
-		System.out.println("Response from GM: ");
-		System.out.println(r2.getResponseText());
-
 		printResponseFromRS(r2.advanced());
 
 		byte[] responsePayload = r2.getPayload();
@@ -735,19 +746,11 @@ public class Adversary {
 
 		// Final join response parsing and Group Context generation
 
-		// Print the join response
-		// Tools.printJoinResponse(joinResponse);
-
-		// Pause if this is for server7
-		if (!memberName.toLowerCase().contains("server7")) {
-			System.out.println("Has now joined the OSCORE group.");
-		} else {
-			printPause(memberName, "Has now joined the OSCORE group.");
-		}
-
 		MultiKey clientKey = new MultiKey(authCred, cKeyPair.get(KeyKeys.OKP_D).GetByteString());
-		GroupCtx groupOscoreCtx = Tools.generateGroupOSCOREContext(joinResponse, clientKey);
-
+		GroupCtx groupOscoreCtx = null;
+		if (joinResponse.get(CBORObject.FromObject(Constants.KDC_CRED)) != null) {
+			groupOscoreCtx = Tools.generateGroupOSCOREContext(joinResponse, clientKey);
+		}
 		return groupOscoreCtx;
 	}
 
@@ -810,12 +813,9 @@ public class Adversary {
 	 * Print help message with valid command line arguments
 	 */
 	private static void printHelp() {
-		System.out.println("Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [-delay Seconds ] [ -dht {URI} ] [ -help ]");
+		System.out.println("Usage: [ -gm URI ] [ -as URI ] [-delay Seconds ] [ -help ]");
 
 		System.out.println("Options:");
-
-		System.out.print("-name");
-		System.out.println("\t Name/Role of this peer");
 
 		System.out.print("-gm");
 		System.out.println("\t Group Manager base URI");
@@ -825,9 +825,6 @@ public class Adversary {
 
 		System.out.print("-delay");
 		System.out.println("\t Delay in seconds before starting");
-
-		System.out.print("-dht");
-		System.out.println("\t Use DHT: Optionally specify its WebSocket URI");
 
 		System.out.print("-help");
 		System.out.println("\t Print help");
