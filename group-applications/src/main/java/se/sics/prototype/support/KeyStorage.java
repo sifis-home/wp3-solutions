@@ -76,6 +76,10 @@ public class KeyStorage {
 				0x55, 0x55, 0x55, 0x55 });
 		memberAsKeys.put("Server6", new byte[] { 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
 				0x66, 0x66, 0x66, 0x66 });
+		memberAsKeys.put("Adversary",
+				new byte[] { (byte) 0x99, (byte) 0x99, (byte) 0x99, (byte) 0x99, (byte) 0x99, (byte) 0x99, (byte) 0x99,
+						(byte) 0x99, (byte) 0x99, (byte) 0x99, (byte) 0x99, (byte) 0x99, (byte) 0x99, (byte) 0x99,
+						(byte) 0x99, (byte) 0x99 });
 	}
 
 	/**
@@ -93,6 +97,7 @@ public class KeyStorage {
 		aceSenderIds.put("Server4", new byte[] { (byte) 0xA8 });
 		aceSenderIds.put("Server5", new byte[] { (byte) 0xA9 });
 		aceSenderIds.put("Server6", new byte[] { (byte) 0xAA });
+		aceSenderIds.put("Adversary", new byte[] { (byte) 0x99 });
 	}
 
 	/**
@@ -117,6 +122,8 @@ public class KeyStorage {
 				"A202675365727665723508A101A40101032720062158204F8D92825564057CEAAF1CC8C2ABAD0F0542BEA9A6E171BD9C7086138AF885FB"));
 		memberCcs.put("Server6", StringUtil.hex2ByteArray(
 				"A202675365727665723608A101A401010327200621582003409CBD38DC73250E79B9F627739ECD78CC89651E89929983FAF8BFC94FDCA2"));
+		memberCcs.put("Adversary", StringUtil.hex2ByteArray(
+				"A2026941647665727361727908A101A40101032720062158208ED61CBEAD281DD16FD086280B207AD3FB706DF23E37BC43A00DF13047E4CDC4"));
 	}
 
 	/**
@@ -141,6 +148,8 @@ public class KeyStorage {
 				StringUtil.hex2ByteArray("B414D24D3D45D0AFA4172EE66CEC88685AFEB4FF011A9C04C0AB4CEC763616E9"));
 		memberPrivateKeys.put("Server6",
 				StringUtil.hex2ByteArray("F444DF1A8899E2C3733F391823A492B4607489820D0304530D15A2BB6B746D9A"));
+		memberPrivateKeys.put("Adversary",
+				StringUtil.hex2ByteArray("A90B7D8A9E6D32DDFC794494D446F0E56505094203209BEF64A6800CF35F3988"));
 	}
 
 }

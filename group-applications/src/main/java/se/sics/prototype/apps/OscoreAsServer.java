@@ -177,7 +177,7 @@ public class OscoreAsServer {
 		scopes.add("rw_valve");
 		scopes.add("r_pressure");
 		scopes.add("foobar");
-		// Group OSCORE prototype scopes
+		// Group OSCORE scopes
 		scopes.add("aaaaaa570000_requester");
 		scopes.add("aaaaaa570000_responder");
 		scopes.add("aaaaaa570000_monitor");
@@ -188,7 +188,7 @@ public class OscoreAsServer {
 		scopes.add("bbbbbb570000_monitor");
 		scopes.add("bbbbbb570000_requester_responder");
 		scopes.add("bbbbbb570000_requester_monitor");
-		// End Group OSCORE prototype scopes
+		// End Group OSCORE scopes
 		Set<String> auds = new HashSet<>();
 		auds.add("rs2");
 		Set<String> keyTypes = new HashSet<>();
@@ -220,7 +220,7 @@ public class OscoreAsServer {
 		peerIdentitiesToNames.put(peerIdentity, "ClientA");
 		myIdentities.put("ClientA", myIdentity);
 
-		/* --- Configure clients and servers for prototype --- */
+		/* --- Configure clients and servers --- */
 
 		CBORObject myKey = CBORObject.NewMap();
 		myKey.Add(KeyKeys.KeyType.AsCBOR(), KeyKeys.KeyType_Octet);
@@ -342,7 +342,22 @@ public class OscoreAsServer {
 		peerIdentitiesToNames.put(peerIdentity, "Server6");
 		myIdentities.put("Server6", myIdentity);
 
-		/* --- End configure clients and servers for prototype --- */
+		myKey = CBORObject.NewMap();
+		myKey.Add(KeyKeys.KeyType.AsCBOR(), KeyKeys.KeyType_Octet);
+		myKey.Add(KeyKeys.Octet_K.AsCBOR(), CBORObject.FromObject(KeyStorage.memberAsKeys.get("Adversary")));
+		myPsk = new OneKey(myKey);
+
+		profiles.clear();
+		profiles.add("coap_oscore");
+		keyTypes.clear();
+		keyTypes.add("PSK");
+		db.addClient("Adversary", profiles, null, null, keyTypes, myPsk, null);
+		peerIdentity = buildOscoreIdentity(KeyStorage.aceSenderIds.get("Adversary"), idContext);
+		peerNamesToIdentities.put("Adversary", peerIdentity);
+		peerIdentitiesToNames.put(peerIdentity, "Adversary");
+		myIdentities.put("Adversary", myIdentity);
+
+		/* --- End configure clients and servers --- */
 
 		KissTime time = new KissTime();
 		String cti = Base64.getEncoder().encodeToString(new byte[] { 0x00 });
@@ -410,7 +425,7 @@ public class OscoreAsServer {
 		pdp.addAccess("clientE", "rs3", "failTokenType");
 		pdp.addAccess("clientE", "rs3", "failProfile");
 
-		/* --- Configure clients and servers for prototype --- */
+		/* --- Configure clients and servers --- */
 
 		// Add rs2 as OSCORE Group Manager
 		Set<String> rs2 = Collections.singleton("rs2");
@@ -424,6 +439,7 @@ public class OscoreAsServer {
 		pdp.addTokenAccess("Server4");
 		pdp.addTokenAccess("Server5");
 		pdp.addTokenAccess("Server6");
+		pdp.addTokenAccess("Adversary");
 
 		// Group A
 
@@ -477,7 +493,9 @@ public class OscoreAsServer {
 		pdp.addAccess("Server6", "rs2", "bbbbbb570000_requester_monitor");
 		pdp.addAccess("Server6", "rs2", "bbbbbb570000_requester_responder");
 
-		/* --- End configure clients and servers for prototype --- */
+		pdp.addAccess("Adversary", "rs2", "bbbbbb570000_requester");
+
+		/* --- End configure clients and servers --- */
 
 		as = new OscoreAS(asName, db, pdp, time, asymmKey, "token", "introspect", port, null, false, (short) 1, true,
 				peerNamesToIdentities, peerIdentitiesToNames, myIdentities);

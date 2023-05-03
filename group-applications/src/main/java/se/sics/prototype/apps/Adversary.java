@@ -1,45 +1,97 @@
 /*******************************************************************************
- * Copyright (c) 2018 Bosch Software Innovations GmbH and others.
- * 
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * and Eclipse Distribution License v1.0 which accompany this distribution.
- * 
- * The Eclipse Public License is available at
- *    http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at
- *    http://www.eclipse.org/org/documents/edl-v10.html.
- * 
- * Contributors:
- *    Bosch Software Innovations - initial creation
- *    Rikard Höglund (RISE)
- ******************************************************************************/
+ * Copyright (c) 2023, RISE AB
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions 
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, 
+ *    this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice, 
+ *    this list of conditions and the following disclaimer in the documentation 
+ *    and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR 
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *******************************************************************************/
 package se.sics.prototype.apps;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapHandler;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.Utils;
 import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Request;
+import org.eclipse.californium.core.coap.Response;
+import org.eclipse.californium.core.coap.CoAP.Code;
+import org.eclipse.californium.core.coap.CoAP.Type;
 import org.eclipse.californium.core.config.CoapConfig;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.serialization.UdpDataParser;
+import org.eclipse.californium.cose.KeyKeys;
+import org.eclipse.californium.cose.OneKey;
 import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.californium.elements.config.Configuration.DefinitionsProvider;
 import org.eclipse.californium.elements.util.StringUtil;
+import org.eclipse.californium.oscore.HashMapCtxDB;
+import org.eclipse.californium.oscore.OSCoreCoapStackFactory;
+import org.eclipse.californium.oscore.OSCoreCtx;
+import org.eclipse.californium.oscore.OSCoreCtxDB;
+import org.eclipse.californium.oscore.group.GroupCtx;
+import org.eclipse.californium.oscore.group.MultiKey;
+import org.junit.Assert;
+
+import com.upokecenter.cbor.CBORObject;
+import se.sics.ace.Constants;
+import se.sics.ace.Util;
+import se.sics.ace.client.GetToken;
+import se.sics.ace.coap.client.OSCOREProfileRequests;
+import se.sics.ace.coap.client.OSCOREProfileRequestsGroupOSCORE;
+import se.sics.prototype.support.KeyStorage;
+import se.sics.prototype.support.Tools;
 
 /**
- * Adversary that injects Group OSCORE messages to a group.
+ * Simulates a Group Adversary (for Group B) attempting the following 3 actions:
+ *
+ * 1. Invalid request for Access Token from AS
+ * 
+ * 2. Invalid roles when joining group at GM
+ * 
+ * 3. Injecting Group messages (which will be rejected)
+ *
+ * 
+ * 
+ * @author Rikard Höglund
+ *
  */
 public class Adversary {
 
@@ -73,23 +125,41 @@ public class Adversary {
 	 */
 	private static final int destinationPort = CoAP.DEFAULT_COAP_PORT - 1000;
 
-	/**
-	 * Replay message for the adversary to send
-	 */
-	static byte[] replayMessageBytes_groupA = new byte[] { (byte) 0x58, (byte) 0x02, (byte) 0xff, (byte) 0x88,
-			(byte) 0xde, (byte) 0x7a, (byte) 0x6b, (byte) 0x2f, (byte) 0x44, (byte) 0x1d, (byte) 0x3f, (byte) 0x23,
-			(byte) 0x9a, (byte) 0x39, (byte) 0x01, (byte) 0x06, (byte) 0xaa, (byte) 0xaa, (byte) 0xaa, (byte) 0x57,
-			(byte) 0xf0, (byte) 0x5c, (byte) 0x11, (byte) 0xff, (byte) 0x29, (byte) 0x18, (byte) 0x2a, (byte) 0xc3,
-			(byte) 0x35, (byte) 0x61, (byte) 0x7d, (byte) 0x68, (byte) 0x15, (byte) 0x62, (byte) 0x0f, (byte) 0x47,
-			(byte) 0x71, (byte) 0xf9, (byte) 0xbe, (byte) 0xf7, (byte) 0x7a, (byte) 0x41, (byte) 0x0c, (byte) 0xa8,
-			(byte) 0x97, (byte) 0x47, (byte) 0x6c, (byte) 0x1b, (byte) 0x4f, (byte) 0xaa, (byte) 0xf5, (byte) 0x48,
-			(byte) 0x87, (byte) 0x34, (byte) 0xc5, (byte) 0x5c, (byte) 0x08, (byte) 0x69, (byte) 0x21, (byte) 0x14,
-			(byte) 0xa0, (byte) 0xf3, (byte) 0x93, (byte) 0xac, (byte) 0x9b, (byte) 0x14, (byte) 0x81, (byte) 0xd5,
-			(byte) 0x54, (byte) 0xa5, (byte) 0xa4, (byte) 0x5a, (byte) 0xe4, (byte) 0x6f, (byte) 0x3f, (byte) 0x82,
-			(byte) 0x8e, (byte) 0x07, (byte) 0xe1, (byte) 0x81, (byte) 0xe0, (byte) 0x0d, (byte) 0xe1, (byte) 0x91,
-			(byte) 0x6c, (byte) 0x28, (byte) 0x4e, (byte) 0x42, (byte) 0x0f, (byte) 0xdf, (byte) 0x18, (byte) 0x21,
-			(byte) 0xa4, (byte) 0x57, (byte) 0x92, (byte) 0xab, (byte) 0x44, (byte) 0x11, (byte) 0x1b, (byte) 0xee,
-			(byte) 0x2b, (byte) 0x3f, (byte) 0x47, (byte) 0x16, (byte) 0xc2, (byte) 0x77, (byte) 0x93, (byte) 0xef };
+	// Sets the default GM port to use
+	private static int GM_PORT = CoAP.DEFAULT_COAP_PORT + 100;
+	// Sets the default GM hostname/IP to use
+	private static String GM_HOST = "localhost";
+
+	// Sets the default AS port to use
+	private static int AS_PORT = CoAP.DEFAULT_COAP_PORT;
+	// Sets the default AS hostname/IP to use
+	private static String AS_HOST = "localhost";
+
+	// Port to send to using multicast
+	static final int sendPortMulticast = CoAP.DEFAULT_COAP_PORT - 1000;
+
+	// Multicast IP for Group A
+	static final InetAddress groupA_multicastIP = new InetSocketAddress("224.0.1.191", 0).getAddress();
+
+	// Multicast IP for Group B
+	static final InetAddress groupB_multicastIP = new InetSocketAddress("224.0.1.192", 0).getAddress();
+
+	static HashMapCtxDB db = new HashMapCtxDB();
+
+	private final static int MAX_UNFRAGMENTED_SIZE = 4096;
+
+	// Each set of the list refers to a different size of Recipient IDs.
+	// The element with index 0 includes as elements Recipient IDs with size 1
+	// byte.
+	private static List<Set<Integer>> usedRecipientIds = new ArrayList<Set<Integer>>();
+
+	private static final String rootGroupMembershipResource = "ace-group";
+
+	// Uncomment to set EDDSA with curve Ed25519 for countersignatures
+	private static int signKeyCurve = KeyKeys.OKP_Ed25519.AsInt32();
+	// Uncomment to set curve X25519 for pairwise key derivation
+	private static int ecdhKeyCurve = KeyKeys.OKP_X25519.AsInt32();
+
 	static byte[] replayMessageBytes_groupB = new byte[] { (byte) 0x58, (byte) 0x02, (byte) 0xff, (byte) 0xaf,
 			(byte) 0x8a, (byte) 0xe6, (byte) 0xef, (byte) 0xb7, (byte) 0x5a, (byte) 0x2f, (byte) 0x41, (byte) 0xd9,
 			(byte) 0x9a, (byte) 0x39, (byte) 0x01, (byte) 0x06, (byte) 0xbb, (byte) 0xbb, (byte) 0xbb, (byte) 0x57,
@@ -106,135 +176,132 @@ public class Adversary {
 			(byte) 0x86, (byte) 0x63, (byte) 0x3f, (byte) 0x5b, (byte) 0xec, (byte) 0x90, (byte) 0xc8, (byte) 0x75 };
 
 	/**
-	 * Message where the ciphertext and Partial IV were modified
-	 */
-	static byte[] ciphertextModifiedMessageBytes_groupA = new byte[] { (byte) 0x58, (byte) 0x02, (byte) 0xff,
-			(byte) 0x88, (byte) 0xde, (byte) 0x7a, (byte) 0x6b, (byte) 0x2f, (byte) 0x44, (byte) 0x1d, (byte) 0x3f,
-			(byte) 0x23, (byte) 0x9a, (byte) 0x39, (byte) 0x09, (byte) 0x06, (byte) 0xaa, (byte) 0xaa, (byte) 0xaa,
-			(byte) 0x57, (byte) 0xf0, (byte) 0x5c, (byte) 0x11, (byte) 0xff, (byte) 0x29, (byte) 0x19, (byte) 0x2a,
-			(byte) 0xc3, (byte) 0x35, (byte) 0x61, (byte) 0x7d, (byte) 0x68, (byte) 0x15, (byte) 0x62, (byte) 0x0f,
-			(byte) 0x47, (byte) 0x71, (byte) 0xf9, (byte) 0xbe, (byte) 0xf7, (byte) 0x7a, (byte) 0x41, (byte) 0x0c,
-			(byte) 0xa8, (byte) 0x97, (byte) 0x47, (byte) 0x6c, (byte) 0x1b, (byte) 0x4f, (byte) 0xaa, (byte) 0xf5,
-			(byte) 0x48, (byte) 0x87, (byte) 0x34, (byte) 0xc5, (byte) 0x5c, (byte) 0x08, (byte) 0x69, (byte) 0x21,
-			(byte) 0x14, (byte) 0xa0, (byte) 0xf3, (byte) 0x93, (byte) 0xac, (byte) 0x9b, (byte) 0x14, (byte) 0x81,
-			(byte) 0xd5, (byte) 0x54, (byte) 0xa5, (byte) 0xa4, (byte) 0x5a, (byte) 0xe4, (byte) 0x6f, (byte) 0x3f,
-			(byte) 0x82, (byte) 0x8e, (byte) 0x07, (byte) 0xe1, (byte) 0x81, (byte) 0xe0, (byte) 0x0d, (byte) 0xe1,
-			(byte) 0x91, (byte) 0x6c, (byte) 0x28, (byte) 0x4e, (byte) 0x42, (byte) 0x0f, (byte) 0xdf, (byte) 0x18,
-			(byte) 0x21, (byte) 0xa4, (byte) 0x57, (byte) 0x92, (byte) 0xab, (byte) 0x44, (byte) 0x11, (byte) 0x1b,
-			(byte) 0xee, (byte) 0x2b, (byte) 0x3f, (byte) 0x47, (byte) 0x16, (byte) 0xc2, (byte) 0x77, (byte) 0x93,
-			(byte) 0xef };
-	static byte[] ciphertextModifiedMessageBytes_groupB = new byte[] { (byte) 0x58, (byte) 0x02, (byte) 0xff,
-			(byte) 0xaf, (byte) 0x8a, (byte) 0xe6, (byte) 0xef, (byte) 0xb7, (byte) 0x5a, (byte) 0x2f, (byte) 0x41,
-			(byte) 0xd9, (byte) 0x9a, (byte) 0x39, (byte) 0x09, (byte) 0x06, (byte) 0xbb, (byte) 0xbb, (byte) 0xbb,
-			(byte) 0x57, (byte) 0xf0, (byte) 0x3a, (byte) 0x22, (byte) 0xff, (byte) 0xce, (byte) 0x89, (byte) 0x00,
-			(byte) 0xf4, (byte) 0x52, (byte) 0x45, (byte) 0x54, (byte) 0x73, (byte) 0x2f, (byte) 0x3b, (byte) 0xaa,
-			(byte) 0x85, (byte) 0x7b, (byte) 0xb9, (byte) 0xc9, (byte) 0x28, (byte) 0x74, (byte) 0x58, (byte) 0xc1,
-			(byte) 0x96, (byte) 0x1a, (byte) 0x37, (byte) 0x0e, (byte) 0x6c, (byte) 0xa9, (byte) 0x60, (byte) 0x3c,
-			(byte) 0x57, (byte) 0x2f, (byte) 0x50, (byte) 0x17, (byte) 0x89, (byte) 0x8d, (byte) 0x65, (byte) 0xb8,
-			(byte) 0x2b, (byte) 0x65, (byte) 0x1f, (byte) 0x2a, (byte) 0x4f, (byte) 0x5b, (byte) 0x24, (byte) 0xe7,
-			(byte) 0x92, (byte) 0xc9, (byte) 0xea, (byte) 0x10, (byte) 0xdd, (byte) 0x0b, (byte) 0xb0, (byte) 0x97,
-			(byte) 0x20, (byte) 0xba, (byte) 0xa1, (byte) 0x40, (byte) 0xa3, (byte) 0x95, (byte) 0xce, (byte) 0x59,
-			(byte) 0xb9, (byte) 0xe3, (byte) 0x25, (byte) 0x67, (byte) 0x6b, (byte) 0xd0, (byte) 0x2f, (byte) 0x4c,
-			(byte) 0xe6, (byte) 0x69, (byte) 0x8b, (byte) 0xb9, (byte) 0xde, (byte) 0xc7, (byte) 0xf9, (byte) 0xc4,
-			(byte) 0x0e, (byte) 0x86, (byte) 0x63, (byte) 0x3f, (byte) 0x5b, (byte) 0xec, (byte) 0x90, (byte) 0xc8,
-			(byte) 0x75 };
-
-	/**
-	 * Message where the signature and Partial IV were modified
-	 */
-	static byte[] signatureModifiedMessageBytes_groupA = new byte[] { (byte) 0x58, (byte) 0x02, (byte) 0xff,
-			(byte) 0x88, (byte) 0xde, (byte) 0x7a, (byte) 0x6b, (byte) 0x2f, (byte) 0x44, (byte) 0x1d, (byte) 0x3f,
-			(byte) 0x23, (byte) 0x9a, (byte) 0x39, (byte) 0x09, (byte) 0x06, (byte) 0xaa, (byte) 0xaa, (byte) 0xaa,
-			(byte) 0x57, (byte) 0xf0, (byte) 0x5c, (byte) 0x11, (byte) 0xff, (byte) 0x29, (byte) 0x18, (byte) 0x2a,
-			(byte) 0xc3, (byte) 0x35, (byte) 0x61, (byte) 0x7d, (byte) 0x68, (byte) 0x15, (byte) 0x62, (byte) 0x0f,
-			(byte) 0x47, (byte) 0x71, (byte) 0xf9, (byte) 0xbe, (byte) 0xf7, (byte) 0x7a, (byte) 0x41, (byte) 0x0c,
-			(byte) 0xa8, (byte) 0x97, (byte) 0x47, (byte) 0x6c, (byte) 0x1b, (byte) 0x4f, (byte) 0xaa, (byte) 0xf5,
-			(byte) 0x48, (byte) 0x87, (byte) 0x34, (byte) 0xc5, (byte) 0x5c, (byte) 0x08, (byte) 0x69, (byte) 0x21,
-			(byte) 0x14, (byte) 0xa0, (byte) 0xf3, (byte) 0x93, (byte) 0xac, (byte) 0x9b, (byte) 0x14, (byte) 0x81,
-			(byte) 0xd5, (byte) 0x54, (byte) 0xa5, (byte) 0xa4, (byte) 0x5a, (byte) 0xe4, (byte) 0x6f, (byte) 0x3f,
-			(byte) 0x82, (byte) 0x8e, (byte) 0x07, (byte) 0xe1, (byte) 0x81, (byte) 0xe0, (byte) 0x0d, (byte) 0xe1,
-			(byte) 0x91, (byte) 0x6c, (byte) 0x28, (byte) 0x4e, (byte) 0x42, (byte) 0x0f, (byte) 0xdf, (byte) 0x18,
-			(byte) 0x21, (byte) 0xa4, (byte) 0x57, (byte) 0x92, (byte) 0xab, (byte) 0x44, (byte) 0x11, (byte) 0x1b,
-			(byte) 0xee, (byte) 0x2b, (byte) 0x3f, (byte) 0x47, (byte) 0x16, (byte) 0xc2, (byte) 0x77, (byte) 0x93,
-			(byte) 0xdf };
-	static byte[] signatureModifiedMessageBytes_groupB = new byte[] { (byte) 0x58, (byte) 0x02, (byte) 0xff,
-			(byte) 0xaf, (byte) 0x8a, (byte) 0xe6, (byte) 0xef, (byte) 0xb7, (byte) 0x5a, (byte) 0x2f, (byte) 0x41,
-			(byte) 0xd9, (byte) 0x9a, (byte) 0x39, (byte) 0x09, (byte) 0x06, (byte) 0xbb, (byte) 0xbb, (byte) 0xbb,
-			(byte) 0x57, (byte) 0xf0, (byte) 0x3a, (byte) 0x22, (byte) 0xff, (byte) 0xce, (byte) 0x88, (byte) 0x00,
-			(byte) 0xf4, (byte) 0x52, (byte) 0x45, (byte) 0x54, (byte) 0x73, (byte) 0x2f, (byte) 0x3b, (byte) 0xaa,
-			(byte) 0x85, (byte) 0x7b, (byte) 0xb9, (byte) 0xc9, (byte) 0x28, (byte) 0x74, (byte) 0x58, (byte) 0xc1,
-			(byte) 0x96, (byte) 0x1a, (byte) 0x37, (byte) 0x0e, (byte) 0x6c, (byte) 0xa9, (byte) 0x60, (byte) 0x3c,
-			(byte) 0x57, (byte) 0x2f, (byte) 0x50, (byte) 0x17, (byte) 0x89, (byte) 0x8d, (byte) 0x65, (byte) 0xb8,
-			(byte) 0x2b, (byte) 0x65, (byte) 0x1f, (byte) 0x2a, (byte) 0x4f, (byte) 0x5b, (byte) 0x24, (byte) 0xe7,
-			(byte) 0x92, (byte) 0xc9, (byte) 0xea, (byte) 0x10, (byte) 0xdd, (byte) 0x0b, (byte) 0xb0, (byte) 0x97,
-			(byte) 0x20, (byte) 0xba, (byte) 0xa1, (byte) 0x40, (byte) 0xa3, (byte) 0x95, (byte) 0xce, (byte) 0x59,
-			(byte) 0xb9, (byte) 0xe3, (byte) 0x25, (byte) 0x67, (byte) 0x6b, (byte) 0xd0, (byte) 0x2f, (byte) 0x4c,
-			(byte) 0xe6, (byte) 0x69, (byte) 0x8b, (byte) 0xb9, (byte) 0xde, (byte) 0xc7, (byte) 0xf9, (byte) 0xc4,
-			(byte) 0x0e, (byte) 0x86, (byte) 0x63, (byte) 0x3f, (byte) 0x5b, (byte) 0xec, (byte) 0x90, (byte) 0xc8,
-			(byte) 0x65 };
-
-	// Multicast IP for Group A
-	static final InetAddress groupA_multicastIP = new InetSocketAddress("224.0.1.191", 0).getAddress();
-
-	// Multicast IP for Group B
-	static final InetAddress groupB_multicastIP = new InetSocketAddress("224.0.1.192", 0).getAddress();
-
-	/**
-	 * Main method for adversary.
+	 * Main method for Token request followed by Group joining
 	 * 
-	 * @param args command line arguments
-	 * @throws Exception on failure
+	 * @param args input command line arguments
+	 * @throws Exception on ACE failure
 	 */
 	public static void main(String[] args) throws Exception {
 
-		// Prepare rarser for the request bytes and creating Request objects
-		UdpDataParser parser = new UdpDataParser();
-		Request replayRequest = null;
-		Request ciphertextModifiedRequest = null;
-		Request signatureModifiedRequest = null;
+		System.out.println("Starting Group adversary...");
 
-		// Allow the user to provide input on what to do
-		String targetGroup;
-		String attackType;
+		// install needed cryptography providers
+		try {
+			org.eclipse.californium.oscore.InstallCryptoProviders.installProvider();
+		} catch (Exception e) {
+			System.err.println("Failed to install cryptography providers.");
+			e.printStackTrace();
+		}
+
+		// Set member name, AS and GM to use from command line arguments
+		String memberName = "Adversary";
+		int delay = 0;
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-name")) {
+				System.err.println("Error: Unsupported argument");
+				System.exit(1);
+				memberName = args[i + 1];
+				i++;
+			} else if (args[i].equals("-gm")) {
+				GM_HOST = new URI(args[i + 1]).getHost();
+				GM_PORT = new URI(args[i + 1]).getPort();
+				i++;
+			} else if (args[i].equals("-as")) {
+				AS_HOST = new URI(args[i + 1]).getHost();
+				AS_PORT = new URI(args[i + 1]).getPort();
+				i++;
+			} else if (args[i].toLowerCase().equals("-dht") || args[i].toLowerCase().equals("-usedht")) {
+				System.err.println("Error: DHT not supported by Adversary");
+				System.exit(1);
+			} else if (args[i].toLowerCase().equals("-delay")) {
+				delay = Integer.parseInt(args[i + 1]);
+				i++;
+			} else if (args[i].toLowerCase().equals("-help")) {
+				printHelp();
+				System.exit(0);
+			}
+		}
+
+		// Delay before starting
+		try {
+			Thread.sleep(delay * 1000);
+		} catch (InterruptedException e) {
+			System.err.println("Failed to sleep before starting");
+			e.printStackTrace();
+		}
+
+
+		// Build empty sets of assigned Sender IDs; one set for each possible
+		for (int i = 0; i < 4; i++) {
+			// Sender ID size in bytes.
+			// The set with index 0 refers to Sender IDs with size 1 byte
+			usedRecipientIds.add(new HashSet<Integer>());
+		}
+
+		// Set group to target
+		String group = "bbbbbb570000";
+		InetAddress multicastIP = groupB_multicastIP;
+
+		// Set key (OSCORE master secret) to use towards AS
+		byte[] keyToAS;
+		keyToAS = KeyStorage.memberAsKeys.get(memberName);
+
+		System.out.println("Adversary configured with parameters:");
+		System.out.println("\tAS: " + AS_HOST + ":" + AS_PORT);
+		System.out.println("\tGM: " + GM_HOST + ":" + GM_PORT);
+		System.out.println("\tGroup: " + group);
+
+		// Adversary command line interface
+		String attackType = null;
 		try (Scanner scanner = new Scanner(System.in)) {
 
-			System.out.println("Enter group to send to: ");
-			targetGroup = scanner.next();
-
-			System.out.println("Enter type of attack (ciphertext/signature/replay): ");
+			System.out.println("");
+			System.out.println("Enter attack type: ");
+			System.out.println("1. Invalid request for Access Token from AS");
+			System.out.println("2. Invalid roles when joining group at GM");
+			System.out.println("3. Injecting Group messages (which will be rejected)");
 			attackType = scanner.next();
 		}
 
-		// Set multicast IP depending on the user input
-		InetAddress multicastIP = null;
-		if (targetGroup.toLowerCase().equals("group1") || targetGroup.toLowerCase().equals("groupA".toLowerCase())) {
-			replayRequest = (Request) parser.parseMessage(replayMessageBytes_groupA);
-			ciphertextModifiedRequest = (Request) parser.parseMessage(ciphertextModifiedMessageBytes_groupA);
-			signatureModifiedRequest = (Request) parser.parseMessage(signatureModifiedMessageBytes_groupA);
-			multicastIP = groupA_multicastIP;
-		} else if (targetGroup.toLowerCase().equals("group2")
-				|| targetGroup.toLowerCase().equals("groupB".toLowerCase())) {
-			replayRequest = (Request) parser.parseMessage(replayMessageBytes_groupB);
-			ciphertextModifiedRequest = (Request) parser.parseMessage(ciphertextModifiedMessageBytes_groupB);
-			signatureModifiedRequest = (Request) parser.parseMessage(signatureModifiedMessageBytes_groupB);
-			multicastIP = groupB_multicastIP;
-		} else {
-			System.out.println("Unknown group!");
-			System.exit(0);
+		if (attackType.equals("1") || attackType.equals("2")) {
+			// Explicitly enable the OSCORE Stack
+			if (CoapEndpoint.isDefaultCoapStackFactorySet() == false) {
+				OSCoreCoapStackFactory.useAsDefault(db);
+			}
 		}
 
-		// Set request content depending on the user input
-		Request multicastRequest = null;
-		if (attackType.toLowerCase().equals("ciphertext")) {
-			multicastRequest = ciphertextModifiedRequest;
-		} else if (attackType.toLowerCase().equals("replay")) {
-			multicastRequest = replayRequest;
-		} else if (attackType.toLowerCase().equals("signature")) {
-			multicastRequest = signatureModifiedRequest;
-		} else {
-			System.out.println("Unknown attack type!");
+		if (attackType.equals("1")) {
+			// Invalid Token request to AS
+			invalidTokenRequest(memberName, group, keyToAS);
 			System.exit(0);
+
+		} else if (attackType.equals("2")) {
+			// Invalid Join Request to GM
+			invalidJoinRequest(memberName, group, keyToAS);
+			System.exit(0);
+
+		} else if (attackType.equals("3")) {
+			// Inject a Group Request
+			injectGroupRequest(multicastIP);
+			System.exit(0);
+		} else {
+			System.err.println("Invalid attack type specified");
+			System.exit(1);
 		}
+
+	}
+
+	/**
+	 * @param multicastIP targeted multicast IP for this group
+	 */
+	private static void injectGroupRequest(InetAddress multicastIP) {
+		// Prepare parser for the request bytes and creating Request objects
+		UdpDataParser parser = new UdpDataParser();
+		Request replayRequest = null;
+
+		replayRequest = (Request) parser.parseMessage(replayMessageBytes_groupB);
+
+		Request multicastRequest = replayRequest;
 
 		if (multicastRequest == null || multicastIP == null) {
 			System.err.println("Error in setting up Adversary");
@@ -259,40 +326,511 @@ public class Adversary {
 		client.setEndpoint(endpoint);
 		client.setURI(requestURI);
 
-		// Information about the sender
-		System.out.println("==================");
-		System.out.println("*Adversary Multicast sender");
-		System.out.println("Uses OSCORE: " + multicastRequest.getOptions().hasOscore());
-		System.out.println("Request destination: " + requestURI);
-		System.out.println("Request destination port: " + destinationPort);
-		// System.out.println("Request method: " + multicastRequest.getCode());
-		// System.out.println("Request payload: " + requestPayload);
-		System.out.println("Outgoing port: " + endpoint.getAddress().getPort());
-		System.out.println("Request OSCORE option: " + Utils.toHexString(multicastRequest.getOptions().getOscore()));
-		System.out.print("*");
-
-		System.out.println("");
-		System.out.println("Adversary is sending a request.");
-
-		try {
-			String host = new URI(client.getURI()).getHost();
-			int port = new URI(client.getURI()).getPort();
-			System.out.println("Sending to: " + host + ":" + port);
-		} catch (URISyntaxException e) {
-			System.err.println("Failed to parse destination URI");
-			e.printStackTrace();
-		}
-		System.out.println("Sending from: " + client.getEndpoint().getAddress());
-		System.out.println(prettyPrintHexPayload(multicastRequest));
-
 		// sends a multicast request
 		client.advanced(handler, multicastRequest);
 		while (handler.waitOn(HANDLER_TIMEOUT)) {
 			// Wait and listen for responses
 		}
 
-		Thread.sleep(1000);
+		System.out.println("Responses received: ");
+		ArrayList<CoapResponse> responseList = handler.getResponses();
+		for (int i = 0; i < responseList.size(); i++) {
+			System.out.println(Utils.prettyPrint(responseList.get(i)));
+		}
+	}
 
+	/**
+	 * @param memberName the member name
+	 * @param group the group name
+	 * @param keyToAS this peer's shared key with the AS
+	 * @throws Exception on failure
+	 */
+	private static void invalidJoinRequest(String memberName, String group, byte[] keyToAS) throws Exception {
+		System.out.println("Will now request Token from Authorization Server");
+		Response responseFromAS = requestToken(memberName, group, keyToAS, false);
+
+		// Wait for Group Manager to become available
+		boolean gmAvailable = false;
+		do {
+			String gmUri = "coap://" + GM_HOST + ":" + GM_PORT + "/authz-info";
+			System.out.println("Attempting to reach GM at: " + gmUri + " ...");
+
+			try {
+				Thread.sleep(50);
+				CoapClient checker = new CoapClient(gmUri);
+				gmAvailable = checker.ping();
+			} catch (InterruptedException e) {
+				System.err.println("Failed to sleep when waiting for GM.");
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				System.err.println("GM hostname not available. Retrying...");
+			}
+		} while (!gmAvailable);
+		System.out.println("GM is available. Proceeding to post Token to GM.");
+
+		// Perform invalid join request
+		OneKey cKeyPair = new MultiKey(KeyStorage.memberCcs.get(memberName),
+				KeyStorage.memberPrivateKeys.get(memberName)).getCoseKey();
+		byte[] memberCcs = KeyStorage.memberCcs.get(memberName);
+		testSuccessGroupOSCOREMultipleRoles(memberName, group, GM_HOST, GM_PORT, db, cKeyPair, responseFromAS,
+				memberCcs, true);
+	}
+
+	/**
+	 * @param memberName the member name
+	 * @param group the group name
+	 * @param keyToAS this peer's shared key with the AS
+	 * @throws Exception on failure
+	 */
+	private static void invalidTokenRequest(String memberName, String group, byte[] keyToAS) throws Exception {
+		// Wait for Authorization Server to become available
+		boolean asAvailable = false;
+		do {
+			String asUri = "coap://" + AS_HOST + ":" + AS_PORT + "/token";
+			System.out.println("Attempting to reach AS at: " + asUri + " ...");
+
+			try {
+				Thread.sleep(50);
+				CoapClient checker = new CoapClient(asUri);
+				asAvailable = checker.ping();
+			} catch (InterruptedException e) {
+				System.err.println("Failed to sleep when waiting for AS.");
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				System.err.println("AS hostname not available. Retrying...");
+			}
+		} while (!asAvailable);
+		System.out.println("AS is available.");
+
+		System.out.println("Will now request Token from Authorization Server");
+		requestToken(memberName, group, keyToAS, true);
+	}
+
+	/**
+	 * Request a Token from the AS.
+	 * 
+	 * @param memberName name of client/server peer
+	 * @param group to request token for
+	 * @param keyToAS key shared with the AS
+	 * @param invalid is request invalid
+	 * @return the CoAP response from the AS
+	 * 
+	 * @throws Exception on failure
+	 */
+	public static Response requestToken(String memberName, String group, byte[] keyToAS, boolean invalid)
+			throws Exception {
+
+		/* Configure parameters */
+
+		printPause(memberName, "Will now request Token from AS");
+
+		String clientID = memberName;
+		String groupName = group;
+		byte[] key128 = keyToAS; // KeyStorage.memberAsKeys.get(memberName);//
+									// {'a', 'b', 'c', 4, 5, 6, 7, 8, 9, 10, 11,
+									// 12, 13, 14, 15, 16};
+		String tokenURI = "coap://" + AS_HOST + ":" + AS_PORT + "/token";
+
+		/* Set byte string scope */
+
+		// Map<Short, CBORObject> params = new HashMap<>();
+		// params.put(Constants.GRANT_TYPE, Token.clientCredentials);
+
+		CBORObject cborArrayScope = CBORObject.NewArray();
+		CBORObject cborArrayEntry = CBORObject.NewArray();
+		cborArrayEntry.Add(groupName);
+
+		int myRoles = 0;
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
+
+		cborArrayEntry.Add(myRoles);
+
+		cborArrayScope.Add(cborArrayEntry);
+		byte[] byteStringScope = cborArrayScope.EncodeToBytes();
+
+		/* Perform Token request */
+
+		System.out.println("Performing Token request to AS.");
+		System.out.println("AS Token resource is at: " + tokenURI);
+
+		CBORObject params = GetToken.getClientCredentialsRequest(CBORObject.FromObject("rs2"),
+				CBORObject.FromObject(byteStringScope), null);
+
+		// Make the request invalid
+		if (invalid) {
+			params = GetToken.getClientCredentialsRequest(CBORObject.FromObject("rs2"), CBORObject.FromObject(1000),
+					null);
+		}
+
+		byte[] senderId = KeyStorage.aceSenderIds.get(clientID);
+		byte[] recipientId = KeyStorage.aceSenderIds.get("AS");
+		OSCoreCtx ctx = new OSCoreCtx(key128, true, null, senderId, recipientId, null, null, null, null,
+				MAX_UNFRAGMENTED_SIZE, true);
+
+		Response response = OSCOREProfileRequestsGroupOSCORE.getToken(tokenURI, params, ctx, db);
+
+		System.out.println("DB content: " + db.getContext(new byte[] { 0x00 }, null));
+
+		/* Parse and print response */
+
+		// System.out.println("Response from AS: " +
+		// response.getPayloadString());
+		CBORObject res = CBORObject.DecodeFromBytes(response.getPayload());
+		// Map<Short, CBORObject> map = Constants.getParams(res);
+		// System.out.println(map);
+
+		System.out.println("Received response from AS to Token request: " + res.toString());
+
+		db.purge();
+		return response;
+	}
+
+	/**
+	 * Post to Authz-Info, then perform join request using multiple roles. Uses
+	 * the ACE OSCORE Profile.
+	 * 
+	 * @param memberName name of client/server peer
+	 * @param groupName name of group to join
+	 * @param rsAddr address of the Resource Server
+	 * @param portNumberRSnosec port number for RS no sec. communication
+	 * @param ctxDB OSCORE context database
+	 * @param cKeyPair key pair for joining peer
+	 * @param responseFromAS response message previously received from AS
+	 * @param clientCcsBytes joining peer's CCS as bytes
+	 * @param invalid sets this request to be invalid
+	 * 
+	 * @return the generated Group OSCORE context after joining
+	 * @throws Exception on failure
+	 */
+	public static GroupCtx testSuccessGroupOSCOREMultipleRoles(String memberName, String groupName, String rsAddr,
+			int portNumberRSnosec, OSCoreCtxDB ctxDB, OneKey cKeyPair, Response responseFromAS, byte[] clientCcsBytes,
+			boolean invalid) throws Exception {
+
+		boolean askForSignInfo = true;
+		boolean askForEcdhInfo = true;
+		boolean askForAuthCreds = true;
+		boolean provideAuthCreds = true;
+
+		// Create the scope
+		CBORObject cborArrayScope = CBORObject.NewArray();
+		CBORObject cborArrayEntry = CBORObject.NewArray();
+
+		cborArrayEntry.Add(groupName);
+
+		int myRoles = 0;
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+		// myRoles = Util.addGroupOSCORERole(myRoles,
+		// Constants.GROUP_OSCORE_RESPONDER);
+		cborArrayEntry.Add(myRoles);
+
+		cborArrayScope.Add(cborArrayEntry);
+		byte[] byteStringScope = cborArrayScope.EncodeToBytes();
+
+		Response rsRes = OSCOREProfileRequestsGroupOSCORE.postToken(
+				"coap://" + rsAddr + ":" + portNumberRSnosec + "/authz-info", responseFromAS, askForSignInfo,
+				askForEcdhInfo, ctxDB, usedRecipientIds);
+
+		printResponseFromRS(rsRes);
+
+		// Check that the OSCORE context has been created:
+		Assert.assertNotNull(ctxDB.getContext(
+				"coap://" + rsAddr + ":" + portNumberRSnosec + "/" + rootGroupMembershipResource + "/" + groupName));
+
+		CBORObject rsPayload = CBORObject.DecodeFromBytes(rsRes.getPayload());
+		// Sanity checks already occurred in
+		// OSCOREProfileRequestsGroupOSCORE.postToken()
+
+		// Nonce from the GM, to use together with a local nonce to prove
+		// possession of the private key
+		byte[] gm_nonce = rsPayload.get(CBORObject.FromObject(Constants.KDCCHALLENGE)).GetByteString();
+
+		// Group OSCORE specific values for the countersignature
+		CBORObject signParamsExpected = CBORObject.NewArray();
+		CBORObject signKeyParamsExpected = CBORObject.NewArray();
+
+		// ECDSA_256
+		if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
+
+			// The algorithm capabilities
+			signParamsExpected.Add(KeyKeys.KeyType_EC2); // Key Type
+
+			// The key type capabilities
+			signKeyParamsExpected.Add(KeyKeys.KeyType_EC2); // Key Type
+			signKeyParamsExpected.Add(KeyKeys.EC2_P256); // Curve
+		}
+
+		// EDDSA (Ed25519)
+		if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
+
+			// The algorithm capabilities
+			signParamsExpected.Add(KeyKeys.KeyType_OKP); // Key Type
+
+			// The key type capabilities
+			signKeyParamsExpected.Add(KeyKeys.KeyType_OKP); // Key Type
+			signKeyParamsExpected.Add(KeyKeys.OKP_Ed25519); // Curve
+		}
+
+		// Group OSCORE specific values for the pairwise key derivation
+		CBORObject ecdhParamsExpected = CBORObject.NewArray();
+		CBORObject ecdhKeyParamsExpected = CBORObject.NewArray();
+
+		// P-256
+		if (ecdhKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
+			// The algorithm capabilities
+			ecdhParamsExpected.Add(KeyKeys.KeyType_EC2); // Key Type
+
+			// The key type capabilities
+			ecdhKeyParamsExpected.Add(KeyKeys.KeyType_EC2); // Key Type
+			ecdhKeyParamsExpected.Add(KeyKeys.EC2_P256); // Curve
+		}
+
+		// X25519
+		if (ecdhKeyCurve == KeyKeys.OKP_X25519.AsInt32()) {
+			// The algorithm capabilities
+			ecdhParamsExpected.Add(KeyKeys.KeyType_OKP); // Key Type
+
+			// The key type capabilities
+			ecdhKeyParamsExpected.Add(KeyKeys.KeyType_OKP); // Key Type
+			ecdhKeyParamsExpected.Add(KeyKeys.OKP_X25519); // Curve
+		}
+
+		CBORObject credFmtExpected = CBORObject.FromObject(Constants.COSE_HEADER_PARAM_CCS);
+
+		// Now proceed with the Join request
+
+		CoapClient c = OSCOREProfileRequests.getClient(new InetSocketAddress(
+				"coap://" + rsAddr + ":" + portNumberRSnosec + "/" + rootGroupMembershipResource + "/" + groupName,
+				portNumberRSnosec), ctxDB);
+
+		System.out.println("Performing Join request using OSCORE to GM.");
+
+		CBORObject requestPayload = CBORObject.NewMap();
+
+		cborArrayScope = CBORObject.NewArray();
+		cborArrayScope.Add(groupName);
+
+		myRoles = 0;
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
+		cborArrayScope.Add(myRoles);
+
+		byteStringScope = cborArrayScope.EncodeToBytes();
+		requestPayload.Add(Constants.SCOPE, CBORObject.FromObject(byteStringScope));
+
+		if (askForAuthCreds) {
+
+			CBORObject getCreds = CBORObject.NewArray();
+
+			getCreds.Add(CBORObject.True); // This must be true
+
+			getCreds.Add(CBORObject.NewArray());
+			// The following is required to retrieve the authentication
+			// credentials of both the already present group members
+			myRoles = 0;
+			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+			getCreds.get(1).Add(myRoles);
+			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
+			myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
+			getCreds.get(1).Add(myRoles);
+
+			getCreds.Add(CBORObject.NewArray()); // This must be empty
+
+			requestPayload.Add(Constants.GET_CREDS, getCreds);
+
+		}
+
+		byte[] authCred = null;
+		if (provideAuthCreds) {
+
+			// This should never happen, if the Group Manager has provided
+			// 'kdc_challenge' in the Token POST response,
+			// or the joining node has computed N_S differently (e.g. through a
+			// TLS exporter)
+			if (gm_nonce == null) {
+				Assert.fail("Error: the component N_S of the PoP evidence challence is null");
+			}
+
+			switch (credFmtExpected.AsInt32()) {
+			case Constants.COSE_HEADER_PARAM_CCS:
+				// A CCS including the public key
+				if (signKeyCurve == KeyKeys.EC2_P256.AsInt32()) {
+					System.out.println("Needs further configuration");
+					authCred = StringUtil.hex2ByteArray(
+							"A2026008A101A5010203262001215820E8F9A8D5850A533CDA24B9FA8A1EE293F6A0E1E81E1E560A64FF134D65F7ECEC225820164A6D5D4B97F56D1F60A12811D55DE7A055EBAC6164C9EF9302CBCBFF1F0ABE");
+				}
+				if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
+					authCred = clientCcsBytes;
+				}
+				break;
+			case Constants.COSE_HEADER_PARAM_CWT:
+				// A CWT including the public key
+				// TODO
+				break;
+			case Constants.COSE_HEADER_PARAM_X5CHAIN:
+				// A certificate including the public key
+				// TODO
+				break;
+			default:
+				System.err.println("Error: credFmtExpected set incorrectly.");
+				break;
+			}
+
+			requestPayload.Add(Constants.CLIENT_CRED, CBORObject.FromObject(authCred));
+
+			// Add the nonce for PoP of the Client's private key
+			byte[] cnonce = new byte[8];
+			new SecureRandom().nextBytes(cnonce);
+			requestPayload.Add(Constants.CNONCE, cnonce);
+
+			// Add the signature computed over (scope | rsnonce | cnonce), using
+			// the Client's private key
+			int offset = 0;
+			PrivateKey privKey = cKeyPair.AsPrivateKey();
+
+			byte[] serializedScopeCBOR = CBORObject.FromObject(byteStringScope).EncodeToBytes();
+			byte[] serializedGMNonceCBOR = CBORObject.FromObject(gm_nonce).EncodeToBytes();
+			byte[] serializedCNonceCBOR = CBORObject.FromObject(cnonce).EncodeToBytes();
+			byte[] dataToSign = new byte[serializedScopeCBOR.length + serializedGMNonceCBOR.length
+					+ serializedCNonceCBOR.length];
+			System.arraycopy(serializedScopeCBOR, 0, dataToSign, offset, serializedScopeCBOR.length);
+			offset += serializedScopeCBOR.length;
+			System.arraycopy(serializedGMNonceCBOR, 0, dataToSign, offset, serializedGMNonceCBOR.length);
+			offset += serializedGMNonceCBOR.length;
+			System.arraycopy(serializedCNonceCBOR, 0, dataToSign, offset, serializedCNonceCBOR.length);
+
+			byte[] clientSignature = Util.computeSignature(signKeyCurve, privKey, dataToSign);
+
+			if (clientSignature != null)
+				requestPayload.Add(Constants.CLIENT_CRED_VERIFY, clientSignature);
+			else
+				Assert.fail("Computed signature is empty");
+
+		}
+
+		Request joinReq = new Request(Code.POST, Type.CON);
+		joinReq.getOptions().setOscore(new byte[0]);
+		joinReq.setPayload(requestPayload.EncodeToBytes());
+		joinReq.getOptions().setContentFormat(Constants.APPLICATION_ACE_GROUPCOMM_CBOR);
+
+		// Submit the request
+		System.out.println("");
+		System.out.println("Sent Join request to GM: " + requestPayload.toString());
+		printMapPayload(requestPayload);
+
+		CoapResponse r2 = c.advanced(joinReq);
+
+		if (r2.getOptions().getLocationPath().size() != 0) {
+			System.out.print("Location-Path: ");
+			System.out.println(r2.getOptions().getLocationPathString());
+		}
+
+		System.out.println("Response from GM: ");
+		System.out.println(r2.getResponseText());
+
+		printResponseFromRS(r2.advanced());
+
+		byte[] responsePayload = r2.getPayload();
+		CBORObject joinResponse = CBORObject.DecodeFromBytes(responsePayload);
+
+		// Final join response parsing and Group Context generation
+
+		// Print the join response
+		// Tools.printJoinResponse(joinResponse);
+
+		// Pause if this is for server7
+		if (!memberName.toLowerCase().contains("server7")) {
+			System.out.println("Has now joined the OSCORE group.");
+		} else {
+			printPause(memberName, "Has now joined the OSCORE group.");
+		}
+
+		MultiKey clientKey = new MultiKey(authCred, cKeyPair.get(KeyKeys.OKP_D).GetByteString());
+		GroupCtx groupOscoreCtx = Tools.generateGroupOSCOREContext(joinResponse, clientKey);
+
+		return groupOscoreCtx;
+	}
+
+	/**
+	 * Simple method for "press enter to continue" functionality
+	 */
+	static void printPause(String memberName, String message) {
+
+		// Only print for Server7
+		if (!memberName.toLowerCase().equals("server7")) {
+			return;
+		}
+
+		System.out.println("===");
+		System.out.println(message);
+		System.out.println("Press ENTER to continue");
+		System.out.println("===");
+		try {
+			@SuppressWarnings("unused")
+			int read = System.in.read(new byte[2]);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Printing methods
+
+	private static void printMapPayload(CBORObject obj) {
+		if (obj != null) {
+			System.out.println("*** Map Payload *** ");
+			System.out.println(obj);
+		} else {
+			System.out.println("*** The payload argument is null!");
+		}
+	}
+
+	private static void printResponseFromRS(Response res) {
+		if (res != null) {
+			System.out.println("*** Response from the RS *** ");
+			System.out.print(res.getCode().codeClass + ".0" + res.getCode().codeDetail);
+			System.out.println(" " + res.getCode().name());
+
+			if (res.getPayload() != null) {
+
+				if (res.getOptions().getContentFormat() == Constants.APPLICATION_ACE_CBOR
+						|| res.getOptions().getContentFormat() == Constants.APPLICATION_ACE_GROUPCOMM_CBOR) {
+					CBORObject resCBOR = CBORObject.DecodeFromBytes(res.getPayload());
+					System.out.println(resCBOR.toString());
+				} else {
+					System.out.println(new String(res.getPayload()));
+				}
+			}
+		} else {
+			System.out.println("*** The response from the RS is null!");
+			System.out.print("No response received");
+		}
+	}
+
+	/**
+	 * Print help message with valid command line arguments
+	 */
+	private static void printHelp() {
+		System.out.println("Usage: [ -name Name ] [ -gm URI ] [ -as URI ] [-delay Seconds ] [ -dht {URI} ] [ -help ]");
+
+		System.out.println("Options:");
+
+		System.out.print("-name");
+		System.out.println("\t Name/Role of this peer");
+
+		System.out.print("-gm");
+		System.out.println("\t Group Manager base URI");
+
+		System.out.print("-as");
+		System.out.println("\t Authorization Server base URI");
+
+		System.out.print("-delay");
+		System.out.println("\t Delay in seconds before starting");
+
+		System.out.print("-dht");
+		System.out.println("\t Use DHT: Optionally specify its WebSocket URI");
+
+		System.out.print("-help");
+		System.out.println("\t Print help");
 	}
 
 	private static final MultiCoapHandler handler = new MultiCoapHandler();
@@ -300,6 +838,7 @@ public class Adversary {
 	private static class MultiCoapHandler implements CoapHandler {
 
 		private boolean on;
+		private ArrayList<CoapResponse> responseMessages = new ArrayList<CoapResponse>();
 
 		public synchronized boolean waitOn(long timeout) {
 			on = false;
@@ -316,6 +855,14 @@ public class Adversary {
 			notifyAll();
 		}
 
+		private synchronized ArrayList<CoapResponse> getResponses() {
+			return responseMessages;
+		}
+
+		private synchronized void clearResponses() {
+			responseMessages.clear();
+		}
+
 		/**
 		 * Handle and parse incoming responses.
 		 */
@@ -327,40 +874,13 @@ public class Adversary {
 			System.out.println("Receiving from: " + response.advanced().getSourceContext().getPeerAddress());
 
 			System.out.println(Utils.prettyPrint(response));
+
+			responseMessages.add(response);
 		}
 
 		@Override
 		public void onError() {
 			System.err.println("error");
 		}
-	}
-
-	/**
-	 * Formats a {@link Request} into a readable String representation. Prints
-	 * the payload in hex representation.
-	 * 
-	 * @param r the Request
-	 * @return the pretty print
-	 */
-	public static String prettyPrintHexPayload(Request r) {
-
-		StringBuilder sb = new StringBuilder();
-
-		sb.append("==[ CoAP Request ]=============================================").append(StringUtil.lineSeparator());
-		sb.append(String.format("MID    : %d", r.getMID())).append(StringUtil.lineSeparator());
-		sb.append(String.format("Token  : %s", r.getTokenString())).append(StringUtil.lineSeparator());
-		sb.append(String.format("Type   : %s", r.getType().toString())).append(StringUtil.lineSeparator());
-		sb.append(String.format("Method : %s", r.getCode().toString())).append(StringUtil.lineSeparator());
-		sb.append(String.format("Options: %s", r.getOptions().toString())).append(StringUtil.lineSeparator());
-		sb.append(String.format("Payload: %d Bytes", r.getPayloadSize())).append(StringUtil.lineSeparator());
-		if (r.getPayloadSize() > 0 && MediaTypeRegistry.isPrintable(r.getOptions().getContentFormat())) {
-			sb.append("---------------------------------------------------------------")
-					.append(StringUtil.lineSeparator());
-			sb.append(Utils.toHexString(r.getPayload()));
-			sb.append(StringUtil.lineSeparator());
-		}
-		sb.append("===============================================================");
-
-		return sb.toString();
 	}
 }
