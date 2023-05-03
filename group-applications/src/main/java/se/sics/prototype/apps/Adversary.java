@@ -440,7 +440,6 @@ public class Adversary {
 		int myRoles = 0;
 		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_REQUESTER);
 		myRoles = Util.addGroupOSCORERole(myRoles, Constants.GROUP_OSCORE_RESPONDER);
-
 		cborArrayEntry.Add(myRoles);
 
 		cborArrayScope.Add(cborArrayEntry);
@@ -454,14 +453,9 @@ public class Adversary {
 		CBORObject params = GetToken.getClientCredentialsRequest(CBORObject.FromObject("rs2"),
 				CBORObject.FromObject(byteStringScope), null);
 
-		// Make the request invalid
-		if (invalid) {
-			params = GetToken.getClientCredentialsRequest(CBORObject.FromObject("rs2"), CBORObject.FromObject(1000),
-					null);
-		}
-
 		byte[] senderId = KeyStorage.aceSenderIds.get(clientID);
 
+		// Unauthorized client
 		if (invalid) {
 			senderId = new byte[] { (byte) 0xFF, (byte) 0xFF };
 		}
@@ -487,7 +481,8 @@ public class Adversary {
 		if (keys.contains(CBORObject.FromObject(Constants.ERROR))) {
 			System.out.print("Error: ");
 		}
-		if (res.get(Constants.ERROR).AsInt32() == Constants.UNAUTHORIZED_CLIENT) {
+		if (res.get(Constants.ERROR) != null
+				&& res.get(Constants.ERROR).AsInt32() == Constants.UNAUTHORIZED_CLIENT) {
 			System.out.println("Unauthorized Client");
 		}
 
