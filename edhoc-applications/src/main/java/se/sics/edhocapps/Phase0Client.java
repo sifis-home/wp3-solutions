@@ -293,7 +293,7 @@ public class Phase0Client {
 	@OnMessage
 	public String onMessage(String message, Session session) {
 		// Topic to listen for messages on
-		String topic = "command_ed";
+		String topic = "command_co";
 
 		// Do nothing if message does not contain the topic
 		if (message.contains(topic) == false) {
@@ -319,7 +319,7 @@ public class Phase0Client {
 			String toDhtString = "";
 			for (int i = 0; i < responsesList.size(); i++) {
 				responsesString += Utils.prettyPrint(responsesList.get(i)) + "\n|\n";
-				toDhtString += "Response #" + i + ": [" + Support.responseToText(responsesList.get(i)) + "]";
+				toDhtString += "Response #" + (i + 1) + ": [" + Support.responseToText(responsesList.get(i)) + "]";
 			}
 			responsesString = responsesString.replace(".", "").replace(":", " ").replace("=", "-").replace("[", "")
 					.replace("]", "").replace("/", "-").replace("\"", "").replace(".", "").replace("{", "")
@@ -330,7 +330,7 @@ public class Phase0Client {
 			JsonOut outgoing = new JsonOut();
 			RequestPubMessage pubMsg = new RequestPubMessage();
 			OutValue outVal = new OutValue();
-			outVal.setTopic("output_ed");
+			outVal.setTopic("output_co");
 			outVal.setMessage(toDhtString); // Responses
 			pubMsg.setValue(outVal);
 			outgoing.setRequestPubMessage(pubMsg);

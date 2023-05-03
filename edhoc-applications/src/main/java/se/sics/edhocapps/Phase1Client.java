@@ -1426,7 +1426,7 @@ public class Phase1Client {
 			String toDhtString = "";
 			for (int i = 0; i < responsesList.size(); i++) {
 				responsesString += Utils.prettyPrint(responsesList.get(i)) + "\n|\n";
-				toDhtString += "Response #" + i + ": [" + Support.responseToText(responsesList.get(i)) + "]";
+				toDhtString += "Response #" + (i + 1) + ": [" + Support.responseToText(responsesList.get(i)) + "]";
 			}
 			responsesString = responsesString.replace(".", "").replace(":", " ").replace("=", "-").replace("[", "")
 					.replace("]", "").replace("/", "-").replace("\"", "").replace(".", "").replace("{", "")

@@ -59,7 +59,8 @@ print(response.json())
 
 print("1. Group OSCORE Client #1");
 print("2. Group OSCORE Client #2");
-print("3. EDHOC Client");
+print("3. CoAP Client");
+print("4. EDHOC Client");
 valTarget = input("Enter device to send to: ")
 valPayload = input("Enter payload to send: ")
 
@@ -68,6 +69,8 @@ if valTarget in ['1']:
 elif valTarget in ['2']:
     topic = "command_dev2"
 elif valTarget in ['3']:
+    topic = "command_co"
+elif valTarget in ['4']:
     topic = "command_ed"
 else:
     print("Invalid command")

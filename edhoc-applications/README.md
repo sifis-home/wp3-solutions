@@ -4,6 +4,7 @@ To setup and run the provided applications, follow the steps below. This will st
 
 **Configurations**  
 The 4 supported configurations are as follows:  
+0. CoAP-only support.
 1. Method 0. Optimized request: False.
 2. Method 3. Optimized request: False.
 3. Method 0. Optimized request: True.
@@ -35,11 +36,18 @@ https://datatracker.ietf.org/doc/draft-ietf-lake-edhoc/
 https://datatracker.ietf.org/doc/draft-ietf-core-oscore-edhoc/  
 
 **DHT information**  
-The client applications listen for messages from the DHT on the following topic:  
+The EDHOC client applications listen for messages from the DHT on the following topic:  
 * command_ed
 
-And provide their output on the following topics  
+And provide their output on the following topic  
 * output_ed
+
+Additionally, the CoAP client application listens for messages from the DHT on the following topic:  
+* command_co
+
+And provides its output on the following topic  
+* output_co
+
 
 The message structure is as follows:  
 {"message": $payload, "topic": $topic }  
