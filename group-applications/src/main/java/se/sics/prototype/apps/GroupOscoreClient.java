@@ -206,11 +206,8 @@ public class GroupOscoreClient {
 		System.out.println("");
 		System.out.println("Ready to send requests to the OSCORE group.");
 
-		// Send messages to trigger the LEDs/solenoids on/off
-		// int count = 10;
-		// String payload = requestPayload;
-
-		if (useDht) {
+		// Connect to DHT and continously retry if connection is lost
+		while (useDht) {
 			System.out.println("Using DHT");
 
 			latch = new CountDownLatch(1000);
@@ -225,7 +222,13 @@ public class GroupOscoreClient {
 				e.printStackTrace();
 			}
 
-			return;
+			System.err.println("Connection to DHT lost. Retrying...");
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				System.err.println("Error: Failed to sleep when reconnecting to DHT");
+				e.printStackTrace();
+			}
 		}
 
 		Scanner scanner = new Scanner(System.in);

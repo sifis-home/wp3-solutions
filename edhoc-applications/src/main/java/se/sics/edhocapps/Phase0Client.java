@@ -137,8 +137,8 @@ public class Phase0Client {
 
 		c = new CoapClient(lightURI);
 
-		// Send requests
-		if (useDht) {
+		// Connect to DHT and continously retry if connection is lost
+		while (useDht) {
 			System.out.println("Using DHT");
 
 			latch = new CountDownLatch(1000);
@@ -158,9 +158,17 @@ public class Phase0Client {
 				e.printStackTrace();
 			}
 
-			return;
+			System.err.println("Connection to DHT lost. Retrying...");
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				System.err.println("Error: Failed to sleep when reconnecting to DHT");
+				e.printStackTrace();
+			}
+
 		}
 
+		// Command line interface
 		Scanner scanner = new Scanner(System.in);
 		String command = "";
 

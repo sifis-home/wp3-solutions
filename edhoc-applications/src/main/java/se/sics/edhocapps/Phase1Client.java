@@ -383,8 +383,8 @@ public class Phase1Client {
 		} while (!serverAvailable);
 		System.out.println("EDHOC Server is available.");
 
-		// Connect and listen to DHT, or use command line
-		if (useDht) {
+		// Connect to DHT and continously retry if connection is lost
+		while (useDht) {
 			System.out.println("Using DHT");
 
 			latch = new CountDownLatch(1000);
@@ -404,45 +404,53 @@ public class Phase1Client {
 				e.printStackTrace();
 			}
 
-		} else { // Command line
-
-			Scanner scanner = new Scanner(System.in);
-			String command = "";
-
-			while (!command.equals("q")) {
-
-				System.out.println("Enter command: ");
-				command = scanner.next();
-
-				if (command.equals("q")) {
-					break;
-				}
-
-				// If this is the first command, run EDHOC & send first request
-				if (hasRunEdhoc == false) {
-
-					// Prepare the EDHOC executor and start EDHOC as Initiator
-					ClientEdhocExecutor edhocExecutor = new ClientEdhocExecutor();
-					boolean ret = edhocExecutor.startEdhocExchangeAsInitiator(authenticationMethod,
-							peerSupportedCipherSuites, ownIdCreds, edhocEndpointInfo, OSCORE_EDHOC_COMBINED,
-							edhocCombinedRequestURI, combinedRequestAppCode, combinedRequestAppType,
-							combinedRequestAppPayload);
-					if (ret == false) {
-						System.err.println("Key establishment through EDHOC has failed");
-						System.exit(-1);
-					} else {
-						System.out.println("\nEDHOC successfully completed\n");
-					}
-
-					sendRequest(command);
-
-					hasRunEdhoc = true;
-
-				} else { // If not first, just send a request
-					sendRequest(command);
-				}
-
+			System.err.println("Connection to DHT lost. Retrying...");
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				System.err.println("Error: Failed to sleep when reconnecting to DHT");
+				e.printStackTrace();
 			}
+
+		}
+
+		// Command line interface
+		Scanner scanner = new Scanner(System.in);
+		String command = "";
+
+		while (!command.equals("q")) {
+
+			System.out.println("Enter command: ");
+			command = scanner.next();
+
+			if (command.equals("q")) {
+				break;
+			}
+
+			// If this is the first command, run EDHOC & send first request
+			if (hasRunEdhoc == false) {
+
+				// Prepare the EDHOC executor and start EDHOC as Initiator
+				ClientEdhocExecutor edhocExecutor = new ClientEdhocExecutor();
+				boolean ret = edhocExecutor.startEdhocExchangeAsInitiator(authenticationMethod,
+						peerSupportedCipherSuites, ownIdCreds, edhocEndpointInfo, OSCORE_EDHOC_COMBINED,
+						edhocCombinedRequestURI, combinedRequestAppCode, combinedRequestAppType,
+						combinedRequestAppPayload);
+				if (ret == false) {
+					System.err.println("Key establishment through EDHOC has failed");
+					System.exit(-1);
+				} else {
+					System.out.println("\nEDHOC successfully completed\n");
+				}
+
+				sendRequest(command);
+
+				hasRunEdhoc = true;
+
+			} else { // If not first, just send a request
+				sendRequest(command);
+			}
+
 		}
 
 		// Below never happens
