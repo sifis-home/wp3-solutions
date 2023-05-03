@@ -32,9 +32,7 @@ import org.eclipse.californium.core.Utils;
 import org.eclipse.californium.core.coap.CoAP.Code;
 import org.eclipse.californium.core.config.CoapConfig;
 import org.eclipse.californium.core.coap.Request;
-import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.elements.config.Configuration;
-import org.eclipse.californium.elements.util.Bytes;
 import org.glassfish.tyrus.client.ClientManager;
 
 import com.google.gson.Gson;
@@ -114,23 +112,28 @@ public class Phase0Client {
 			}
 		}
 
-		// Wait for EDHOC Server to become available
+		// Wait for DHT to become available
+		if (useDht) {
+			Support.waitForDht(dhtWebsocketUri);
+		}
+
+		// Wait for Server to become available
 		boolean serverAvailable = false;
 		do {
-			System.out.println("Attempting to reach EDHOC Server at: " + lightURI + " ...");
+			System.out.println("Attempting to reach Server at: " + lightURI + " ...");
 
 			try {
 				Thread.sleep(5000);
 				CoapClient checker = new CoapClient(lightURI);
 				serverAvailable = checker.ping();
 			} catch (InterruptedException e) {
-				System.err.println("Failed to sleep when waiting for EDHOC Server.");
+				System.err.println("Failed to sleep when waiting for Server.");
 				e.printStackTrace();
 			} catch (IllegalArgumentException e) {
-				System.err.println("EDHOC Server hostname not available. Retrying...");
+				System.err.println("Server hostname not available. Retrying...");
 			}
 		} while (!serverAvailable);
-		System.out.println("EDHOC Server is available.");
+		System.out.println("Server is available.");
 
 		c = new CoapClient(lightURI);
 
@@ -311,7 +314,7 @@ public class Phase0Client {
 
 		// Device 1 filter
 		if (topicField.equals(topic)) {
-			System.out.println("Filter matched message (EDHOC client)!");
+			System.out.println("Filter matched message (CoAP client)!");
 
 			// Send group request and compile responses
 			ArrayList<CoapResponse> responsesList = sendRequest(messageField);

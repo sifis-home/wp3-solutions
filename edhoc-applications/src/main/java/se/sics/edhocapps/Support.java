@@ -18,10 +18,11 @@
 package se.sics.edhocapps;
 
 import java.io.IOException;
+import java.net.Socket;
+import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.californium.core.CoapResponse;
-import org.eclipse.californium.core.Utils;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
@@ -108,6 +109,34 @@ public class Support {
 		}
 
 		return sb.toString();
+	}
+
+	/**
+	 * Wait for a connection to the DHT before proceeding
+	 *
+	 * @param dhtWebsocketUri the URI of the WebSocket interface for the DHT
+	 * @return if connection succeed
+	 */
+	public static boolean waitForDht(String dhtWebsocketUri) {
+		Socket soc = null;
+		URI dhtUri = URI.create(dhtWebsocketUri);
+
+		while (soc == null) {
+			try {
+				System.out.println("Attempting to reach DHT at: " + dhtWebsocketUri + " ...");
+				Thread.sleep(5000);
+				soc = new Socket(dhtUri.getHost(), dhtUri.getPort());
+			} catch (Exception e) {
+				//
+			}
+		}
+
+		try {
+			soc.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return true;
 	}
 
 }

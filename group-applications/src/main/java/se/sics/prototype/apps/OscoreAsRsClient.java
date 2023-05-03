@@ -32,6 +32,7 @@
 package se.sics.prototype.apps;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -206,6 +207,11 @@ public class OscoreAsRsClient {
 			OSCoreCoapStackFactory.useAsDefault(db);
 		}
 
+		// Wait for DHT to become available
+		if (useDht) {
+			waitForDht(dhtWebsocketUri);
+		}
+
 		// Wait for Authorization Server to become available
 		boolean asAvailable = false;
 		do {
@@ -303,27 +309,6 @@ public class OscoreAsRsClient {
 			}
 		} while (!gmAvailable);
 		System.out.println("GM is available. Proceeding to post Token to GM.");
-
-		// ///////////////
-		// // EDDSA (Ed25519)
-		// CBORObject rpkData = null;
-		// CBORObject x = null;
-		// CBORObject d = null;
-		// OneKey C1keyPair = null;
-		// String c1X_EDDSA =
-		// "069E912B83963ACC5941B63546867DEC106E5B9051F2EE14F3BC5CC961ACD43A";
-		// String c1D_EDDSA = privKeyClient;
-		// if (signKeyCurve == KeyKeys.OKP_Ed25519.AsInt32()) {
-		// rpkData = CBORObject.NewMap();
-		// rpkData.Add(KeyKeys.KeyType.AsCBOR(), KeyKeys.KeyType_OKP);
-		// rpkData.Add(KeyKeys.Algorithm.AsCBOR(), AlgorithmID.EDDSA.AsCBOR());
-		// rpkData.Add(KeyKeys.OKP_Curve.AsCBOR(), KeyKeys.OKP_Ed25519);
-		// x = CBORObject.FromObject(StringUtil.hex2ByteArray(c1X_EDDSA));
-		// d = CBORObject.FromObject(StringUtil.hex2ByteArray(c1D_EDDSA));
-		// rpkData.Add(KeyKeys.OKP_X.AsCBOR(), x);
-		// rpkData.Add(KeyKeys.OKP_D.AsCBOR(), d);
-		// C1keyPair = new OneKey(rpkData);
-		// }
 
 		// Get OneKey representation of this member's public/private key
 		OneKey cKeyPair = new MultiKey(KeyStorage.memberCcs.get(memberName),
@@ -853,6 +838,34 @@ public class OscoreAsRsClient {
 
 		System.out.print("-help");
 		System.out.println("\t Print help");
+	}
+
+	/**
+	 * Wait for a connection to the DHT before proceeding
+	 *
+	 * @param dhtWebsocketUri the URI of the WebSocket interface for the DHT
+	 * @return if connection succeed
+	 */
+	private static boolean waitForDht(String dhtWebsocketUri) {
+		Socket soc = null;
+		URI dhtUri = URI.create(dhtWebsocketUri);
+
+		while (soc == null) {
+			try {
+				System.out.println("Attempting to reach DHT at: " + dhtWebsocketUri + " ...");
+				Thread.sleep(5000);
+				soc = new Socket(dhtUri.getHost(), dhtUri.getPort());
+			} catch (Exception e) {
+				//
+			}
+		}
+
+		try {
+			soc.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return true;
 	}
 
 }

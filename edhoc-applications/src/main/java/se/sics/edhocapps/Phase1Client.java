@@ -360,6 +360,11 @@ public class Phase1Client {
 				edhocSessions, usedConnectionIds, supportedCipherSuites, supportedEADs, eadProductionInput, trustModel,
 				db, edhocURI, OSCORE_REPLAY_WINDOW, MAX_UNFRAGMENTED_SIZE, appProfiles);
 
+		// Wait for DHT to become available
+		if (useDht) {
+			Support.waitForDht(dhtWebsocketUri);
+		}
+
 		// Wait for EDHOC Server to become available
 		boolean serverAvailable = false;
 		do {
