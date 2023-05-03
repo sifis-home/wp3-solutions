@@ -238,7 +238,7 @@ public class Phase3Server extends CoapServer {
 		add(new LightResource("light"));
 
 		// provide an instance of a .well-known resource
-		CoapResource wellKnownResource = new WellKnown();
+		OSCoreResource wellKnownResource = new WellKnown();
 		add(wellKnownResource);
 
 		// If EAD items have to be produced for outgoing EDHOC messages
@@ -343,12 +343,12 @@ public class Phase3Server extends CoapServer {
 	/*
 	 * Definition of the Hello-World Resource
 	 */
-	class HelloWorldResource extends CoapResource {
+	class HelloWorldResource extends OSCoreResource {
 
 		public HelloWorldResource() {
 
 			// set resource identifier
-			super("helloWorld");
+			super("helloWorld", true);
 
 			// set display name
 			getAttributes().setTitle("Hello-World Resource");
@@ -365,12 +365,12 @@ public class Phase3Server extends CoapServer {
 	/*
 	 * Definition of the .well-known Resource
 	 */
-	class WellKnown extends CoapResource {
+	class WellKnown extends OSCoreResource {
 
 		public WellKnown() {
 
 			// set resource identifier
-			super(".well-known");
+			super(".well-known", true);
 
 			// set display name
 			getAttributes().setTitle(".well-known");
