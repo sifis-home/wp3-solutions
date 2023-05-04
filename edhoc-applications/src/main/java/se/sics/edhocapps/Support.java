@@ -22,6 +22,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Response;
@@ -115,19 +116,33 @@ public class Support {
 	 * Wait for a connection to the DHT before proceeding
 	 *
 	 * @param dhtWebsocketUri the URI of the WebSocket interface for the DHT
-	 * @return if connection succeed
+	 * @return true when the connection succeeds
 	 */
 	public static boolean waitForDht(String dhtWebsocketUri) {
+		int waitTime = 0;
+		int maxWait = 10 * 1000;
+
 		Socket soc = null;
 		URI dhtUri = URI.create(dhtWebsocketUri);
 
+		int count = 0;
 		while (soc == null) {
 			try {
-				System.out.println("Attempting to reach DHT at: " + dhtWebsocketUri + " ...");
-				Thread.sleep(5000);
+				System.out.print("Attempting to reach DHT at: " + dhtWebsocketUri + " ...");
+				if (count % 2 == 0) {
+					System.out.print(".");
+				}
+				System.out.println("");
+
+				count++;
+				Thread.sleep(waitTime);
+				if (waitTime < maxWait) {
+					waitTime += 1000;
+				}
+
 				soc = new Socket(dhtUri.getHost(), dhtUri.getPort());
 			} catch (Exception e) {
-				//
+				// DHT is unavailable currently
 			}
 		}
 
@@ -136,7 +151,90 @@ public class Support {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		System.out.println("DHT is available.");
 		return true;
+	}
+
+	/**
+	 * Wait for EDHOC Server to become available
+	 * 
+	 * @param edhocUri the URI of the EDHOC Server
+	 * @return true when the EDHOC Server is available
+	 * 
+	 */
+	public static boolean waitForEdhocServer(String edhocUri) {
+		int waitTime = 0;
+		int maxWait = 10 * 1000;
+
+		boolean serverAvailable = false;
+		int count = 0;
+		do {
+			System.out.print("Attempting to reach EDHOC Server at: " + edhocUri + " ...");
+			if (count % 2 == 0) {
+				System.out.print(".");
+			}
+			System.out.println("");
+
+			try {
+				count++;
+				Thread.sleep(waitTime);
+				if (waitTime < maxWait) {
+					waitTime += 1000;
+				}
+
+				CoapClient checker = new CoapClient(edhocUri);
+				serverAvailable = checker.ping();
+			} catch (InterruptedException e) {
+				System.err.println("Failed to sleep when waiting for EDHOC Server.");
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				System.err.println("EDHOC Server hostname not available. Retrying...");
+			}
+		} while (!serverAvailable);
+
+		System.out.println("EDHOC Server is available.");
+		return serverAvailable;
+	}
+
+	/**
+	 * Wait for Server to become available
+	 * 
+	 * @param serverUri the URI of the Server
+	 * @return true when the Server is available
+	 * 
+	 */
+	public static boolean waitForServer(String serverUri) {
+		int waitTime = 0;
+		int maxWait = 10 * 1000;
+
+		boolean serverAvailable = false;
+		int count = 0;
+		do {
+			System.out.print("Attempting to reach Server at: " + serverUri + " ...");
+			if (count % 2 == 0) {
+				System.out.print(".");
+			}
+			System.out.println("");
+
+			try {
+				count++;
+				Thread.sleep(waitTime);
+				if (waitTime < maxWait) {
+					waitTime += 1000;
+				}
+
+				CoapClient checker = new CoapClient(serverUri);
+				serverAvailable = checker.ping();
+			} catch (InterruptedException e) {
+				System.err.println("Failed to sleep when waiting for Server.");
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				System.err.println("Server hostname not available. Retrying...");
+			}
+		} while (!serverAvailable);
+
+		System.out.println("Server is available.");
+		return serverAvailable;
 	}
 
 }

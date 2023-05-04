@@ -366,22 +366,7 @@ public class Phase1Client {
 		}
 
 		// Wait for EDHOC Server to become available
-		boolean serverAvailable = false;
-		do {
-			System.out.println("Attempting to reach EDHOC Server at: " + edhocURI + " ...");
-
-			try {
-				Thread.sleep(5000);
-				CoapClient checker = new CoapClient(edhocURI);
-				serverAvailable = checker.ping();
-			} catch (InterruptedException e) {
-				System.err.println("Failed to sleep when waiting for EDHOC Server.");
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				System.err.println("EDHOC Server hostname not available. Retrying...");
-			}
-		} while (!serverAvailable);
-		System.out.println("EDHOC Server is available.");
+		Support.waitForEdhocServer(edhocURI);
 
 		// Connect to DHT and continously retry if connection is lost
 		while (useDht) {

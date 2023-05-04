@@ -118,22 +118,7 @@ public class Phase0Client {
 		}
 
 		// Wait for Server to become available
-		boolean serverAvailable = false;
-		do {
-			System.out.println("Attempting to reach Server at: " + lightURI + " ...");
-
-			try {
-				Thread.sleep(5000);
-				CoapClient checker = new CoapClient(lightURI);
-				serverAvailable = checker.ping();
-			} catch (InterruptedException e) {
-				System.err.println("Failed to sleep when waiting for Server.");
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				System.err.println("Server hostname not available. Retrying...");
-			}
-		} while (!serverAvailable);
-		System.out.println("Server is available.");
+		Support.waitForServer(lightURI);
 
 		c = new CoapClient(lightURI);
 
