@@ -311,7 +311,9 @@ public class Adversary {
 		System.out.println("Responses received: ");
 		ArrayList<CoapResponse> responseList = handler.getResponses();
 		for (int i = 0; i < responseList.size(); i++) {
-			System.out.println(Utils.prettyPrint(responseList.get(i)));
+			CoapResponse resp = responseList.get(i);
+			System.out.println("Received from: " + resp.advanced().getSourceContext().getPeerAddress());
+			System.out.println(Utils.prettyPrint(resp));
 		}
 		handler.clearResponses();
 	}
@@ -819,9 +821,9 @@ public class Adversary {
 			on();
 
 			// System.out.println("Receiving to: ");
-			System.out.println("Receiving from: " + response.advanced().getSourceContext().getPeerAddress());
+			// System.out.println("Receiving from: " + response.advanced().getSourceContext().getPeerAddress());
 
-			System.out.println(Utils.prettyPrint(response));
+			// System.out.println(Utils.prettyPrint(response));
 
 			responseMessages.add(response);
 		}
