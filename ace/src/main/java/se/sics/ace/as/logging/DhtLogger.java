@@ -85,6 +85,9 @@ public class DhtLogger {
 			return;
 		}
 
+		// Print message to be logged
+		System.out.println("[LOG] " + message);
+
 		// If a connection is not established yet (which should
 		// have been done from the application), do it now
 		if (dhtClient == null || session == null) {

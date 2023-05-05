@@ -356,12 +356,6 @@ public class OscoreAsRsClient {
 		CBORObject params = GetToken.getClientCredentialsRequest(CBORObject.FromObject("rs2"),
 				CBORObject.FromObject(byteStringScope), null);
 
-		/*
-		 * OSCoreCtx ctx = new OSCoreCtx(key128, true, null,
-		 * clientID.getBytes(Constants.charset),
-		 * "AS".getBytes(Constants.charset), null, null, null, null);
-		 */
-
 		byte[] senderId = KeyStorage.aceSenderIds.get(clientID);
 		byte[] recipientId = KeyStorage.aceSenderIds.get("AS");
 		OSCoreCtx ctx = new OSCoreCtx(key128, true, null, senderId, recipientId, null, null, null, null,
