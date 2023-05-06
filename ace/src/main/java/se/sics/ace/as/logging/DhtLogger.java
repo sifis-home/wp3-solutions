@@ -85,8 +85,9 @@ public class DhtLogger {
 			return;
 		}
 
-		// Print message to be logged
-		System.out.println("[LOG] " + message);
+		// Print information about message to be logged
+		message = device + ": " + message;
+		System.out.format("[LOG] \"%s\" (Type: %s, Priority: %s, Category: %s)%n", message, type, priority, category);
 
 		// If a connection is not established yet (which should
 		// have been done from the application), do it now
@@ -113,7 +114,6 @@ public class DhtLogger {
 		logsVal.setPriority(priority);
 		logsVal.setCategory(category);
 
-		message = device + ": " + message;
 		int maxLen = Math.min(message.length(), LOG_MAX_LEN);
 		logsVal.setMessage(message.substring(0, maxLen));
 
