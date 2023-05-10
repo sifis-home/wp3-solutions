@@ -148,7 +148,7 @@ public class Adversary {
 	private static int ecdhKeyCurve = KeyKeys.OKP_X25519.AsInt32();
 
 	static byte[] injectedRequest_groupB = StringUtil.hex2ByteArray(
-			"5802fec87e39b970d4f952779a390006bbbbbb57f03a22ff0245768cf835da1d58c887e5717d49979ceef353a547607568810f0092a88a7e903aff35bb4948a46d3507e549fb45708d2924df1eef8a18b08b43b3a1a7345ff95d252a08219dab64a3a01cab6d2e2f5c9e4f62");
+			"5802fed93a3ef749ba83319a9a390006bbbbbb57f03a22ff0245768cf835da1d58c887e5717d49979ceef353a547607568810f0092a88a7e903aff35bb4948a46d3507e549fb45708d2924df1eef8a18b08b43b3a1a7345ff95d252a08219dab64a3a01cab6d2e2f5c9e4f62");
 
 	/**
 	 * Main method for Token request followed by Group joining
