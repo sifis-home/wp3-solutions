@@ -66,6 +66,7 @@ import org.junit.Assert;
 
 import com.upokecenter.cbor.CBORObject;
 import com.upokecenter.cbor.CBORType;
+import com.upokecenter.cbor.CBORException;
 
 import se.sics.ace.Constants;
 import se.sics.ace.Util;
@@ -80,8 +81,8 @@ import se.sics.prototype.support.Tools;
  * A stand-alone application for Client->AS followed by Client->GM communication
  * using the OSCORE profile.
  * 
- * First the client will request a Token from the AS, it will then post it to
- * the GM and then proceed with the Group Joining procedure.
+ * First the client will request an Access Token from the AS, it will then post
+ * it to the GM and then proceed with the Group Joining procedure.
  * 
  * After the joining communication in the group commences using the Group OSCORE
  * client and server applications.
@@ -118,6 +119,9 @@ public class OscoreAsRsClient {
 	private static String dhtWebsocketUri = "ws://localhost:3000/ws";
 
 	static HashMapCtxDB db = new HashMapCtxDB();
+
+	// OSCORE Context shared between Client and AS
+	static OSCoreCtx ctx = null;
 
 	private final static int MAX_UNFRAGMENTED_SIZE = 4096;
 
@@ -274,6 +278,17 @@ public class OscoreAsRsClient {
 			e.printStackTrace();
 		}
 
+		// Retry if Token was not provided
+		while (responseFromAS.getPayload() == null || responseFromAS.getPayloadSize() == 0) {
+			System.err.println("No Token received from AS, retrying...");
+			try {
+				Thread.sleep(30 * 1000);
+				responseFromAS = requestToken(memberName, group, keyToAS);
+			} catch (Exception e) {
+				System.err.print("Token request retry failed");
+			}
+		}
+
 		printPause(memberName, "Will now post Token to Group Manager and perform group joining");
 
 		// Wait for Group Manager to become available
@@ -358,23 +373,24 @@ public class OscoreAsRsClient {
 
 		byte[] senderId = KeyStorage.aceSenderIds.get(clientID);
 		byte[] recipientId = KeyStorage.aceSenderIds.get("AS");
-		OSCoreCtx ctx = new OSCoreCtx(key128, true, null, senderId, recipientId, null, null, null, null,
-				MAX_UNFRAGMENTED_SIZE, true);
+		if (ctx == null) {
+			ctx = new OSCoreCtx(key128, true, null, senderId, recipientId, null, null, null, null,
+					MAX_UNFRAGMENTED_SIZE, true);
+		}
 
 		Response response = OSCOREProfileRequestsGroupOSCORE.getToken(tokenURI, params, ctx, db);
 
-		System.out.println("DB content: " + db.getContext(new byte[] { 0x00 }, null));
-
 		/* Parse and print response */
 
-		System.out.println("Response from AS: " + response.getPayloadString());
-		CBORObject res = CBORObject.DecodeFromBytes(response.getPayload());
-		// Map<Short, CBORObject> map = Constants.getParams(res);
-		// System.out.println(map);
+		try {
+			CBORObject res = CBORObject.DecodeFromBytes(response.getPayload());
+			System.out.println("Received response from AS to Token request: " + res.toString());
+		} catch (CBORException e) {
+			System.err.println("Failed to parse response from AS as CBOR");
+			System.out.println("Response from AS: " + response.getPayloadString());
+		}
 
-		System.out.println("Received response from AS to Token request: " + res.toString());
-
-		db.purge(); // FIXME: Remove?
+		db.purge();
 		return response;
 	}
 
