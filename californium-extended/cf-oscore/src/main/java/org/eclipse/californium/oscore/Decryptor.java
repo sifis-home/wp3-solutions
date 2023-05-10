@@ -138,10 +138,10 @@ public abstract class Decryptor {
 		}
 
 		System.out.println("Decrypting incoming " + message.getClass().getSimpleName());
-		System.out.println("Key " + Utils.toHexString(ctx.getRecipientKey()));
-		System.out.println("PartialIV " + Utils.toHexString(partialIV));
-		System.out.println("Nonce " + Utils.toHexString(nonce));
-		System.out.println("AAD " + Utils.toHexString(aad));
+		// System.out.println("Key " + Utils.toHexString(ctx.getRecipientKey()));
+		// System.out.println("PartialIV " + Utils.toHexString(partialIV));
+		// System.out.println("Nonce " + Utils.toHexString(nonce));
+		// System.out.println("AAD " + Utils.toHexString(aad));
 
 		byte[] plaintext = null;
 		byte[] key = ctx.getRecipientKey();
@@ -158,11 +158,11 @@ public abstract class Decryptor {
 
 			System.out.println("Decrypting incoming " + message.getClass().getSimpleName() + ", using pairwise mode: "
 					+ !groupModeMessage);
-			System.out.println("Decrypting incoming " + message.getClass().getSimpleName() + " with AAD "
-					+ Utils.toHexString(aad));
+			// System.out.println("Decrypting incoming " + message.getClass().getSimpleName() + " with AAD "
+			// 		+ Utils.toHexString(aad));
 
-			System.out.println("Decrypting incoming " + message.getClass().getSimpleName() + " with nonce "
-					+ Utils.toHexString(nonce));
+			// System.out.println("Decrypting incoming " + message.getClass().getSimpleName() + " with nonce "
+			// 		+ Utils.toHexString(nonce));
 
 			// If group mode is used prepare the signature checking
 			if (groupModeMessage) {
@@ -383,6 +383,8 @@ public abstract class Decryptor {
 			throw new OSException(ErrorDescriptions.COUNTERSIGNATURE_CHECK_FAILED);
 		}
 
+		System.out.println("Countersignature verified as valid");
+
 		return countersignatureValid;
 	}
 
@@ -457,14 +459,14 @@ public abstract class Decryptor {
 			System.err.println(e.getMessage());
 		}
 
-		System.out.println("===");
-		System.out.println("D Signature keystream: " + Utils.toHexString(keystream));
-		System.out.println("D groupEncryptionKey: " + Utils.toHexString(groupEncryptionKey));
-		System.out.println("D partialIV: " + Utils.toHexString(partialIV));
-		System.out.println("D kid: " + Utils.toHexString(kid));
-		System.out.println("D IdContext: " + Utils.toHexString(ctx.getIdContext()));
-		System.out.println("D isRequest: " + isRequest);
-		System.out.println("===");
+		// System.out.println("===");
+		// System.out.println("D Signature keystream: " + Utils.toHexString(keystream));
+		// System.out.println("D groupEncryptionKey: " + Utils.toHexString(groupEncryptionKey));
+		// System.out.println("D partialIV: " + Utils.toHexString(partialIV));
+		// System.out.println("D kid: " + Utils.toHexString(kid));
+		// System.out.println("D IdContext: " + Utils.toHexString(ctx.getIdContext()));
+		// System.out.println("D isRequest: " + isRequest);
+		// System.out.println("===");
 
 		// Now actually decrypt the signature
 		byte[] full_payload = null;

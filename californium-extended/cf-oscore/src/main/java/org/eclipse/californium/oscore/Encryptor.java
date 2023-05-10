@@ -129,10 +129,10 @@ public abstract class Encryptor {
 			}
 
 			System.out.println("Encrypting outgoing " + message.getClass().getSimpleName());
-			System.out.println("Key " + Utils.toHexString(ctx.getSenderKey()));
-			System.out.println("PartialIV " + Utils.toHexString(partialIV));
-			System.out.println("Nonce " + Utils.toHexString(nonce));
-			System.out.println("AAD " + Utils.toHexString(aad));
+			// System.out.println("Key " + Utils.toHexString(ctx.getSenderKey()));
+			// System.out.println("PartialIV " + Utils.toHexString(partialIV));
+			// System.out.println("Nonce " + Utils.toHexString(nonce));
+			// System.out.println("AAD " + Utils.toHexString(aad));
 
 			// Handle Group OSCORE messages
 			boolean groupModeMessage = false;
@@ -144,15 +144,17 @@ public abstract class Encryptor {
 
 				LOGGER.debug("Encrypting outgoing " + message.getClass().getSimpleName()
 						+ " using Group OSCORE. Pairwise mode: " + !groupModeMessage);
+				System.out.println("Encrypting outgoing " + message.getClass().getSimpleName()
+						+ " using Group OSCORE. Pairwise mode: " + !groupModeMessage);
 
 				// Update external AAD value for Group OSCORE
 				aad = OSSerializer.updateAADForGroup(ctx, aad, message);
 
-				System.out.println("Encrypting outgoing " + message.getClass().getSimpleName() + " with AAD "
-						+ Utils.toHexString(aad));
+				// System.out.println("Encrypting outgoing " + message.getClass().getSimpleName() + " with AAD "
+				// 		+ Utils.toHexString(aad));
 
-				System.out.println("Encrypting outgoing " + message.getClass().getSimpleName() + " with nonce "
-						+ Utils.toHexString(nonce));
+				// System.out.println("Encrypting outgoing " + message.getClass().getSimpleName() + " with nonce "
+				// 		+ Utils.toHexString(nonce));
 
 				// If this is a pairwise response/request use the pairwise key
 				if (pairwiseResponse) {
@@ -404,8 +406,8 @@ public abstract class Encryptor {
 
 		byte[] fullPayload = os.toByteArray();
 
-		System.out.println("countersignBytes len: " + countersignBytes.length);
-		System.out.println("ciphertext len: " + ciphertext.length);
+		// System.out.println("countersignBytes len: " + countersignBytes.length);
+		// System.out.println("ciphertext len: " + ciphertext.length);
 		enc.setEncryptedContent(fullPayload);
 	}
 
@@ -438,14 +440,14 @@ public abstract class Encryptor {
 			System.err.println(e.getMessage());
 		}
 
-		System.out.println("===");
-		System.out.println("E Signature keystream: " + Utils.toHexString(keystream));
-		System.out.println("E groupEncryptionKey: " + Utils.toHexString(groupEncryptionKey));
-		System.out.println("E partialIV: " + Utils.toHexString(partialIV));
-		System.out.println("E kid: " + Utils.toHexString(kid));
-		System.out.println("E IdContext: " + Utils.toHexString(ctx.getIdContext()));
-		System.out.println("E isRequest: " + isRequest);
-		System.out.println("===");
+		// System.out.println("===");
+		// System.out.println("E Signature keystream: " + Utils.toHexString(keystream));
+		// System.out.println("E groupEncryptionKey: " + Utils.toHexString(groupEncryptionKey));
+		// System.out.println("E partialIV: " + Utils.toHexString(partialIV));
+		// System.out.println("E kid: " + Utils.toHexString(kid));
+		// System.out.println("E IdContext: " + Utils.toHexString(ctx.getIdContext()));
+		// System.out.println("E isRequest: " + isRequest);
+		// System.out.println("===");
 
 		// Now actually encrypt the signature
 		byte[] countersignBytes = enc.getUnprotectedAttributes().get(HeaderKeys.CounterSignature0.AsCBOR())

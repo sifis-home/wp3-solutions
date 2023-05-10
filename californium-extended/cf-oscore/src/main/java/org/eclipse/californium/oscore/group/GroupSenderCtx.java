@@ -236,7 +236,7 @@ public class GroupSenderCtx extends OSCoreCtx {
 	 */
 	@Override
 	public int getRecipientReplaySize() {
-		System.out.println("Bad call to getRecipientReplaySize");
+		System.err.println("Bad call to getRecipientReplaySize");
 		StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
 		System.err.println("Bad call to getRecipientReplaySize on GroupSenderCtx" + stackTraceElements[2].toString());
 		System.exit(0);
@@ -248,7 +248,7 @@ public class GroupSenderCtx extends OSCoreCtx {
 	 */
 	@Override
 	public int getRecipientReplayWindow() {
-		System.out.println("Bad call to getRecipientReplayWindow");
+		System.err.println("Bad call to getRecipientReplayWindow");
 		StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
 		System.err.println("Bad call to getRecipientReplayWindow on GroupSenderCtx" + stackTraceElements[2].toString());
 		System.exit(0);
