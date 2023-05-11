@@ -126,7 +126,7 @@ public class Phase0Client {
 		while (useDht) {
 			System.out.println("Using DHT");
 
-			latch = new CountDownLatch(1000);
+			latch = new CountDownLatch(1);
 			ClientManager dhtClient = ClientManager.createClient();
 			try {
 				// wss://socketsbay.com/wss/v2/2/demo/
@@ -151,6 +151,7 @@ public class Phase0Client {
 				e.printStackTrace();
 			}
 
+			Support.waitForDht(dhtWebsocketUri);
 		}
 
 		// Command line interface

@@ -16,6 +16,8 @@
  ******************************************************************************/
 package se.sics.prototype.apps;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.io.File;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -210,7 +212,7 @@ public class GroupOscoreClient {
 		while (useDht) {
 			System.out.println("Using DHT");
 
-			latch = new CountDownLatch(1000);
+			latch = new CountDownLatch(1);
 			ClientManager dhtClient = ClientManager.createClient();
 			try {
 				// wss://socketsbay.com/wss/v2/2/demo/
@@ -229,6 +231,8 @@ public class GroupOscoreClient {
 				System.err.println("Error: Failed to sleep when reconnecting to DHT");
 				e.printStackTrace();
 			}
+
+			waitForDht(dhtWebsocketUri);
 		}
 
 		Scanner scanner = new Scanner(System.in);
@@ -501,5 +505,48 @@ public class GroupOscoreClient {
 		}
 
 		return sb.toString();
+	}
+	
+	/**
+	 * Wait for a connection to the DHT before proceeding
+	 *
+	 * @param dhtWebsocketUri the URI of the WebSocket interface for the DHT
+	 * @return true when the connection succeeds
+	 */
+	public static boolean waitForDht(String dhtWebsocketUri) {
+		int waitTime = 0;
+		int maxWait = 10 * 1000;
+
+		Socket soc = null;
+		URI dhtUri = URI.create(dhtWebsocketUri);
+
+		int count = 0;
+		while (soc == null) {
+			try {
+				System.out.print("Attempting to reach DHT at: " + dhtWebsocketUri + " ...");
+				if (count % 2 == 0) {
+					System.out.print(".");
+				}
+				System.out.println("");
+
+				count++;
+				Thread.sleep(waitTime);
+				if (waitTime < maxWait) {
+					waitTime += 1000;
+				}
+
+				soc = new Socket(dhtUri.getHost(), dhtUri.getPort());
+			} catch (Exception e) {
+				// DHT is unavailable currently
+			}
+		}
+
+		try {
+			soc.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("DHT is available.");
+		return true;
 	}
 }
