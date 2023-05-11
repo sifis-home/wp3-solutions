@@ -32,6 +32,8 @@
 package se.sics.prototype.apps;
 
 import java.util.Base64;
+import java.io.IOException;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -158,6 +160,11 @@ public class OscoreAsServer {
 		byte[] idContext = null;
 		String myIdentity = buildOscoreIdentity(KeyStorage.aceSenderIds.get("AS"), idContext);
 		String asName = "AS";
+
+		// If custom DB string is used, wait for MySQL server to be available
+		if (dbConnStr != null) {
+			waitForDb(dbConnStr);
+		}
 
 		DBHelper.setUpDB(dbConnStr);
 		db = DBHelper.getCoapDBConnector();
@@ -501,14 +508,14 @@ public class OscoreAsServer {
 
 		as = new OscoreAS(asName, db, pdp, time, asymmKey, "token", "introspect", port, null, false, (short) 1, true,
 				peerNamesToIdentities, peerIdentitiesToNames, myIdentities);
-		
+
 		AlgorithmID alg = AlgorithmID.AES_CCM_16_64_128;
 		AlgorithmID kdf = AlgorithmID.HKDF_HMAC_SHA_256;
 		OSCoreCtx ctx = new OSCoreCtx(KeyStorage.memberAsKeys.get("Adversary"), true, alg,
 				KeyStorage.aceSenderIds.get("AS"), new byte[] { (byte) 0xFF, (byte) 0xFF }, kdf, 32, null, idContext,
 				4096);
 		OscoreCtxDbSingleton.getInstance().addContext(ctx);
-		
+
 		as.start();
 		System.out.println("OSCORE ACE AS Server started on port: " + port);
 	}
@@ -541,6 +548,49 @@ public class OscoreAsServer {
 
 		return identity;
 
+	}
+
+	/**
+	 * Wait for a connection to the MySQL database before proceeding
+	 *
+	 * @param dbUri the URI of the MySQL database
+	 * @return true when the connection succeeds
+	 */
+	public static boolean waitForDb(String dbUri) {
+		int waitTime = 0;
+		int maxWait = 10 * 1000;
+
+		Socket soc = null;
+		URI dhtUri = URI.create(dbUri);
+
+		int count = 0;
+		while (soc == null) {
+			try {
+				System.out.print("Attempting to reach MySQL database at: " + dbUri + " ...");
+				if (count % 2 == 0) {
+					System.out.print(".");
+				}
+				System.out.println("");
+
+				count++;
+				Thread.sleep(waitTime);
+				if (waitTime < maxWait) {
+					waitTime += 1000;
+				}
+
+				soc = new Socket(dhtUri.getHost(), dhtUri.getPort());
+			} catch (Exception e) {
+				// MySQL database is currently unavailable
+			}
+		}
+
+		try {
+			soc.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("MySQL database is available.");
+		return true;
 	}
 
 	/**
