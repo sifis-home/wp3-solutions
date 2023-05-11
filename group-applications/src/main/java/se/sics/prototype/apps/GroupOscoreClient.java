@@ -64,6 +64,7 @@ import se.sics.prototype.json.incoming.JsonIn;
 import se.sics.prototype.json.outgoing.JsonOut;
 import se.sics.prototype.json.outgoing.OutValue;
 import se.sics.prototype.json.outgoing.RequestPubMessage;
+import se.sics.prototype.support.Tools;
 
 /**
  * Group OSCORE client application.
@@ -232,7 +233,7 @@ public class GroupOscoreClient {
 				e.printStackTrace();
 			}
 
-			waitForDht(dhtWebsocketUri);
+			Tools.waitForDht(dhtWebsocketUri);
 		}
 
 		Scanner scanner = new Scanner(System.in);
@@ -506,7 +507,7 @@ public class GroupOscoreClient {
 
 		return sb.toString();
 	}
-	
+
 	/**
 	 * Wait for a connection to the DHT before proceeding
 	 *

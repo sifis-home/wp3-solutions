@@ -327,11 +327,11 @@ public class Adversary {
 	 * @throws Exception on failure
 	 */
 	private static void invalidJoinRequest(String memberName, String group, byte[] keyToAS) throws Exception {
-		waitForAs();
+		Tools.waitForAs(AS_HOST, AS_PORT);
 		System.out.println("Will now request Token from Authorization Server");
 		Response responseFromAS = requestToken(memberName, group, keyToAS, false);
 
-		waitForGm();
+		Tools.waitForGm(GM_HOST, GM_PORT);
 		System.out.println("GM is available. Proceeding to post Token to GM.");
 
 		// Perform invalid join request
@@ -352,7 +352,7 @@ public class Adversary {
 	 */
 	private static void invalidTokenRequest(String memberName, String group, byte[] keyToAS) throws Exception {
 		// Wait for Authorization Server to become available
-		waitForAs();
+		Tools.waitForAs(AS_HOST, AS_PORT);
 		System.out.println("AS is available.");
 
 		// Now request Token
@@ -821,7 +821,8 @@ public class Adversary {
 			on();
 
 			// System.out.println("Receiving to: ");
-			// System.out.println("Receiving from: " + response.advanced().getSourceContext().getPeerAddress());
+			// System.out.println("Receiving from: " +
+			// response.advanced().getSourceContext().getPeerAddress());
 
 			// System.out.println(Utils.prettyPrint(response));
 
@@ -833,87 +834,4 @@ public class Adversary {
 			System.err.println("error");
 		}
 	}
-
-	// Methods to wait for AS and GM to be available
-
-	/**
-	 * Wait for Group Manager to become available
-	 * 
-	 * @return true when the GM is available
-	 */
-	private static boolean waitForGm() {
-		int waitTime = 0;
-		int maxWait = 10 * 1000;
-
-		boolean gmAvailable = false;
-		int count = 0;
-		do {
-			String gmUri = "coap://" + GM_HOST + ":" + GM_PORT + "/authz-info";
-			System.out.print("Attempting to reach GM at: " + gmUri + " ...");
-			if (count % 2 == 0) {
-				System.out.print(".");
-			}
-			System.out.println("");
-
-			try {
-				count++;
-				Thread.sleep(waitTime);
-				if (waitTime < maxWait) {
-					waitTime += 1000;
-				}
-
-				CoapClient checker = new CoapClient(gmUri);
-				gmAvailable = checker.ping();
-			} catch (InterruptedException e) {
-				System.err.println("Failed to sleep when waiting for GM.");
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				System.err.println("GM hostname not available. Retrying...");
-			}
-		} while (!gmAvailable);
-
-		System.out.println("GM is available.");
-		return gmAvailable;
-	}
-
-	/**
-	 * Wait for Authorization Server to become available
-	 * 
-	 * @return true when the AS is available
-	 */
-	private static boolean waitForAs() {
-		int waitTime = 0;
-		int maxWait = 10 * 1000;
-
-		boolean asAvailable = false;
-		int count = 0;
-		do {
-			String asUri = "coap://" + AS_HOST + ":" + AS_PORT + "/token";
-			System.out.print("Attempting to reach AS at: " + asUri + " ...");
-			if (count % 2 == 0) {
-				System.out.print(".");
-			}
-			System.out.println("");
-
-			try {
-				count++;
-				Thread.sleep(waitTime);
-				if (waitTime < maxWait) {
-					waitTime += 1000;
-				}
-
-				CoapClient checker = new CoapClient(asUri);
-				asAvailable = checker.ping();
-			} catch (InterruptedException e) {
-				System.err.println("Failed to sleep when waiting for AS.");
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				System.err.println("AS hostname not available. Retrying...");
-			}
-		} while (!asAvailable);
-
-		System.out.println("AS is available.");
-		return asAvailable;
-	}
-
 }

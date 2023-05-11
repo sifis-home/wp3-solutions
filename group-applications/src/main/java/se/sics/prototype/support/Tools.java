@@ -31,6 +31,11 @@
  *******************************************************************************/
 package se.sics.prototype.support;
 
+import java.io.IOException;
+import java.net.Socket;
+import java.net.URI;
+
+import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.KeyKeys;
@@ -168,10 +173,8 @@ public class Tools {
 		AlgorithmID kdf = null;
 		AlgorithmID algCountersign = null;
 		try {
-			alg = AlgorithmID
-					.FromCBOR(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.alg)));
-			kdf = AlgorithmID
-					.FromCBOR(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.hkdf)));
+			alg = AlgorithmID.FromCBOR(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.alg)));
+			kdf = AlgorithmID.FromCBOR(keyMap.get(CBORObject.FromObject(OSCOREInputMaterialObjectParameters.hkdf)));
 			algCountersign = AlgorithmID
 					.FromCBOR(keyMap.get(CBORObject.FromObject(GroupOSCOREInputMaterialObjectParameters.sign_alg)));
 		} catch (CoseException e1) {
@@ -281,6 +284,133 @@ public class Tools {
 		String ccs = StringUtil.byteArray2Hex(ccsBytes);
 
 		System.out.println("CCS: " + ccs);
+	}
+
+	/**
+	 * Wait for Group Manager to become available
+	 * 
+	 * @param gmHost the hostname of the GM
+	 * @param gmPort the port of the GM
+	 * @return true when the GM is available
+	 */
+	public static boolean waitForGm(String gmHost, int gmPort) {
+		int waitTime = 0;
+		int maxWait = 10 * 1000;
+
+		boolean gmAvailable = false;
+		int count = 0;
+		do {
+			String gmUri = "coap://" + gmHost + ":" + gmPort + "/authz-info";
+			System.out.print("Attempting to reach GM at: " + gmUri + " ...");
+			if (count % 2 == 0) {
+				System.out.print(".");
+			}
+			System.out.println("");
+
+			try {
+				count++;
+				Thread.sleep(waitTime);
+				if (waitTime < maxWait) {
+					waitTime += 1000;
+				}
+
+				CoapClient checker = new CoapClient(gmUri);
+				gmAvailable = checker.ping();
+			} catch (InterruptedException e) {
+				System.err.println("Failed to sleep when waiting for GM.");
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				System.err.println("GM hostname not available. Retrying...");
+			}
+		} while (!gmAvailable);
+
+		System.out.println("GM is available.");
+		return gmAvailable;
+	}
+
+	/**
+	 * Wait for Authorization Server to become available
+	 * 
+	 * @param asHost the hostname of the AS
+	 * @param asPort the port of the AS
+	 * @return true when the AS is available
+	 */
+	public static boolean waitForAs(String asHost, int asPort) {
+		int waitTime = 0;
+		int maxWait = 10 * 1000;
+
+		boolean asAvailable = false;
+		int count = 0;
+		do {
+			String asUri = "coap://" + asHost + ":" + asPort + "/token";
+			System.out.print("Attempting to reach AS at: " + asUri + " ...");
+			if (count % 2 == 0) {
+				System.out.print(".");
+			}
+			System.out.println("");
+
+			try {
+				count++;
+				Thread.sleep(waitTime);
+				if (waitTime < maxWait) {
+					waitTime += 1000;
+				}
+
+				CoapClient checker = new CoapClient(asUri);
+				asAvailable = checker.ping();
+			} catch (InterruptedException e) {
+				System.err.println("Failed to sleep when waiting for AS.");
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				System.err.println("AS hostname not available. Retrying...");
+			}
+		} while (!asAvailable);
+
+		System.out.println("AS is available.");
+		return asAvailable;
+	}
+
+	/**
+	 * Wait for a connection to the DHT before proceeding
+	 *
+	 * @param dhtWebsocketUri the URI of the WebSocket interface for the DHT
+	 * @return true when the connection succeeds
+	 */
+	public static boolean waitForDht(String dhtWebsocketUri) {
+		int waitTime = 0;
+		int maxWait = 10 * 1000;
+
+		Socket soc = null;
+		URI dhtUri = URI.create(dhtWebsocketUri);
+
+		int count = 0;
+		while (soc == null) {
+			try {
+				System.out.print("Attempting to reach DHT at: " + dhtWebsocketUri + " ...");
+				if (count % 2 == 0) {
+					System.out.print(".");
+				}
+				System.out.println("");
+
+				count++;
+				Thread.sleep(waitTime);
+				if (waitTime < maxWait) {
+					waitTime += 1000;
+				}
+
+				soc = new Socket(dhtUri.getHost(), dhtUri.getPort());
+			} catch (Exception e) {
+				// DHT is unavailable currently
+			}
+		}
+
+		try {
+			soc.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("DHT is available.");
+		return true;
 	}
 
 }

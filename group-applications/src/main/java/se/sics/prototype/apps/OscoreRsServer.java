@@ -822,8 +822,8 @@ public class OscoreRsServer {
 			if (!allowed) {
 				byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
 				DhtLogger.sendLog(TYPE_ERROR, PRIO_HIGH, CAT_STATUS, DEVICE_NAME,
-						"Indicated roles not allowed by the Access Token"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"Indicated roles not allowed by the Access Token" + " [subject: " + subject + ", groupName: "
+								+ groupName + "]");
 				exchange.respond(CoAP.ResponseCode.FORBIDDEN, errorResponsePayload, Constants.APPLICATION_ACE_CBOR);
 				return;
 			}
@@ -838,8 +838,8 @@ public class OscoreRsServer {
 				if (!getCreds.getType().equals(CBORType.Array) && !getCreds.equals(CBORObject.Null)) {
 					byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
 					DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-							"Invalid format of 'get_creds'"
-							+ " [subject: " + subject + ", groupName: " + groupName + "]");
+							"Invalid format of 'get_creds'" + " [subject: " + subject + ", groupName: " + groupName
+									+ "]");
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST, errorResponsePayload,
 							Constants.APPLICATION_ACE_CBOR);
 					return;
@@ -853,8 +853,8 @@ public class OscoreRsServer {
 
 						byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
 						DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-								"Invalid format of 'get_creds'"
-								+ " [subject: " + subject + ", groupName: " + groupName + "]");
+								"Invalid format of 'get_creds'" + " [subject: " + subject + ", groupName: " + groupName
+										+ "]");
 						exchange.respond(CoAP.ResponseCode.BAD_REQUEST, errorResponsePayload,
 								Constants.APPLICATION_ACE_CBOR);
 						return;
@@ -873,8 +873,8 @@ public class OscoreRsServer {
 
 							byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
 							DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-									"Invalid format of 'get_creds'"
-									+ " [subject: " + subject + ", groupName: " + groupName + "]");
+									"Invalid format of 'get_creds'" + " [subject: " + subject + ", groupName: "
+											+ groupName + "]");
 							exchange.respond(CoAP.ResponseCode.BAD_REQUEST, errorResponsePayload,
 									Constants.APPLICATION_ACE_CBOR);
 							return;
@@ -999,8 +999,8 @@ public class OscoreRsServer {
 				if (publicKey == null || valid == false) {
 					byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
 					DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-							"Public key empty or has invalid format"
-							+ " [subject: " + subject + ", groupName: " + groupName + ", nodeName: " + nodeName + "]");
+							"Public key empty or has invalid format" + " [subject: " + subject + ", groupName: "
+									+ groupName + ", nodeName: " + nodeName + "]");
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST, errorResponsePayload,
 							Constants.APPLICATION_ACE_CBOR);
 					return;
@@ -1086,8 +1086,8 @@ public class OscoreRsServer {
 				if (clientPopEvidence == null) {
 					byte[] errorResponsePayload = errorResponseMap.EncodeToBytes();
 					DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-							"A client PoP evidence must be included"
-							+ " [subject: " + subject + ", groupName: " + groupName + ", nodeName: " + nodeName + "]");
+							"A client PoP evidence must be included" + " [subject: " + subject + ", groupName: "
+									+ groupName + ", nodeName: " + nodeName + "]");
 					exchange.respond(CoAP.ResponseCode.BAD_REQUEST, errorResponsePayload,
 							Constants.APPLICATION_ACE_CBOR);
 					return;
@@ -1213,8 +1213,8 @@ public class OscoreRsServer {
 				}
 				myGroup.deleteBirthGid(nodeName);
 				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-						"Error when adding the new group member"
-						+ " [subject: " + subject + ", groupName: " + groupName + ", nodeName: " + nodeName + "]");
+						"Error when adding the new group member" + " [subject: " + subject + ", groupName: " + groupName
+								+ ", nodeName: " + nodeName + "]");
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when adding the new group member");
 				return;
 			}
@@ -1236,8 +1236,8 @@ public class OscoreRsServer {
 				}
 
 				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-						"Error when creating the node sub-resource"
-						+ " [subject: " + subject + ", groupName: " + groupName + ", nodeName: " + nodeName + "]");
+						"Error when creating the node sub-resource" + " [subject: " + subject + ", groupName: "
+								+ groupName + ", nodeName: " + nodeName + "]");
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when creating the node sub-resource");
 				return;
 			}
@@ -1401,8 +1401,8 @@ public class OscoreRsServer {
 			} catch (CoseException e) {
 				System.err.println("Error when computing the GM PoP evidence " + e.getMessage());
 				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-						"Error when computing the GM PoP evidence"
-						+ " [subject: " + subject + ", groupName: " + groupName + ", nodeName: " + nodeName + "]");
+						"Error when computing the GM PoP evidence" + " [subject: " + subject + ", groupName: "
+								+ groupName + ", nodeName: " + nodeName + "]");
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when computing the GM PoP evidence");
 				return;
 			}
@@ -1412,8 +1412,8 @@ public class OscoreRsServer {
 				joinResponse.Add(Constants.KDC_CRED_VERIFY, gmSignature);
 			} else {
 				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-						"Error when computing the GM PoP evidence"
-						+ " [subject: " + subject + ", groupName: " + groupName + ", nodeName: " + nodeName + "]");
+						"Error when computing the GM PoP evidence" + " [subject: " + subject + ", groupName: "
+								+ groupName + ", nodeName: " + nodeName + "]");
 				exchange.respond(CoAP.ResponseCode.INTERNAL_SERVER_ERROR, "Error when computing the GM PoP evidence");
 				return;
 			}
@@ -1426,9 +1426,8 @@ public class OscoreRsServer {
 			coapJoinResponse.getOptions().setContentFormat(Constants.APPLICATION_ACE_GROUPCOMM_CBOR);
 			coapJoinResponse.getOptions().setLocationPath(uriNodeResource);
 
-			DhtLogger.sendLog(TYPE_INFO, PRIO_LOW, CAT_STATUS, DEVICE_NAME,
-					"Successfully processed Join Request" + " [subject: "
-					+ subject + ", groupName: " + groupName + ", nodeName: " + nodeName + "]");
+			DhtLogger.sendLog(TYPE_INFO, PRIO_LOW, CAT_STATUS, DEVICE_NAME, "Successfully processed Join Request"
+					+ " [subject: " + subject + ", groupName: " + groupName + ", nodeName: " + nodeName + "]");
 			exchange.respond(coapJoinResponse);
 
 		}
@@ -2642,8 +2641,8 @@ public class OscoreRsServer {
 			if (request.getPayloadSize() != 0) {
 				// This request must not have a payload
 				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-						"This request must not have a payload"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"This request must not have a payload" + " [subject: " + subject + ", groupName: " + groupName
+								+ "]");
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "This request must not have a payload");
 				return;
 			}
@@ -2657,8 +2656,8 @@ public class OscoreRsServer {
 				// At this point, this should not really happen,
 				// due to the earlier check at the Token Repository
 				DhtLogger.sendLog(TYPE_ERROR, PRIO_HIGH, CAT_STATUS, DEVICE_NAME,
-						"Unauthenticated client tried to get access"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"Unauthenticated client tried to get access" + " [subject: " + subject + ", groupName: "
+								+ groupName + "]");
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
@@ -2666,8 +2665,8 @@ public class OscoreRsServer {
 			if (!targetedGroup.isGroupMember(subject)) {
 				// The requester is not a current group member.
 				DhtLogger.sendLog(TYPE_ERROR, PRIO_HIGH, CAT_STATUS, DEVICE_NAME,
-						"Operation permitted only to group members"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"Operation permitted only to group members" + " [subject: " + subject + ", groupName: "
+								+ groupName + "]");
 				exchange.respond(CoAP.ResponseCode.FORBIDDEN, "Operation permitted only to group members");
 				return;
 			}
@@ -2708,8 +2707,8 @@ public class OscoreRsServer {
 			if (senderId == null) {
 				// All possible values are already in use for this OSCORE group
 				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-						"No available Sender IDs in this OSCORE group"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"No available Sender IDs in this OSCORE group" + " [subject: " + subject + ", groupName: "
+								+ groupName + "]");
 				exchange.respond(CoAP.ResponseCode.SERVICE_UNAVAILABLE, "No available Sender IDs in this OSCORE group");
 				return;
 			}
@@ -2793,8 +2792,8 @@ public class OscoreRsServer {
 				// At this point, this should not really happen,
 				// due to the earlier check at the Token Repository
 				DhtLogger.sendLog(TYPE_ERROR, PRIO_HIGH, CAT_STATUS, DEVICE_NAME,
-						"Unauthenticated client tried to get access"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"Unauthenticated client tried to get access" + " [subject: " + subject + ", groupName: "
+								+ groupName + "]");
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
@@ -2802,8 +2801,8 @@ public class OscoreRsServer {
 			if (!targetedGroup.isGroupMember(subject)) {
 				// The requester is not a current group member.
 				DhtLogger.sendLog(TYPE_ERROR, PRIO_HIGH, CAT_STATUS, DEVICE_NAME,
-						"Operation permitted only to group members"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"Operation permitted only to group members" + " [subject: " + subject + ", groupName: "
+								+ groupName + "]");
 				exchange.respond(CoAP.ResponseCode.FORBIDDEN, "Operation permitted only to group members");
 				return;
 			}
@@ -2827,8 +2826,8 @@ public class OscoreRsServer {
 
 			delete();
 			DhtLogger.sendLog(TYPE_INFO, PRIO_LOW, CAT_STATUS, DEVICE_NAME,
-					"Successfully processed Group Leaving Request"
-					+ " [subject: " + subject + ", groupName: " + groupName + "]");
+					"Successfully processed Group Leaving Request" + " [subject: " + subject + ", groupName: "
+							+ groupName + "]");
 			exchange.respond(coapResponse);
 
 		}
@@ -2896,8 +2895,8 @@ public class OscoreRsServer {
 				// At this point, this should not really happen,
 				// due to the earlier check at the Token Repository
 				DhtLogger.sendLog(TYPE_ERROR, PRIO_HIGH, CAT_STATUS, DEVICE_NAME,
-						"Unauthenticated client tried to get access"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"Unauthenticated client tried to get access" + " [subject: " + subject + ", groupName: "
+								+ groupName + "]");
 				exchange.respond(CoAP.ResponseCode.UNAUTHORIZED, "Unauthenticated client tried to get access");
 				return;
 			}
@@ -2905,8 +2904,8 @@ public class OscoreRsServer {
 			if (!targetedGroup.isGroupMember(subject)) {
 				// The requester is not a current group member.
 				DhtLogger.sendLog(TYPE_ERROR, PRIO_HIGH, CAT_STATUS, DEVICE_NAME,
-						"Operation permitted only to group members"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"Operation permitted only to group members" + " [subject: " + subject + ", groupName: "
+								+ groupName + "]");
 				exchange.respond(CoAP.ResponseCode.FORBIDDEN, "Operation permitted only to group members");
 				return;
 			}
@@ -2970,8 +2969,8 @@ public class OscoreRsServer {
 
 			if (!AuthCredUpdateRequest.ContainsKey(Constants.CLIENT_CRED_VERIFY)) {
 				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-						"Missing parameter: 'client_cred_verify'"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"Missing parameter: 'client_cred_verify'" + " [subject: " + subject + ", groupName: "
+								+ groupName + "]");
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Missing parameter: 'client_cred_verify'");
 				return;
 			}
@@ -2982,8 +2981,8 @@ public class OscoreRsServer {
 			// client_cred cannot be Null
 			if (clientCred == null) {
 				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-						"The parameter 'client_cred' cannot be Null"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"The parameter 'client_cred' cannot be Null" + " [subject: " + subject + ", groupName: "
+								+ groupName + "]");
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "The parameter 'client_cred' cannot be Null");
 				return;
 			}
@@ -3086,8 +3085,8 @@ public class OscoreRsServer {
 			// A client nonce must be included for proof-of-possession
 			if (cnonce == null) {
 				DhtLogger.sendLog(TYPE_WARNING, PRIO_MEDIUM, CAT_STATUS, DEVICE_NAME,
-						"The parameter 'cnonce' cannot be Null"
-						+ " [subject: " + subject + ", groupName: " + groupName + "]");
+						"The parameter 'cnonce' cannot be Null" + " [subject: " + subject + ", groupName: " + groupName
+								+ "]");
 				exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "The parameter 'cnonce' cannot be Null");
 				return;
 			}

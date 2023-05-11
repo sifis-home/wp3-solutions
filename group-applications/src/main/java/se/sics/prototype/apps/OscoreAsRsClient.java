@@ -32,7 +32,6 @@
 package se.sics.prototype.apps;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -213,11 +212,11 @@ public class OscoreAsRsClient {
 
 		// Wait for DHT to become available
 		if (useDht) {
-			waitForDht(dhtWebsocketUri);
+			Tools.waitForDht(dhtWebsocketUri);
 		}
 
 		// Wait for Authorization Server to become available
-		waitForAs();
+		Tools.waitForAs(AS_HOST, AS_PORT);
 		System.out.println("Proceeding to request Token from AS.");
 
 		// Build empty sets of assigned Sender IDs; one set for each possible
@@ -292,7 +291,7 @@ public class OscoreAsRsClient {
 		printPause(memberName, "Will now post Token to Group Manager and perform group joining");
 
 		// Wait for Group Manager to become available
-		waitForGm();
+		Tools.waitForGm(GM_HOST, GM_PORT);
 		System.out.println("Proceeding to post Token to GM.");
 
 		// Get OneKey representation of this member's public/private key
@@ -819,130 +818,4 @@ public class OscoreAsRsClient {
 		System.out.print("-help");
 		System.out.println("\t Print help");
 	}
-
-	// Methods to wait for AS, GM and DHT to be available
-
-	/**
-	 * Wait for a connection to the DHT before proceeding
-	 *
-	 * @param dhtWebsocketUri the URI of the WebSocket interface for the DHT
-	 * @return true when the connection succeeds
-	 */
-	public static boolean waitForDht(String dhtWebsocketUri) {
-		int waitTime = 0;
-		int maxWait = 10 * 1000;
-
-		Socket soc = null;
-		URI dhtUri = URI.create(dhtWebsocketUri);
-
-		int count = 0;
-		while (soc == null) {
-			try {
-				System.out.print("Attempting to reach DHT at: " + dhtWebsocketUri + " ...");
-				if (count % 2 == 0) {
-					System.out.print(".");
-				}
-				System.out.println("");
-
-				count++;
-				Thread.sleep(waitTime);
-				if (waitTime < maxWait) {
-					waitTime += 1000;
-				}
-
-				soc = new Socket(dhtUri.getHost(), dhtUri.getPort());
-			} catch (Exception e) {
-				// DHT is unavailable currently
-			}
-		}
-
-		try {
-			soc.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		System.out.println("DHT is available.");
-		return true;
-	}
-
-	/**
-	 * Wait for Group Manager to become available
-	 * 
-	 * @return true when the GM is available
-	 */
-	private static boolean waitForGm() {
-		int waitTime = 0;
-		int maxWait = 10 * 1000;
-
-		boolean gmAvailable = false;
-		int count = 0;
-		do {
-			String gmUri = "coap://" + GM_HOST + ":" + GM_PORT + "/authz-info";
-			System.out.print("Attempting to reach GM at: " + gmUri + " ...");
-			if (count % 2 == 0) {
-				System.out.print(".");
-			}
-			System.out.println("");
-
-			try {
-				count++;
-				Thread.sleep(waitTime);
-				if (waitTime < maxWait) {
-					waitTime += 1000;
-				}
-
-				CoapClient checker = new CoapClient(gmUri);
-				gmAvailable = checker.ping();
-			} catch (InterruptedException e) {
-				System.err.println("Failed to sleep when waiting for GM.");
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				System.err.println("GM hostname not available. Retrying...");
-			}
-		} while (!gmAvailable);
-
-		System.out.println("GM is available.");
-		return gmAvailable;
-	}
-
-	/**
-	 * Wait for Authorization Server to become available
-	 * 
-	 * @return true when the AS is available
-	 */
-	private static boolean waitForAs() {
-		int waitTime = 0;
-		int maxWait = 10 * 1000;
-
-		boolean asAvailable = false;
-		int count = 0;
-		do {
-			String asUri = "coap://" + AS_HOST + ":" + AS_PORT + "/token";
-			System.out.print("Attempting to reach AS at: " + asUri + " ...");
-			if (count % 2 == 0) {
-				System.out.print(".");
-			}
-			System.out.println("");
-
-			try {
-				count++;
-				Thread.sleep(waitTime);
-				if (waitTime < maxWait) {
-					waitTime += 1000;
-				}
-
-				CoapClient checker = new CoapClient(asUri);
-				asAvailable = checker.ping();
-			} catch (InterruptedException e) {
-				System.err.println("Failed to sleep when waiting for AS.");
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				System.err.println("AS hostname not available. Retrying...");
-			}
-		} while (!asAvailable);
-
-		System.out.println("AS is available.");
-		return asAvailable;
-	}
-
 }
