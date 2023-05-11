@@ -1,0 +1,49 @@
+version: "2.1"
+
+# Docker Compose file for RISE WP3-solutions for Panarea sifis-device1
+# Start with: docker-compose up -d
+
+services:
+  # ACE Authorization Server (AS)
+  authorization-server:
+    image: ghcr.io/sifis-home/authorization-server:latest
+    entrypoint: ["java", "-jar", "OscoreAsServer.jar", "-dht", "ws://host.docker.internal:3000/ws", "-db", "mysql://root:xxxxxx@mysql-db:3306"]
+    expose:
+      - "5583/udp"
+    ports:
+      - "5583:5583/udp"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: on-failure
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  # ACE Group Manager (GM)
+  group-manager:
+    image: ghcr.io/sifis-home/group-manager:latest
+    entrypoint: ["java", "-jar", "OscoreRsServer.jar", "-dht", "ws://host.docker.internal:3000/ws"]
+    expose:
+      - "5783/udp"
+    ports:
+      - "5783:5783/udp"
+    restart: on-failure
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # MySQL server needed for AS. The AS -db parameter contents matches the MySQL server config.
+  mysql-db:
+    image: mysql:8.0.32
+    command: >
+      --wait-timeout=31536000
+      --interactive-timeout=31536000
+    environment:
+      - MYSQL_ROOT_PASSWORD=xxxxxx
+    expose:
+      - "3306/tcp"
+    restart: on-failure
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:3306"]
+        interval: 30s
+        timeout: 10s
+        retries: 5

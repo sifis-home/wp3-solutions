@@ -1,0 +1,79 @@
+version: "3"
+
+# Docker Compose file for RISE WP3-solutions for Panarea sifis-device3
+# Start with: docker compose up -d
+
+# Note:
+# "sifis-device1" has to be replaced by the IP address of that device.
+# Requires a Docker Volume created with "docker volume create rise-wp3-volume"
+
+services:
+  # Group OSCORE server (will join the group using AS and GM)
+  group-server-one:
+    image: ghcr.io/sifis-home/group-server4:latest
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "20", "-as", "coap://sifis-device1:5583", "-gm", "coap://sifis-device1:5783"]
+    restart: on-failure
+    expose:
+      - "4683/udp"
+    volumes:
+      - rise-wp3-volume:/apps/.resume
+
+  # Group OSCORE server (will join the group using AS and GM)
+  group-server-two:
+    image: ghcr.io/sifis-home/group-server5:latest
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "35", "-as", "coap://sifis-device1:5583", "-gm", "coap://sifis-device1:5783"]
+    restart: on-failure
+    expose:
+      - "4683/udp"
+    volumes:
+      - rise-wp3-volume:/apps/.resume
+
+  # Group OSCORE server (will join the group using AS and GM)
+  group-server-three:
+    image: ghcr.io/sifis-home/group-server6:latest
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "50", "-as", "coap://sifis-device1:5583", "-gm", "coap://sifis-device1:5783"]
+    restart: on-failure
+    expose:
+      - "4683/udp"
+    volumes:
+      - rise-wp3-volume:/apps/.resume
+
+  # Group OSCORE client (will join the group using AS and GM). Listens for commands from DHT to trigger request sending.
+  group-client:
+    image: ghcr.io/sifis-home/group-client2:latest
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-delay", "65", "-as", "coap://sifis-device1:5583", "-gm", "coap://sifis-device1:5783", "-dht", "ws://host.docker.internal:3000/ws"]
+    restart: on-failure
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - rise-wp3-volume:/apps/.resume
+
+  # CoAP-only client. Listens for commands from DHT to trigger request sending.
+  coap-client:
+    image: ghcr.io/sifis-home/phase0-client:latest
+    entrypoint: ["java", "-jar", "Phase0Client.jar", "-server", "coap://edhoc-server:5697", "-dht", "ws://host.docker.internal:3000/ws"]
+    restart: on-failure
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # EDHOC server (using method 3 and the optimized request)
+  edhoc-server:
+    image: ghcr.io/sifis-home/phase4-server:latest
+    entrypoint: ["java", "-jar", "Phase4Server.jar"]
+    restart: on-failure
+    expose:
+      - "5697/udp"
+
+  # EDHOC client (using method 3 and the optimized request). Listens for commands from DHT to trigger request sending.
+  edhoc-client:
+    image: ghcr.io/sifis-home/phase4-client:latest
+    entrypoint: ["java", "-jar", "Phase4Client.jar", "-server", "coap://edhoc-server:5697", "-dht", "ws://host.docker.internal:3000/ws"]
+    restart: on-failure
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+# Volume for Appendix B.1 SSN recovery
+volumes:
+  rise-wp3-volume:
+    external: true
+
