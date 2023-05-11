@@ -3303,9 +3303,9 @@ public class OscoreRsServer {
 
 		// Set java.util.logging
 		Logger rootLogger = LogManager.getLogManager().getLogger("");
-		rootLogger.setLevel(Level.FINEST);
+		rootLogger.setLevel(Level.INFO);
 		for (Handler h : rootLogger.getHandlers()) {
-			h.setLevel(Level.FINEST);
+			h.setLevel(Level.INFO);
 		}
 
 		new File(testpath + "tokens.json").delete();
