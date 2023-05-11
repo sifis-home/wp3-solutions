@@ -4,14 +4,14 @@ version: "3"
 # Start with: docker compose up -d
 
 # Note:
-# "sifis-device1" has to be replaced by the IP address of that device.
+# "$sifis-device1" has to be replaced by the IP address of that device.
 # Requires a Docker Volume created with "docker volume create rise-wp3-volume"
 
 services:
   # Group OSCORE server (will join the group using AS and GM)
   group-server-one:
     image: ghcr.io/sifis-home/group-server4:latest
-    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "20", "-as", "coap://sifis-device1:5583", "-gm", "coap://sifis-device1:5783"]
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server4", "-delay", "20", "-as", "coap://$sifis-device1:5583", "-gm", "coap://$sifis-device1:5783"]
     restart: on-failure
     expose:
       - "4683/udp"
@@ -21,7 +21,7 @@ services:
   # Group OSCORE server (will join the group using AS and GM)
   group-server-two:
     image: ghcr.io/sifis-home/group-server5:latest
-    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "35", "-as", "coap://sifis-device1:5583", "-gm", "coap://sifis-device1:5783"]
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server5", "-delay", "35", "-as", "coap://$sifis-device1:5583", "-gm", "coap://$sifis-device1:5783"]
     restart: on-failure
     expose:
       - "4683/udp"
@@ -31,7 +31,7 @@ services:
   # Group OSCORE server (will join the group using AS and GM)
   group-server-three:
     image: ghcr.io/sifis-home/group-server6:latest
-    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "50", "-as", "coap://sifis-device1:5583", "-gm", "coap://sifis-device1:5783"]
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Server6", "-delay", "50", "-as", "coap://$sifis-device1:5583", "-gm", "coap://$sifis-device1:5783"]
     restart: on-failure
     expose:
       - "4683/udp"
@@ -41,7 +41,7 @@ services:
   # Group OSCORE client (will join the group using AS and GM). Listens for commands from DHT to trigger request sending.
   group-client:
     image: ghcr.io/sifis-home/group-client2:latest
-    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-delay", "65", "-as", "coap://sifis-device1:5583", "-gm", "coap://sifis-device1:5783", "-dht", "ws://host.docker.internal:3000/ws"]
+    entrypoint: ["java", "-jar", "OscoreAsRsClient.jar", "-name", "Client2", "-delay", "65", "-as", "coap://$sifis-device1:5583", "-gm", "coap://$sifis-device1:5783", "-dht", "ws://host.docker.internal:3000/ws"]
     restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"
