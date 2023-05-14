@@ -100,6 +100,11 @@ https://www.andreafortuna.org/2016/06/08/java-tips-how-to-fix-the-invalidkeyexce
     - Allows sending volatile message to the DHT for triggering Group & EDHOC Applications
     - Run *pip install -r python_requirements.txt* to install required dependencies
 
+- dht_ws_client.py
+    - Allows sending volatile message to the DHT for triggering Group & EDHOC Applications
+    - Also prints messages received back from the DHT
+    - Run *pip install websockets* to install required dependencies
+
 - californium-extended/
     - Modified version of the Californium CoAP library with support for EDHOC and Group OSCORE
 
