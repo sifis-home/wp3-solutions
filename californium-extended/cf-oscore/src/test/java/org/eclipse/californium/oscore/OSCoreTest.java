@@ -38,6 +38,7 @@ import org.eclipse.californium.core.coap.Token;
 import org.eclipse.californium.core.network.RandomTokenGenerator;
 import org.eclipse.californium.core.network.TokenGenerator;
 import org.eclipse.californium.core.network.TokenGenerator.Scope;
+import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.californium.elements.util.Bytes;
 import org.junit.After;
@@ -410,6 +411,48 @@ public class OSCoreTest {
 		} catch (OSException e) {
 			e.printStackTrace();
 			assertTrue(false);
+		}
+	}
+
+	/**
+	 * Tests shifting of the replay window considering different window sizes.
+	 * Simulates receiving 100 requests with incrementing sequence numbers.
+	 * 
+	 * @param replayWindowSize the desired size of the replay window
+	 * @throws OSException on test failure
+	 */
+	private void replayWindowShiftTester(int replayWindowSize) throws OSException {
+
+		byte[] rid = new byte[] { 0x00 };
+		byte[] sid = new byte[] { 0x01 };
+
+		serverCtx = new OSCoreCtx(key, false, AlgorithmID.AES_CCM_16_64_128, sid, rid, AlgorithmID.HKDF_HMAC_SHA_256,
+				replayWindowSize, null, null, 4096);
+
+		int lastSeq = 100;
+		for (int seq = 0; seq < lastSeq; seq++) {
+			serverCtx.checkIncomingSeq(seq);
+		}
+
+		assertEquals("Failed test case with replay window size: " + replayWindowSize, lastSeq - replayWindowSize,
+				serverCtx.getInternalReceiverSeq());
+	}
+
+	/**
+	 * Tests shifting of the replay window with replay window sizes of 1 to 32.
+	 * 
+	 */
+	@Test
+	public void testReplayWindowShifts() {
+		for (int windowSize = 1; windowSize <= 32; windowSize++) {
+			try {
+				replayWindowShiftTester(windowSize);
+			} catch (OSException e) {
+				String msg = "Failed test case with replay window size: " + windowSize;
+				System.err.println(msg);
+				fail(msg);
+				e.printStackTrace();
+			}
 		}
 	}
 

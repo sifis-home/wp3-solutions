@@ -116,7 +116,7 @@ public class CoapOSExceptionHandler {
 			return null;
 		}
 		
-		LOGGER.info("Sending empty RST message");
+		LOGGER.debug("Sending empty RST message");
 		return EmptyMessage.newRST(response);
 	}
 }

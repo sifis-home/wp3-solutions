@@ -87,7 +87,6 @@ public class OSCoreCtx {
 
 	private int rollback_recipient_seq = -1;
 	private int rollback_recipient_replay = -1;
-	private byte[] rollback_last_block_tag = null;
 
 	private byte[] last_block_tag = null;
 	private int seqMax = Integer.MAX_VALUE;
@@ -460,6 +459,13 @@ public class OSCoreCtx {
 	 */
 	public synchronized int getReceiverSeq() {
 		return recipient_seq;
+	}
+
+	/**
+	 * @return the internal receiver sequence number
+	 */
+	public synchronized int getInternalReceiverSeq() {
+		return internal_recipient_seq;
 	}
 
 	/**
@@ -844,7 +850,6 @@ public class OSCoreCtx {
 	// TODO: For interop testing
 	public static boolean DISABLE_REPLAY_CHECKS = false;
 
-
 	/**
 	 * Checks and sets the sequence number for incoming messages.
 	 * 
@@ -854,10 +859,10 @@ public class OSCoreCtx {
 	 */
 	public synchronized void checkIncomingSeq(int seq) throws OSException {
 
-		if(DISABLE_REPLAY_CHECKS) {
+		if (DISABLE_REPLAY_CHECKS) {
 			return;
 		}
-		
+
 		if (seq >= seqMax) {
 			LOGGER.error("Sequence number wrapped, get new OSCore context");
 			throw new OSException(ErrorDescriptions.REPLAY_DETECT);
@@ -869,6 +874,9 @@ public class OSCoreCtx {
 		}
 
 		boolean valid = ((recipient_replay_window >> (seq - internal_recipient_seq)) & 1) == 0;
+		if (seq >= internal_recipient_seq + recipient_replay_window_size) {
+			valid = true;
+		}
 		if (!valid) {
 			LOGGER.error("Replayed message detected");
 			throw new OSException(ErrorDescriptions.REPLAY_DETECT);
@@ -882,24 +890,6 @@ public class OSCoreCtx {
 			internal_recipient_seq += shift;
 		}
 		recipient_replay_window |= 1 << (seq - internal_recipient_seq);
-	}
-
-	/**
-	 * Rolls back the latest recipient sequence number update if any
-	 */
-	public synchronized void rollBack() {
-		if (rollback_recipient_replay != -1) {
-			recipient_replay_window = rollback_recipient_replay;
-			rollback_recipient_replay = -1;
-		}
-		if (rollback_recipient_seq != -1) {
-			recipient_seq = rollback_recipient_seq;
-			rollback_recipient_seq = -1;
-		}
-		if (this.rollback_last_block_tag != null) {
-			this.last_block_tag = this.rollback_last_block_tag;
-			this.rollback_last_block_tag = null;
-		}
 	}
 
 	public static byte[] deriveKey(byte[] secret, byte[] salt, int cbitKey, String digest, byte[] rgbContext)
@@ -1091,12 +1081,12 @@ public class OSCoreCtx {
 	/**
 	 * Parameter K for Appendix B.1
 	 */
-	private static int K = 10;
+	private static int K = 12;
 
 	/**
 	 * Parameter F for Appendix B.1
 	 */
-	private static int F = 2;
+	private static int F = 3;
 
 	/**
 	 * Read SSN for resumption (Appendix B.1)

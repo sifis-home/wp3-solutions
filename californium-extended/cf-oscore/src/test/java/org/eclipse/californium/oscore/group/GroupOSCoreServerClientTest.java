@@ -21,15 +21,12 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
-
-
 
 import org.eclipse.californium.TestTools;
 import org.eclipse.californium.core.CoapClient;
@@ -63,7 +60,7 @@ import org.eclipse.californium.oscore.OSCoreEndpointContextInfo;
 import org.eclipse.californium.oscore.OSException;
 import org.eclipse.californium.rule.CoapNetworkRule;
 import org.eclipse.californium.rule.CoapThreadsRule;
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -99,13 +96,22 @@ public class GroupOSCoreServerClientTest {
 
 	};
 
+	/**
+	 * Define CoAP network rule for JUnit tests
+	 */
 	@ClassRule
 	public static CoapNetworkRule network = new CoapNetworkRule(CoapNetworkRule.Mode.DIRECT,
 			CoapNetworkRule.Mode.NATIVE);
 
+	/**
+	 * Thread cleanup rule
+	 */
 	@Rule
 	public CoapThreadsRule cleanup = new CoapThreadsRule();
 
+	/**
+	 * Test name logging rule
+	 */
 	@Rule
 	public TestNameLoggerRule name = new TestNameLoggerRule();
 
@@ -144,24 +150,38 @@ public class GroupOSCoreServerClientTest {
 
 	static Random rand;
 	private String uri;
-	private static CoapServer server;
 
+	CoapServer server;
+
+	/**
+	 * Set GM public key and clear endpoints before tests
+	 * 
+	 * @throws IOException on setup failure
+	 */
 	@Before
 	public void init() throws IOException {
-		EndpointManager.clear();
 		gmPublicKey = Base64.decode(gmPublicKeyString);
+		EndpointManager.clear();
 	}
 
-	// Use the OSCORE stack factory
+	/**
+	 * Use the OSCORE stack factory
+	 */
 	@BeforeClass
 	public static void setStackFactory() {
 		OSCoreCoapStackFactory.useAsDefault(null); // TODO: Better way?
 		rand = new Random();
 	}
 
-	@AfterClass
-	public static void shutdownServer() {
-		server.destroy();
+	/**
+	 * Shut down the server after a test is finished
+	 */
+	@After
+	public void after() {
+		if (null != server) {
+			server.destroy();
+		}
+		System.out.println("End " + getClass().getSimpleName());
 	}
 
 	/* --- Client tests follow --- */
@@ -315,7 +335,7 @@ public class GroupOSCoreServerClientTest {
 	 * @throws Exception on test failure
 	 */
 	@Test
-	public void testDynamicContextDerivationRequest() throws Exception {
+	public void testDynamicRequestContextDerivation() throws Exception {
 
 		createServer(false); // No PIV in responses
 
@@ -362,11 +382,16 @@ public class GroupOSCoreServerClientTest {
 		// Send a second request first adding the public key of the client to
 		// the server group context. Now it should work successfully.
 
-		OneKey clientPublicKey = new OneKey(
-				CBORObject.DecodeFromBytes(Base64.decode(clientKeyString))).PublicKey();
+		Request request2 = Request.newGet();
+		request2.setType(Type.NON);
+		byte[] secondToken = Bytes.createBytes(rand, 8);
+		request2.setToken(secondToken);
+		request2.getOptions().setOscore(Bytes.EMPTY);
+
+		OneKey clientPublicKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(clientKeyString))).PublicKey();
 		commonCtx.addPublicKeyForRID(new byte[] { 0x25 }, clientPublicKey);
 
-		response = client.advanced(request);
+		response = client.advanced(request2);
 		System.out.println("client sent request");
 		System.out.println(Utils.prettyPrint(response));
 
@@ -374,7 +399,7 @@ public class GroupOSCoreServerClientTest {
 		assertNotNull("Client received no response", response);
 		System.out.println("client received response");
 		assertEquals(SERVER_RESPONSE, response.advanced().getPayloadString());
-		assertArrayEquals(token, response.advanced().getTokenBytes());
+		assertArrayEquals(secondToken, response.advanced().getTokenBytes());
 
 		// Parse the flag byte group bit (expect non-zero value)
 		byte flagByte = response.getOptions().getOscore()[0];
@@ -390,7 +415,7 @@ public class GroupOSCoreServerClientTest {
 	 * @throws Exception on test failure
 	 */
 	@Test
-	public void testDynamicContextDerivationResponse() throws Exception {
+	public void testDynamicResponseContextDerivation() throws Exception {
 
 		createServer(false); // No PIV in responses
 
@@ -401,56 +426,37 @@ public class GroupOSCoreServerClientTest {
 		CoapEndpoint clientEndpoint = createClientEndpoint();
 		cleanup.add(clientEndpoint);
 
-		// Remove all client recipient contexts
+		// Retrive common context
 		GroupRecipientCtx clientRecipientCtx1 = (GroupRecipientCtx) dbClient.getContext(new byte[] { 0x77 },
 				context_id);
 		GroupRecipientCtx clientRecipientCtx2 = (GroupRecipientCtx) dbClient.getContext(new byte[] { 0x66 },
 				context_id);
-		GroupCtx commonCtx = clientRecipientCtx1.commonCtx;
-		dbClient.removeContext(clientRecipientCtx1);
+		GroupCtx commonCtx = clientRecipientCtx2.commonCtx;
+
+		// Remove all client recipient contexts
+		// dbClient.removeContext(clientRecipientCtx1);
 		dbClient.removeContext(clientRecipientCtx2);
 
 		// create request
 		CoapClient client = new CoapClient();
 		client.setEndpoint(clientEndpoint);
-		// Reduce timeout and disable retransmissions since the first request
-		// will not get a response
-		client.setTimeout((long) 250);
-		clientEndpoint.getConfig().set(CoapConfig.MAX_RETRANSMIT, 1);
-
 		client.setURI(uri);
+
+		// Send a request first adding the public key of the server to
+		// the client group context.
+
+		OneKey serverPublicKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(serverKeyString))).PublicKey();
+		commonCtx.addPublicKeyForRID(new byte[] { 0x77 }, serverPublicKey);
+
+		// create request
 		Request request = Request.newGet();
 		request.setType(Type.NON);
 		byte[] token = Bytes.createBytes(rand, 8);
 		request.setToken(token);
+		request.setMID(rand.nextInt(1000));
 		request.getOptions().setOscore(Bytes.EMPTY);
 
-		// First send a request without adding the public key of the server to
-		// the client group context
-
-		// send a request
-		System.out.println("client will now send request");
 		CoapResponse response = client.advanced(request);
-		System.out.println("client sent request");
-
-		// no response will be received for the first request
-		assertNull(response);
-
-		// Send a second request first adding the public key of the server to
-		// the client group context. Now it should work successfully.
-
-		OneKey serverPublicKey = new OneKey(
-				CBORObject.DecodeFromBytes(Base64.decode(serverKeyString))).PublicKey();
-		commonCtx.addPublicKeyForRID(new byte[] { 0x77 }, serverPublicKey);
-
-		// create request
-		request = Request.newGet();
-		request.setType(Type.NON);
-		token = Bytes.createBytes(rand, 8);
-		request.setToken(token);
-		request.getOptions().setOscore(Bytes.EMPTY);
-
-		response = client.advanced(request);
 		System.out.println("client sent request");
 		System.out.println(Utils.prettyPrint(response));
 
@@ -458,7 +464,7 @@ public class GroupOSCoreServerClientTest {
 		assertNotNull("Client received no response", response);
 		System.out.println("client received response");
 		assertEquals(SERVER_RESPONSE, response.advanced().getPayloadString());
-		// assertArrayEquals(token, response.advanced().getTokenBytes());
+		assertArrayEquals(token, response.advanced().getTokenBytes());
 
 		// Parse the flag byte group bit (expect non-zero value)
 		byte flagByte = response.getOptions().getOscore()[0];
@@ -523,6 +529,15 @@ public class GroupOSCoreServerClientTest {
 
 		// Set up OSCORE context information for request (client)
 		setClientContext();
+
+		// Add also the recipient context for RID 0x77
+		GroupRecipientCtx clientRecipientCtx2 = (GroupRecipientCtx) dbClient.getContext(new byte[] { 0x66 },
+				context_id);
+		GroupCtx commonCtx = clientRecipientCtx2.commonCtx;
+		byte[] rid1 = new byte[] { 0x77 };
+		OneKey serverPublicKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(serverKeyString))).PublicKey();
+		commonCtx.addRecipientCtx(rid1, REPLAY_WINDOW, serverPublicKey);
+		dbClient.addContext(uri, commonCtx);
 
 		// Create client endpoint with OSCORE context DB
 		CoapEndpoint clientEndpoint = createClientEndpoint();
@@ -602,7 +617,13 @@ public class GroupOSCoreServerClientTest {
 		GroupSenderCtx clientCtx = (GroupSenderCtx) dbClient.getContext(uri);
 		clientCtx.setSenderSeq(0); // Reset sender seq.
 
-		response = client.advanced(request);
+		Request request2 = Request.newGet();
+		request2.setType(Type.NON);
+		byte[] secondToken = Bytes.createBytes(rand, 8);
+		request2.setToken(secondToken);
+		request2.getOptions().setOscore(Bytes.EMPTY);
+
+		response = client.advanced(request2);
 		System.out.println("client sent request");
 		System.out.println(Utils.prettyPrint(response));
 
@@ -610,7 +631,7 @@ public class GroupOSCoreServerClientTest {
 		assertNotNull("Client received no response", response);
 		System.out.println("client received response");
 		assertEquals("Replay detected", response.advanced().getPayloadString());
-		assertArrayEquals(token, response.advanced().getTokenBytes());
+		assertArrayEquals(secondToken, response.advanced().getTokenBytes());
 	}
 
 	/**
@@ -735,24 +756,19 @@ public class GroupOSCoreServerClientTest {
 	 * 
 	 * @throws OSException on failure to create the contexts
 	 * @throws CoseException on failure to create the contexts
-	 * @throws IOException on test failure
+	 * @throws IOException on failure to decode GM public key
 	 */
 	public void setClientContext() throws OSException, CoseException, IOException {
 		// Set up OSCORE context information for request (client)
 		byte[] sid = new byte[] { 0x25 };
-		byte[] rid1 = new byte[] { 0x77 };
 		byte[] rid2 = new byte[] { 0x66 };
 
 		GroupCtx commonCtx = new GroupCtx(master_secret, master_salt, alg, kdf, context_id, algCountersign,
 				gmPublicKey);
 
-		OneKey clientFullKey = new OneKey(
-				CBORObject.DecodeFromBytes(Base64.decode(clientKeyString)));
+		OneKey clientFullKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(clientKeyString)));
 		commonCtx.addSenderCtx(sid, clientFullKey);
 
-		OneKey serverPublicKey = new OneKey(
-				CBORObject.DecodeFromBytes(Base64.decode(serverKeyString))).PublicKey();
-		commonCtx.addRecipientCtx(rid1, REPLAY_WINDOW, serverPublicKey);
 		commonCtx.addRecipientCtx(rid2, REPLAY_WINDOW, null);
 
 		dbClient.addContext(uri, commonCtx);
@@ -768,7 +784,7 @@ public class GroupOSCoreServerClientTest {
 	 * 
 	 * @throws OSException on failure to create the contexts
 	 * @throws CoseException on failure to create the contexts
-	 * @throws IOException on test failure
+	 * @throws IOException on failure to decode GM public key
 	 */
 	public void setServerContext(boolean responsePartialIV, boolean pairwiseResponse)
 			throws OSException, CoseException, IOException {
@@ -780,12 +796,10 @@ public class GroupOSCoreServerClientTest {
 		GroupCtx commonCtx = new GroupCtx(master_secret, master_salt, alg, kdf, context_id, algCountersign,
 				gmPublicKey);
 
-		OneKey serverFullKey = new OneKey(
-				CBORObject.DecodeFromBytes(Base64.decode(serverKeyString)));
+		OneKey serverFullKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(serverKeyString)));
 		commonCtx.addSenderCtx(sid, serverFullKey);
 
-		OneKey clientPublicKey = new OneKey(
-				CBORObject.DecodeFromBytes(Base64.decode(clientKeyString))).PublicKey();
+		OneKey clientPublicKey = new OneKey(CBORObject.DecodeFromBytes(Base64.decode(clientKeyString))).PublicKey();
 		commonCtx.addRecipientCtx(rid, REPLAY_WINDOW, clientPublicKey);
 
 		commonCtx.setResponsesIncludePartialIV(responsePartialIV);
@@ -794,7 +808,7 @@ public class GroupOSCoreServerClientTest {
 		dbServer.addContext(clientHostAdd, commonCtx);
 	}
 
-	public void createServer(boolean responsePartialIV) throws OSException, CoseException, IOException {
+	private void createServer(boolean responsePartialIV) throws OSException, CoseException, IOException {
 		createServer(responsePartialIV, false);
 	}
 
@@ -825,7 +839,6 @@ public class GroupOSCoreServerClientTest {
 		serverEndpoint = builder.build();
 		server = new CoapServer();
 		server.addEndpoint(serverEndpoint);
-		cleanup.add(serverEndpoint);
 
 		/** --- Resources for tests follow --- **/
 
