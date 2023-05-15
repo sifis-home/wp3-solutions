@@ -4,7 +4,7 @@ version: "3"
 # Start with: docker compose up -d
 
 # Note:
-# "$sifis-device1" has to be replaced by the IP address of that device.
+# "$sifis-device1" has to be replaced with the hostname or IP address of that device.
 # Requires a Docker Volume created with "docker volume create rise-wp3-volume"
 
 services:
