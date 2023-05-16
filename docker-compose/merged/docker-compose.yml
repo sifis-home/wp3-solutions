@@ -1,4 +1,4 @@
-version: "3"
+version: "2.1"
 
 # Merged Docker Compose file with all components. Works with all containers running in the same device.
 # Start with: docker compose up -d
