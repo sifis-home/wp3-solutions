@@ -66,6 +66,7 @@ import se.sics.ace.Message;
 import se.sics.ace.TimeProvider;
 import se.sics.ace.Util;
 import se.sics.ace.as.logging.DhtLogger;
+import static se.sics.ace.as.logging.Const.*;
 import se.sics.ace.cwt.CWT;
 import se.sics.ace.cwt.CwtCryptoCtx;
 
@@ -85,18 +86,6 @@ import se.sics.ace.cwt.CwtCryptoCtx;
  *
  */
 public class Token implements Endpoint, AutoCloseable {
-
-    /**
-     * Enums for DHT logging levels
-     */
-    private static String TYPE_INFO = "info";
-    private static String TYPE_WARNING = "warning";
-    private static String TYPE_ERROR = "error";
-    private static String PRIO_LOW = "low";
-    private static String PRIO_MEDIUM = "medium";
-    private static String PRIO_HIGH = "high";
-    private static String CAT_STATUS = "status";
-    private static String DEVICE_NAME = "ACE Authorization Server";
 
     /**
      * The logger

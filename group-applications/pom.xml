@@ -22,6 +22,10 @@
 			<url>https://repo1.maven.org/maven2/</url>
 		</repository>
 		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+		<repository>
 			<id>local-californium-repo</id>
 			<url>file://${pom.basedir}/local-maven-repo</url>
 		</repository>
@@ -129,6 +133,11 @@
 			<artifactId>org.eclipse.paho.mqttv5.client</artifactId>
 			<!-- <artifactId>org.eclipse.paho.client.mqttv3</artifactId> -->
 			<version>1.2.5</version>
+		</dependency>
+		<dependency> <!-- Rikard: For logging to DHT -->
+			<groupId>com.github.sifis-home</groupId>
+			<artifactId>ace-dht-logging</artifactId>
+			<version>0.0.1</version>
 		</dependency>
 	</dependencies>
 	<build>
