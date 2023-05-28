@@ -151,7 +151,7 @@ public class Phase2Server extends CoapServer {
 	 */
 	public static void main(String[] args) {
 
-		System.out.println("Starting Phase2Server...");
+		System.out.println("Phase2Server starting on port: " + COAP_PORT);
 
 		// Insert EdDSA security provider
 		Util.installCryptoProvider();

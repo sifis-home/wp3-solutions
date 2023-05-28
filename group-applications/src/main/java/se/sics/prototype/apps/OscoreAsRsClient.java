@@ -145,7 +145,8 @@ public class OscoreAsRsClient {
 	 */
 	public static void main(String[] args) throws URISyntaxException {
 
-		System.out.println("Starting Group peer (OSCORE Server/Client) that joins groups.: OscoreAsRsClient...");
+		System.out.println("Starting OscoreAsRsClient:");
+		System.out.println("Group peer that joins a group and then acts as OSCORE Server or Client");
 
 		// install needed cryptography providers
 		try {
@@ -278,7 +279,7 @@ public class OscoreAsRsClient {
 		}
 
 		// Retry if Token was not provided
-		while (responseFromAS.getPayload() == null || responseFromAS.getPayloadSize() == 0) {
+		while (responseFromAS == null || responseFromAS.getPayload() == null || responseFromAS.getPayloadSize() == 0) {
 			System.err.println("No Token received from AS, retrying...");
 			try {
 				Thread.sleep(30 * 1000);

@@ -32,8 +32,6 @@
 package se.sics.prototype.apps;
 
 import java.util.Base64;
-import java.io.IOException;
-import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -62,6 +60,7 @@ import se.sics.ace.examples.KissTime;
 import se.sics.ace.oscore.as.GroupOSCOREJoinPDP;
 import se.sics.prototype.support.DBHelper;
 import se.sics.prototype.support.KeyStorage;
+import se.sics.prototype.support.Tools;
 
 /**
  * ACE Authorization Server using OSCORE for communication.
@@ -163,7 +162,7 @@ public class OscoreAsServer {
 
 		// If custom DB string is used, wait for MySQL server to be available
 		if (dbConnStr != null) {
-			waitForDb(dbConnStr);
+			Tools.waitForDb(dbConnStr);
 		}
 
 		DBHelper.setUpDB(dbConnStr);
@@ -548,49 +547,6 @@ public class OscoreAsServer {
 
 		return identity;
 
-	}
-
-	/**
-	 * Wait for a connection to the MySQL database before proceeding
-	 *
-	 * @param dbUri the URI of the MySQL database
-	 * @return true when the connection succeeds
-	 */
-	public static boolean waitForDb(String dbUri) {
-		int waitTime = 0;
-		int maxWait = 10 * 1000;
-
-		Socket soc = null;
-		URI dhtUri = URI.create(dbUri);
-
-		int count = 0;
-		while (soc == null) {
-			try {
-				System.out.print("Attempting to reach MySQL database at: " + dbUri + " ...");
-				if (count % 2 == 0) {
-					System.out.print(".");
-				}
-				System.out.println("");
-
-				count++;
-				Thread.sleep(waitTime);
-				if (waitTime < maxWait) {
-					waitTime += 1000;
-				}
-
-				soc = new Socket(dhtUri.getHost(), dhtUri.getPort());
-			} catch (Exception e) {
-				// MySQL database is currently unavailable
-			}
-		}
-
-		try {
-			soc.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		System.out.println("MySQL database is available.");
-		return true;
 	}
 
 	/**

@@ -16,8 +16,6 @@
  ******************************************************************************/
 package se.sics.prototype.apps;
 
-import java.io.IOException;
-import java.net.Socket;
 import java.io.File;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -198,9 +196,8 @@ public class GroupOscoreClient {
 		System.out.println("Uses OSCORE: " + useOSCORE);
 		System.out.println("Request destination: " + requestURI);
 		System.out.println("Request destination port: " + destinationPort);
-		// System.out.println("Request method: " + multicastRequest.getCode());
-		// System.out.println("Request payload: " + requestPayload);
 		System.out.println("Outgoing port: " + endpoint.getAddress().getPort());
+		System.out.println("=");
 
 		System.out.print("*");
 		Utility.printContextInfo(ctx);
@@ -508,46 +505,4 @@ public class GroupOscoreClient {
 		return sb.toString();
 	}
 
-	/**
-	 * Wait for a connection to the DHT before proceeding
-	 *
-	 * @param dhtWebsocketUri the URI of the WebSocket interface for the DHT
-	 * @return true when the connection succeeds
-	 */
-	public static boolean waitForDht(String dhtWebsocketUri) {
-		int waitTime = 0;
-		int maxWait = 10 * 1000;
-
-		Socket soc = null;
-		URI dhtUri = URI.create(dhtWebsocketUri);
-
-		int count = 0;
-		while (soc == null) {
-			try {
-				System.out.print("Attempting to reach DHT at: " + dhtWebsocketUri + " ...");
-				if (count % 2 == 0) {
-					System.out.print(".");
-				}
-				System.out.println("");
-
-				count++;
-				Thread.sleep(waitTime);
-				if (waitTime < maxWait) {
-					waitTime += 1000;
-				}
-
-				soc = new Socket(dhtUri.getHost(), dhtUri.getPort());
-			} catch (Exception e) {
-				// DHT is unavailable currently
-			}
-		}
-
-		try {
-			soc.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		System.out.println("DHT is available.");
-		return true;
-	}
 }

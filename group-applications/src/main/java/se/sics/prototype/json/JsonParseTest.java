@@ -6,15 +6,23 @@ import se.sics.prototype.json.outgoing.JsonOut;
 import se.sics.prototype.json.outgoing.OutValue;
 import se.sics.prototype.json.outgoing.RequestPubMessage;
 
+/**
+ * Test class for JSON parsing
+ *
+ */
 public class JsonParseTest {
 
-	/*
-	 * {"Volatile":{"value":{"message":"hi","topic":"command_dev1"}}}
-	 */
 	// https://github.com/google/gson/blob/master/UserGuide.md#maps-examples
 	// https://stackoverflow.com/a/19177892
 	// https://github.com/google/gson/blob/master/UserGuide.md#object-examples
 
+	/**
+	 * @param args input arguments
+	 * @throws Exception on failure
+	 */
+	/*
+	 * {"Volatile":{"value":{"message":"hi","topic":"command_dev1"}}}
+	 */
 	public static void main(String[] args) throws Exception {
 		// Deserialize incoming
 
@@ -45,7 +53,7 @@ public class JsonParseTest {
 		String jsonOut = gsonOut.toJson(outgoing);
 
 		System.out.println("Outgoing JSON: " + jsonOut);
-		
+
 		// Outgoing JSON with more advanced structure
 		// ==[ CoAP Response ]============================================
 		// MID : 25037

@@ -223,6 +223,7 @@ public class Adversary {
 		System.out.println("\tAS: " + AS_HOST + ":" + AS_PORT);
 		System.out.println("\tGM: " + GM_HOST + ":" + GM_PORT);
 		System.out.println("\tGroup: " + group);
+		System.out.println("\tMulticast dst: " + multicastIP.getHostAddress() + ":" + destinationPort);
 
 		// Adversary command line interface
 		String attackType = null;
@@ -632,11 +633,9 @@ public class Adversary {
 				break;
 			case Constants.COSE_HEADER_PARAM_CWT:
 				// A CWT including the public key
-				// TODO
 				break;
 			case Constants.COSE_HEADER_PARAM_X5CHAIN:
 				// A certificate including the public key
-				// TODO
 				break;
 			default:
 				System.err.println("Error: credFmtExpected set incorrectly.");

@@ -413,4 +413,47 @@ public class Tools {
 		return true;
 	}
 
+	/**
+	 * Wait for a connection to the MySQL database before proceeding
+	 *
+	 * @param dbUri the URI of the MySQL database
+	 * @return true when the connection succeeds
+	 */
+	public static boolean waitForDb(String dbUri) {
+		int waitTime = 0;
+		int maxWait = 10 * 1000;
+
+		Socket soc = null;
+		URI dhtUri = URI.create(dbUri);
+
+		int count = 0;
+		while (soc == null) {
+			try {
+				System.out.print("Attempting to reach MySQL database at: " + dbUri + " ...");
+				if (count % 2 == 0) {
+					System.out.print(".");
+				}
+				System.out.println("");
+
+				count++;
+				Thread.sleep(waitTime);
+				if (waitTime < maxWait) {
+					waitTime += 1000;
+				}
+
+				soc = new Socket(dhtUri.getHost(), dhtUri.getPort());
+			} catch (Exception e) {
+				// MySQL database is currently unavailable
+			}
+		}
+
+		try {
+			soc.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("MySQL database is available.");
+		return true;
+	}
+
 }

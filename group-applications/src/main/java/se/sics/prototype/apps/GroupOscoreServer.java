@@ -180,6 +180,7 @@ public class GroupOscoreServer {
 			System.out.print(res.getURI() + " ");
 		}
 		System.out.println("");
+		System.out.println("=");
 
 		System.out.print("*");
 		Utility.printContextInfo(ctx);
