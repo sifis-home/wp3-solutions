@@ -128,6 +128,11 @@ public class Adversary {
 	// Sets the default AS hostname/IP to use
 	private static String AS_HOST = "localhost";
 
+	// The source port to use with the AS
+	private static int AS_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2009;
+	// The source port to use with the GM
+	private static int GM_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2019;
+
 	// Multicast IP for Group B
 	static final InetAddress groupB_multicastIP = new InetSocketAddress("224.0.1.192", 0).getAddress();
 
@@ -328,11 +333,11 @@ public class Adversary {
 	 * @throws Exception on failure
 	 */
 	private static void invalidJoinRequest(String memberName, String group, byte[] keyToAS) throws Exception {
-		Tools.waitForAs(AS_HOST, AS_PORT);
+		Tools.waitForAs(AS_HOST, AS_PORT, AS_SRC_PORT);
 		System.out.println("Will now request Token from Authorization Server");
 		Response responseFromAS = requestToken(memberName, group, keyToAS, false);
 
-		Tools.waitForGm(GM_HOST, GM_PORT);
+		Tools.waitForGm(GM_HOST, GM_PORT, GM_SRC_PORT);
 		System.out.println("GM is available. Proceeding to post Token to GM.");
 
 		// Perform invalid join request
@@ -353,7 +358,7 @@ public class Adversary {
 	 */
 	private static void invalidTokenRequest(String memberName, String group, byte[] keyToAS) throws Exception {
 		// Wait for Authorization Server to become available
-		Tools.waitForAs(AS_HOST, AS_PORT);
+		Tools.waitForAs(AS_HOST, AS_PORT, AS_SRC_PORT);
 		System.out.println("AS is available.");
 
 		// Now request Token
@@ -421,7 +426,7 @@ public class Adversary {
 		OSCoreCtx ctx = new OSCoreCtx(key128, true, null, senderId, recipientId, null, null, null, null,
 				MAX_UNFRAGMENTED_SIZE, true);
 
-		Response response = OSCOREProfileRequestsGroupOSCORE.getToken(tokenURI, params, ctx, db);
+		Response response = OSCOREProfileRequestsGroupOSCORE.getToken(tokenURI, params, ctx, db, AS_SRC_PORT);
 
 		System.out.println("DB content: " + db.getContext(new byte[] { 0x00 }, null));
 
@@ -497,7 +502,7 @@ public class Adversary {
 
 		Response rsRes = OSCOREProfileRequestsGroupOSCORE.postToken(
 				"coap://" + rsAddr + ":" + portNumberRSnosec + "/authz-info", responseFromAS, askForSignInfo,
-				askForEcdhInfo, ctxDB, usedRecipientIds);
+				askForEcdhInfo, ctxDB, usedRecipientIds, GM_SRC_PORT);
 
 		printResponseFromRS(rsRes);
 
@@ -567,9 +572,11 @@ public class Adversary {
 
 		// Now proceed with the Join request
 
-		CoapClient c = OSCOREProfileRequests.getClient(new InetSocketAddress(
-				"coap://" + rsAddr + ":" + portNumberRSnosec + "/" + rootGroupMembershipResource + "/" + groupName,
-				portNumberRSnosec), ctxDB);
+		CoapClient c = OSCOREProfileRequests
+				.getClient(
+						new InetSocketAddress("coap://" + rsAddr + ":" + portNumberRSnosec + "/"
+								+ rootGroupMembershipResource + "/" + groupName, portNumberRSnosec),
+						ctxDB, GM_SRC_PORT);
 
 		System.out.println("Performing Join request using OSCORE to GM.");
 

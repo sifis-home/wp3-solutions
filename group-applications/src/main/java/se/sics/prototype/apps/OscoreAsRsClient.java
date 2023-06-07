@@ -107,6 +107,11 @@ public class OscoreAsRsClient {
 	// Sets the default AS hostname/IP to use
 	private static String AS_HOST = "localhost";
 
+	// The source port to use with the AS
+	private static int AS_SRC_PORT;
+	// The source port to use with the GM
+	private static int GM_SRC_PORT;
+
 	// Multicast IP for Group A
 	static final InetAddress groupA_multicastIP = new InetSocketAddress("224.0.1.191", 0).getAddress();
 
@@ -217,7 +222,7 @@ public class OscoreAsRsClient {
 		}
 
 		// Wait for Authorization Server to become available
-		Tools.waitForAs(AS_HOST, AS_PORT);
+		Tools.waitForAs(AS_HOST, AS_PORT, AS_SRC_PORT);
 		System.out.println("Proceeding to request Token from AS.");
 
 		// Build empty sets of assigned Sender IDs; one set for each possible
@@ -232,16 +237,50 @@ public class OscoreAsRsClient {
 		InetAddress multicastIP = null;
 		switch (memberName) {
 		case "Client1":
+			AS_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2001;
+			GM_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2011;
+			group = "aaaaaa570000";
+			multicastIP = groupA_multicastIP;
+			break;
 		case "Server1":
+			AS_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2002;
+			GM_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2012;
+			group = "aaaaaa570000";
+			multicastIP = groupA_multicastIP;
+			break;
 		case "Server2":
+			AS_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2003;
+			GM_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2013;
+			group = "aaaaaa570000";
+			multicastIP = groupA_multicastIP;
+			break;
 		case "Server3":
+			AS_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2004;
+			GM_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2014;
 			group = "aaaaaa570000";
 			multicastIP = groupA_multicastIP;
 			break;
 		case "Client2":
+			AS_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2005;
+			GM_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2015;
+			group = "bbbbbb570000";
+			multicastIP = groupB_multicastIP;
+			break;
 		case "Server4":
+			AS_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2006;
+			GM_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2016;
+			group = "bbbbbb570000";
+			multicastIP = groupB_multicastIP;
+			break;
 		case "Server5":
+			AS_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2007;
+			GM_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2017;
+			group = "bbbbbb570000";
+			multicastIP = groupB_multicastIP;
+			break;
 		case "Server6":
+			AS_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2008;
+			GM_SRC_PORT = CoAP.DEFAULT_COAP_PORT + 2018;
 			group = "bbbbbb570000";
 			multicastIP = groupB_multicastIP;
 			break;
@@ -292,7 +331,7 @@ public class OscoreAsRsClient {
 		printPause(memberName, "Will now post Token to Group Manager and perform group joining");
 
 		// Wait for Group Manager to become available
-		Tools.waitForGm(GM_HOST, GM_PORT);
+		Tools.waitForGm(GM_HOST, GM_PORT, GM_SRC_PORT);
 		System.out.println("Proceeding to post Token to GM.");
 
 		// Get OneKey representation of this member's public/private key
@@ -378,7 +417,7 @@ public class OscoreAsRsClient {
 					MAX_UNFRAGMENTED_SIZE, true);
 		}
 
-		Response response = OSCOREProfileRequestsGroupOSCORE.getToken(tokenURI, params, ctx, db);
+		Response response = OSCOREProfileRequestsGroupOSCORE.getToken(tokenURI, params, ctx, db, AS_SRC_PORT);
 
 		/* Parse and print response */
 
@@ -435,7 +474,7 @@ public class OscoreAsRsClient {
 
 		Response rsRes = OSCOREProfileRequestsGroupOSCORE.postToken(
 				"coap://" + rsAddr + ":" + portNumberRSnosec + "/authz-info", responseFromAS, askForSignInfo,
-				askForEcdhInfo, ctxDB, usedRecipientIds);
+				askForEcdhInfo, ctxDB, usedRecipientIds, GM_SRC_PORT);
 
 		printResponseFromRS(rsRes);
 
@@ -505,9 +544,11 @@ public class OscoreAsRsClient {
 
 		// Now proceed with the Join request
 
-		CoapClient c = OSCOREProfileRequests.getClient(new InetSocketAddress(
-				"coap://" + rsAddr + ":" + portNumberRSnosec + "/" + rootGroupMembershipResource + "/" + groupName,
-				portNumberRSnosec), ctxDB);
+		CoapClient c = OSCOREProfileRequests
+				.getClient(
+						new InetSocketAddress("coap://" + rsAddr + ":" + portNumberRSnosec + "/"
+								+ rootGroupMembershipResource + "/" + groupName, portNumberRSnosec),
+						ctxDB, GM_SRC_PORT);
 
 		System.out.println("Performing Join request using OSCORE to GM.");
 

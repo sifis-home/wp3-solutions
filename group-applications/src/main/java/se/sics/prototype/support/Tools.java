@@ -36,6 +36,8 @@ import java.net.Socket;
 import java.net.URI;
 
 import org.eclipse.californium.core.CoapClient;
+import org.eclipse.californium.core.network.CoapEndpoint;
+import org.eclipse.californium.core.network.Endpoint;
 import org.eclipse.californium.cose.AlgorithmID;
 import org.eclipse.californium.cose.CoseException;
 import org.eclipse.californium.cose.KeyKeys;
@@ -291,9 +293,10 @@ public class Tools {
 	 * 
 	 * @param gmHost the hostname of the GM
 	 * @param gmPort the port of the GM
+	 * @param srcPort the source port
 	 * @return true when the GM is available
 	 */
-	public static boolean waitForGm(String gmHost, int gmPort) {
+	public static boolean waitForGm(String gmHost, int gmPort, int srcPort) {
 		int waitTime = 0;
 		int maxWait = 10 * 1000;
 
@@ -315,6 +318,11 @@ public class Tools {
 				}
 
 				CoapClient checker = new CoapClient(gmUri);
+				CoapEndpoint.Builder builder = new CoapEndpoint.Builder();
+				builder.setPort(srcPort);
+				Endpoint clientEndpoint = builder.build();
+				checker.setEndpoint(clientEndpoint);
+
 				gmAvailable = checker.ping();
 			} catch (InterruptedException e) {
 				System.err.println("Failed to sleep when waiting for GM.");
@@ -333,9 +341,10 @@ public class Tools {
 	 * 
 	 * @param asHost the hostname of the AS
 	 * @param asPort the port of the AS
+	 * @param srcPort the source port to use
 	 * @return true when the AS is available
 	 */
-	public static boolean waitForAs(String asHost, int asPort) {
+	public static boolean waitForAs(String asHost, int asPort, int srcPort) {
 		int waitTime = 0;
 		int maxWait = 10 * 1000;
 
@@ -357,6 +366,11 @@ public class Tools {
 				}
 
 				CoapClient checker = new CoapClient(asUri);
+				CoapEndpoint.Builder builder = new CoapEndpoint.Builder();
+				builder.setPort(srcPort);
+				Endpoint clientEndpoint = builder.build();
+				checker.setEndpoint(clientEndpoint);
+
 				asAvailable = checker.ping();
 			} catch (InterruptedException e) {
 				System.err.println("Failed to sleep when waiting for AS.");

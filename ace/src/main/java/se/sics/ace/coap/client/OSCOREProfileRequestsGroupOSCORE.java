@@ -124,21 +124,58 @@ public class OSCOREProfileRequestsGroupOSCORE {
     }
     
     /**
-     * Sends a POST request to the /authz-info endpoint of the RS to submit an
-     * access token.
+     * Sends a POST request to the /token endpoint of the AS to request an access token.
      * 
-     * @param rsAddr  the full address of the /authz-info endpoint
-     *  (including scheme and hostname, and port if not default)
-     * @param asResp  the response from the AS containing the token
-     *      and the access information
-     * @param askForSignInfo  true when requesting information on the signature algorithm in the OSCORE group, false otherwise
-     * @param db   the database of OSCORE Security Contexts
-     * @param usedRecipientIds   the collection of already in use OSCORE Recipient IDs, it can be null when updating access rights
+     * @param asAddr the full address of the /token endpoint (including scheme and hostname, and port if not default)
+     * @param payload the payload of the request. Use the GetToken class to construct this payload
+     * @param ctx the OSCORE context shared with the AS
+     * @param srcPort the source port to use
      * 
-     * @return  the response 
+     * @return the response
      *
-     * @throws AceException 
-     * @throws OSException 
+     * @throws AceException
+     * @throws OSException
+     */
+    public static Response getToken(String asAddr, CBORObject payload, OSCoreCtx ctx, OSCoreCtxDB db, int srcPort)
+            throws AceException, OSException {
+
+        Request r = new Request(Code.POST);
+        r.getOptions().setOscore(new byte[0]);
+        r.setPayload(payload.EncodeToBytes());
+
+        db.addContext(asAddr, ctx);
+
+        CoapEndpoint.Builder builder = new CoapEndpoint.Builder();
+        builder.setPort(srcPort);
+        builder.setCoapStackFactory(new OSCoreCoapStackFactory());
+        builder.setCustomCoapStackArgument(db);
+        Endpoint clientEndpoint = builder.build();
+        CoapClient client = new CoapClient(asAddr);
+        client.setEndpoint(clientEndpoint);
+        try {
+            return client.advanced(r).advanced();
+        } catch (ConnectorException | IOException e) {
+            LOGGER.severe("Connector error: " + e.getMessage());
+            throw new AceException(e.getMessage());
+        }
+    }
+
+    /**
+     * Sends a POST request to the /authz-info endpoint of the RS to submit an access token.
+     * 
+     * @param rsAddr the full address of the /authz-info endpoint (including scheme and hostname, and port if not
+     *        default)
+     * @param asResp the response from the AS containing the token and the access information
+     * @param askForSignInfo true when requesting information on the signature algorithm in the OSCORE group, false
+     *        otherwise
+     * @param db the database of OSCORE Security Contexts
+     * @param usedRecipientIds the collection of already in use OSCORE Recipient IDs, it can be null when updating
+     *        access rights
+     * 
+     * @return the response
+     *
+     * @throws AceException
+     * @throws OSException
      */
     public static Response postToken(String rsAddr, Response asResp, boolean askForSignInfo, boolean askForEcdhInfo,
     		                         OSCoreCtxDB db, List<Set<Integer>> usedRecipientIds) 
@@ -377,6 +414,251 @@ public class OSCOREProfileRequestsGroupOSCORE {
         
     }
     
+    /**
+     * Sends a POST request to the /authz-info endpoint of the RS to submit an access token.
+     * 
+     * @param rsAddr the full address of the /authz-info endpoint (including scheme and hostname, and port if not
+     *        default)
+     * @param asResp the response from the AS containing the token and the access information
+     * @param askForSignInfo true when requesting information on the signature algorithm in the OSCORE group, false
+     *        otherwise
+     * @param db the database of OSCORE Security Contexts
+     * @param usedRecipientIds the collection of already in use OSCORE Recipient IDs, it can be null when updating
+     *        access rights
+     * @param srcPort the source port to use
+     * 
+     * @return the response
+     *
+     * @throws AceException
+     * @throws OSException
+     */
+    public static Response postToken(String rsAddr, Response asResp, boolean askForSignInfo, boolean askForEcdhInfo,
+            OSCoreCtxDB db, List<Set<Integer>> usedRecipientIds, int srcPort) throws AceException, OSException {
+        if (asResp == null) {
+            throw new AceException("asResp cannot be null when POSTing to authz-info");
+        }
+
+        CBORObject asPayload;
+
+        try {
+            asPayload = CBORObject.DecodeFromBytes(asResp.getPayload());
+        } catch (CBORException e) {
+            throw new AceException("Error parsing CBOR payload: " + e.getMessage());
+        }
+
+        if (!asPayload.getType().equals(CBORType.Map)) {
+            throw new AceException("AS response was not a CBOR map");
+        }
+
+        CBORObject token = asPayload.get(CBORObject.FromObject(Constants.ACCESS_TOKEN));
+        if (token == null) {
+            throw new AceException("AS response did not contain a token");
+        }
+        if (token.getType() != CBORType.ByteString) {
+            throw new AceException("The token must be a CBOR byte string");
+        }
+
+        CBORObject cnf = asPayload.get(CBORObject.FromObject(Constants.CNF));
+        if (cnf == null) {
+            throw new AceException("AS response did not contain a cnf");
+        }
+
+        if (!cnf.ContainsKey(Constants.OSCORE_Input_Material) || cnf.ContainsKey(Constants.COSE_KID_CBOR)) {
+            throw new AceException("Invalid format of cnf");
+        }
+
+        CBORObject payload = CBORObject.NewMap();
+        payload.Add(Constants.ACCESS_TOKEN, token);
+
+        if (askForSignInfo)
+            payload.Add(Constants.SIGN_INFO, CBORObject.Null);
+
+        if (askForEcdhInfo)
+            payload.Add(Constants.ECDH_INFO, CBORObject.Null);
+
+        byte[] n1 = new byte[8];
+        new SecureRandom().nextBytes(n1);
+        payload.Add(Constants.NONCE1, n1);
+
+        byte[] recipientId = null;
+        byte[] contextId = new byte[0];
+        int recipientIdAsInt = -1;
+        boolean found = false;
+
+        // Determine an available Recipient ID to offer to the Resource Server as ID1
+        synchronized (usedRecipientIds) {
+            synchronized (db) {
+
+                int maxIdValue;
+
+                if (cnf.get(Constants.OSCORE_Input_Material).ContainsKey(Constants.OS_CONTEXTID)) {
+                    contextId = cnf.get(Constants.OSCORE_Input_Material).get(Constants.OS_CONTEXTID).GetByteString();
+                }
+
+                // Start with 1 byte as size of Recipient ID; try with up to 4 bytes in size
+                for (int idSize = 1; idSize <= 4; idSize++) {
+
+                    if (idSize == 4)
+                        maxIdValue = (1 << 31) - 1;
+                    else
+                        maxIdValue = (1 << (idSize * 8)) - 1;
+
+                    for (int j = 0; j <= maxIdValue; j++) {
+
+                        recipientId = Util.intToBytes(j, idSize);
+
+                        // This Recipient ID is marked as not available to use
+                        if (usedRecipientIds.get(idSize - 1).contains(j))
+                            continue;
+
+                        try {
+                            // This Recipient ID seems to be available to use
+                            if (!usedRecipientIds.get(idSize - 1).contains(j)) {
+
+                                // Double check in the database of OSCORE Security Contexts
+                                if (db.getContext(recipientId, contextId) != null) {
+
+                                    // A Security Context with this Recipient ID exists and was not tracked!
+                                    // Update the local list of used Recipient IDs, then move on to the next candidate
+                                    usedRecipientIds.get(idSize - 1).add(j);
+                                    continue;
+
+                                } else {
+
+                                    // This Recipient ID is actually available at the moment. Add it to the local list
+                                    usedRecipientIds.get(idSize - 1).add(j);
+                                    recipientIdAsInt = j;
+                                    found = true;
+                                    break;
+                                }
+
+                            }
+                        } catch (CoapOSException e) {
+                            // Multiple Security Contexts with this Recipient ID exist and it was not tracked!
+                            // Update the local list of used Recipient IDs, then move on to the next candidate
+                            usedRecipientIds.get(idSize - 1).add(j);
+                            continue;
+                        }
+
+                    }
+
+                    if (found)
+                        break;
+
+                }
+            }
+        }
+
+        if (!found) {
+            throw new AceException("No Recipient ID available to use");
+        }
+        payload.Add(Constants.ACE_CLIENT_RECIPIENTID, recipientId);
+
+        Response resp = null;
+        CoapEndpoint.Builder builder = new CoapEndpoint.Builder();
+        builder.setPort(srcPort);
+        Endpoint clientEndpoint = builder.build();
+        CoapClient client = new CoapClient(rsAddr);
+        client.setEndpoint(clientEndpoint);
+
+        try {
+            LOGGER.finest("Sending request payload: " + payload);
+            resp = client.post(payload.EncodeToBytes(), Constants.APPLICATION_ACE_CBOR).advanced();
+        } catch (ConnectorException | IOException ex) {
+            if (recipientIdAsInt != -1) {
+                usedRecipientIds.get(recipientId.length - 1).remove(recipientIdAsInt);
+            }
+            LOGGER.severe("Connector error: " + ex.getMessage());
+            throw new AceException(ex.getMessage());
+        }
+
+        if (resp == null) {
+            throw new AceException("RS did not respond");
+        }
+        CBORObject rsPayload;
+        try {
+            rsPayload = CBORObject.DecodeFromBytes(resp.getPayload());
+        } catch (CBORException e) {
+            throw new AceException("Error parsing CBOR payload: " + e.getMessage());
+        }
+
+        if (!rsPayload.getType().equals(CBORType.Map)) {
+            throw new AceException("RS didn't respond with a CBOR map");
+        }
+
+        if (askForSignInfo) {
+
+            if (rsPayload.ContainsKey(CBORObject.FromObject(Constants.SIGN_INFO))
+                    && rsPayload.get(CBORObject.FromObject(Constants.SIGN_INFO)).getType() != CBORType.Array) {
+                usedRecipientIds.get(recipientId.length - 1).remove(recipientIdAsInt);
+                throw new AceException("Malformed sign_info in the RS response");
+            }
+
+        }
+
+        if (askForEcdhInfo) {
+
+            if (rsPayload.ContainsKey(CBORObject.FromObject(Constants.ECDH_INFO))
+                    && rsPayload.get(CBORObject.FromObject(Constants.ECDH_INFO)).getType() != CBORType.Array) {
+                usedRecipientIds.get(recipientId.length - 1).remove(recipientIdAsInt);
+                throw new AceException("Malformed ecdh_info in the RS response");
+            }
+
+        }
+
+        CBORObject n2C = rsPayload.get(CBORObject.FromObject(Constants.NONCE2));
+        if (n2C == null || !n2C.getType().equals(CBORType.ByteString)) {
+            throw new AceException("Missing or malformed 'nonce2' in RS response");
+        }
+
+        byte[] n2 = n2C.GetByteString();
+
+        CBORObject senderIdCBOR = rsPayload.get(CBORObject.FromObject(Constants.ACE_SERVER_RECIPIENTID));
+        if (senderIdCBOR == null || !senderIdCBOR.getType().equals(CBORType.ByteString)) {
+            throw new AceException("Missing or malformed 'id2' in RS response");
+        }
+
+        byte[] senderId = senderIdCBOR.GetByteString();
+
+        // The Recipient ID must be different than what offered by the Resource Server in the 'id2' parameter
+        if (Arrays.equals(senderId, recipientId)) {
+            throw new AceException("The Resource Server returned the ID offered by the Client");
+        }
+
+        cnf.get(Constants.OSCORE_Input_Material).Add(Constants.OS_CLIENTID, CBORObject.FromObject(senderId));
+        cnf.get(Constants.OSCORE_Input_Material).Add(Constants.OS_SERVERID, CBORObject.FromObject(recipientId));
+
+        OscoreSecurityContext osc = new OscoreSecurityContext(cnf);
+
+        OSCoreCtx ctx = osc.getContext(true, n1, n2);
+
+        synchronized (db) {
+
+            boolean install = true;
+
+            try {
+
+                // Double check in the database that the OSCORE Security Context
+                // with the selected Recipient ID is actually still not present
+                if (db.getContext(recipientId, contextId) != null) {
+                    // A Security Context with this Recipient ID exists!
+                    install = false;
+                }
+            } catch (CoapOSException e) {
+                // Multiple Security Contexts with this Recipient ID exist!
+                install = false;
+            }
+
+            if (install)
+                db.addContext(rsAddr, ctx);
+            else
+                throw new AceException("An OSCORE Security Context with the same Recipient ID"
+                        + " has been installed while running the OSCORE profile");
+        }
+
+        return resp;
+
+    }
     
     /**
      * Sends a POST request to the /authz-info endpoint of the RS to submit an
