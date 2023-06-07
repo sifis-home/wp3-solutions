@@ -459,34 +459,4 @@ public class OSCOREProfileRequests {
         client.setEndpoint(clientEndpoint);
         return client;    
     }
-
-    /**
-     * Generates a Coap client for sending requests to an RS using OSCORE. Note that the OSCORE context for the RS
-     * should already be configured in the OSCoreCtxDb at this point.
-     * 
-     * @param serverAddress the address of the server and resource this client should talk to.
-     * @param srcPort the source port to use
-     * 
-     * @return a CoAP client configured to pass the access token through the psk-identity in the handshake
-     * @throws AceException
-     * @throws OSException
-     * @throws URISyntaxException
-     */
-    public static CoapClient getClient(InetSocketAddress serverAddress, OSCoreCtxDB db, int srcPort)
-            throws AceException, OSException {
-        if (serverAddress == null || serverAddress.getHostString() == null) {
-            throw new IllegalArgumentException("Client requires a non-null server address");
-        }
-
-        if (db.getContext(serverAddress.getHostName()) == null) {
-            throw new AceException("OSCORE context not set for address: " + serverAddress);
-        }
-        CoapEndpoint.Builder builder = new CoapEndpoint.Builder();
-        builder.setCoapStackFactory(new OSCoreCoapStackFactory());
-        builder.setCustomCoapStackArgument(db);
-        Endpoint clientEndpoint = builder.build();
-        CoapClient client = new CoapClient(serverAddress.getHostString());
-        client.setEndpoint(clientEndpoint);
-        return client;
-    }
 }
