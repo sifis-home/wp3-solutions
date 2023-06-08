@@ -16,7 +16,7 @@ async def connect_to_server():
 
     async with websockets.connect(uri) as websocket:
         # Define the possible choices for topic for outgoing messages
-        outgoingTopics = ["command_dev1", "command_dev2", "command_ed", "command_co"]
+        outgoingTopics = ["command_dev1", "command_dev2", "command_co", "command_ed"]
 
         # Information about possible receivers
         targets = [
@@ -55,7 +55,7 @@ async def connect_to_server():
         await websocket.send(json_payload)
 
         # List of topics to filter incoming messages
-        incomingTopics = ["output_dev1", "output_dev2", "output_ed", "output_co"]
+        incomingTopics = ["output_dev1", "output_dev2", "output_co", "output_ed"]
 
         # Wait for one response from the server
         # Only accept responses with correct topic
