@@ -15,6 +15,7 @@ import json
 import re
 import sys
 from termcolor import colored
+from datetime import datetime, timedelta
 
 async def connect_to_server():
     # URI of the WebSocket server (DHT)
@@ -34,7 +35,7 @@ async def connect_to_server():
             "EDHOC Client",
         ]
 
-        # Run tests  for targets 0-2
+        # Run tests for targets 0-2
         tests = [0, 1, 2]
 
         # Regex patterns for test success
@@ -75,22 +76,34 @@ async def connect_to_server():
             # Send the JSON payload to the server
             await websocket.send(json_payload)
 
-            # Wait for one response or for 5 seconds
+            # Define the end time for the waiting period
+            end_time = datetime.now() + timedelta(seconds=6)
+
+            # Wait for one response or for 6 seconds
             # Only accept responses with correct topic
             response = None
-            try:
-                print(f"Test {targets[testNr]}: ", end="")
+
+            print(f"Test {targets[testNr]}: ", end="")
+
+            while True:
+                # Calculate remaining time until end of waiting period
+                remaining_time = (end_time - datetime.now()).total_seconds()
 
                 # Keep receiving messages until timeout or correct topic
-                while True:
-                    response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
+                if remaining_time <= 0:
+                    print(f"{colored('FAIL (timeout)', 'red')}")
+                    test_results.append(False)
+                    response = None
+                    break
+
+                try:
+                    response = await asyncio.wait_for(websocket.recv(), timeout=remaining_time)
                     if incomingTopics[testNr] in response:
                         # print("Received message from DHT:", response)
                         break
 
-            except asyncio.TimeoutError:
-                print(f"{colored('FAIL (timeout)', 'red')}")
-                test_results.append(False)
+                except asyncio.TimeoutError:
+                    continue
 
             if response is not None:
                 match = re.search(regex_patterns[testNr], response)
@@ -107,9 +120,13 @@ async def connect_to_server():
         else:
             sys.exit(test_results.index(False) + 1)
 
-
 try:
     asyncio.run(connect_to_server())
 except KeyboardInterrupt:
-    print("")
-
+    print("^C")
+except ConnectionRefusedError:
+    print(f"{colored('Connection to DHT failed', 'red')}")
+    sys.exit(4)
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
+    sys.exit(5)
