@@ -285,7 +285,7 @@ public class OscoreAsRsClient {
 				Thread.sleep(30 * 1000);
 				responseFromAS = requestToken(memberName, group, keyToAS);
 			} catch (Exception e) {
-				System.err.print("Token request retry failed");
+				System.err.println("Token request retry failed");
 			}
 		}
 
@@ -788,7 +788,7 @@ public class OscoreAsRsClient {
 				}
 			}
 		} else {
-			System.out.println("*** The response from the RS is null!");
+			System.out.println("*** The response from the RS is null! ");
 			System.out.print("No response received");
 		}
 	}
