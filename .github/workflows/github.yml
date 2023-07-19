@@ -49,18 +49,24 @@ jobs:
         uses: cicirello/jacoco-badge-generator@v2
         with:
           jacoco-csv-file: jacoco/edhoc/jacoco.csv
+          coverage-badge-filename: jacoco-edhoc.svg
+          coverage-label: EDHOC
 
       - name: Generate Jacoco Badge (OSCORE & Group OSCORE)
         id: jacoco-oscore
         uses: cicirello/jacoco-badge-generator@v2
         with:
           jacoco-csv-file: jacoco/oscore/jacoco.csv
+          coverage-badge-filename: jacoco-oscore.svg
+          coverage-label: OSCORE & Group OSCORE
 
       - name: Generate Jacoco Badge (ACE & Group Joining)
         id: jacoco-ace
         uses: cicirello/jacoco-badge-generator@v2
         with:
           jacoco-csv-file: jacoco/ace/jacoco.csv
+          coverage-badge-filename: jacoco-ace.svg
+          coverage-label: ACE & Group Joining
 
       - name: Move the badges to jacoco folder
         run: |
