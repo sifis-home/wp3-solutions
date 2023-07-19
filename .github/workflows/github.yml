@@ -44,6 +44,28 @@ jobs:
           ./test-ace.sh --with-mysql
           ./code-coverage.sh
 
+      - name: Generate Jacoco Badge (EDHOC)
+        id: jacoco-edhoc
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          jacoco-csv-file: jacoco/edhoc/jacoco.csv
+
+      - name: Generate Jacoco Badge (OSCORE & Group OSCORE)
+        id: jacoco-oscore
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          jacoco-csv-file: jacoco/oscore/jacoco.csv
+
+      - name: Generate Jacoco Badge (ACE & Group Joining)
+        id: jacoco-ace
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          jacoco-csv-file: jacoco/ace/jacoco.csv
+
+      - name: Move the badges to jacoco folder
+        run: |
+          mv .github/badges/*.svg jacoco/
+
       - name: Deploy Jacoco code coverage reports to gh-pages
         uses: JamesIves/github-pages-deploy-action@v4
         if: ${{ matrix.java-version == '8.0.x' }}
