@@ -1,3 +1,7 @@
+[![coverage-edhoc](https://sifis-home.github.io/wp3-solutions/reports/jacoco-edhoc.svg 'Code Coverage: EDHOC')](https://sifis-home.github.io/wp3-solutions/reports/edhoc/)
+[![coverage-oscore](https://sifis-home.github.io/wp3-solutions/reports/jacoco-oscore.svg 'Code Coverage: OSCORE & Group OSCORE')](https://sifis-home.github.io/wp3-solutions/reports/oscore/)
+[![coverage-ace](https://sifis-home.github.io/wp3-solutions/reports/jacoco-ace.svg 'Code Coverage: ACE & Group Joining')](https://sifis-home.github.io/wp3-solutions/reports/ace/)
+
 ## SIFIS-HOME WP3 codebase
 
 Joint codebase for SIFIS-HOME including ACE, EDHOC, OSCORE, Group OSCORE, and Group Joining (plus associated things).
