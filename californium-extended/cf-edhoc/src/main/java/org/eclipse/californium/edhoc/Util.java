@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 RISE and others.
+ * Copyright (c) 2023 RISE and others.
  * 
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -234,7 +234,7 @@ public class Util {
 	 * @param key the key
 	 * @return the algorithm used
 	 */
-	private static AlgorithmID determineKeyAlgorithm(OneKey key) {
+	static AlgorithmID determineKeyAlgorithm(OneKey key) {
 
 		if (key.get(KeyKeys.OKP_Curve) == KeyKeys.OKP_Ed25519) {
 			return AlgorithmID.EDDSA;
@@ -1261,31 +1261,38 @@ public class Util {
 			case 1:
 				return true;
 			case 2:
-				if (obj.AsInt32() >= -24 || obj.AsInt32() <= 23)
+				if (obj.AsInt32() >= -24 && obj.AsInt32() <= 23)
 					return false;
+				else
+					return true;
 			case 3:
-				if (obj.AsInt32() >= -256 || obj.AsInt32() <= 255)
+				if (obj.AsInt32() >= -256 && obj.AsInt32() <= 255)
 					return false;
+				else
+					return true;
 			case 5:
-				if (obj.AsInt32() >= -65536 || obj.AsInt32() <= 65535)
+				if (obj.AsInt32() >= -65536 && obj.AsInt32() <= 65535)
 					return false;
+				else
+					return true;
 			case 9:
-				if (obj.AsInt64Value() >= -4294967296L || obj.AsInt64Value() <= 4294967295L)
+				if (obj.AsInt64Value() >= -4294967296L && obj.AsInt64Value() <= 4294967295L)
 					return false;
+				else
+					return true;
 			default:
 				return false;
 		}
 		
 	}
-	
-       /**
+
+      /**
         * Install EdDSA crypto provider
         */
        public static void installCryptoProvider() {
                Provider EdDSA = new EdDSASecurityProvider();
                // Insert EdDSA security provider
                Security.insertProviderAt(EdDSA, 1);
-       }
-
+       }	
 }
 
