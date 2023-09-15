@@ -412,9 +412,9 @@ public class UtilTest {
 		/* Test Util.releaseConnectionId */ 
 		
 		byte[] connectionId = new byte[] { 0x00 };
-		Util.releaseConnectionId(connectionId, usedConnectionIds, db);
-		OSCoreCtx ctx = db.getContext(connectionId);
-		Assert.assertNull(ctx);
+        Util.releaseConnectionId(connectionId, usedConnectionIds, db);
+        OSCoreCtx ctx = db.getContext(connectionId);
+        Assert.assertNull(ctx);
         
 		/* Test Util.generateKeyPair */
 		
@@ -615,4 +615,3 @@ public class UtilTest {
 		Assert.assertArrayEquals(new byte[] { 0x01, (byte)0x86, (byte)0xA0 }, numBytes);
 	}
 }
-

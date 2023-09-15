@@ -12,7 +12,7 @@
  * 
  * Contributors:
  *    Marco Tiloca (RISE)
- *    Rikard HÃ¶glund (RISE)
+ *    Rikard Höglund (RISE)
  *    
  ******************************************************************************/
 package org.eclipse.californium.edhoc;
@@ -107,5 +107,4 @@ public class EdhocCoapStackFactory implements CoapStackFactory {
 		EdhocCoapStackFactory.OSCORE_REPLAY_WINDOW = OSCORE_REPLAY_WINDOW;
 		EdhocCoapStackFactory.MAX_UNFRAGMENTED_SIZE = MAX_UNFRAGMENTED_SIZE;
 	}
-
 }

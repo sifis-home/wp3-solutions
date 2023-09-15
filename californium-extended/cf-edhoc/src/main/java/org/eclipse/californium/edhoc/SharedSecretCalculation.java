@@ -23,8 +23,10 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.EllipticCurve;
@@ -33,7 +35,13 @@ import java.util.Arrays;
 import javax.crypto.KeyAgreement;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator;
+import org.bouncycastle.crypto.agreement.X25519Agreement;
 import org.bouncycastle.crypto.ec.CustomNamedCurves;
+import org.bouncycastle.crypto.generators.X25519KeyPairGenerator;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.params.X25519KeyGenerationParameters;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -48,6 +56,7 @@ import com.upokecenter.cbor.CBORObject;
 
 import net.i2p.crypto.eddsa.EdDSAPrivateKey;
 import net.i2p.crypto.eddsa.EdDSAPublicKey;
+import net.i2p.crypto.eddsa.EdDSASecurityProvider;
 import net.i2p.crypto.eddsa.math.Field;
 import net.i2p.crypto.eddsa.math.FieldElement;
 import net.i2p.crypto.eddsa.math.bigint.BigIntegerFieldElement;
@@ -159,6 +168,9 @@ public class SharedSecretCalculation {
 
 		// Start by generating a Curve25519 key pair with BouncyCastle
 
+		// MyRandom rand = new MyRandom();
+		SecureRandom rand = new SecureRandom();
+
 		X9ECParameters curveParams = CustomNamedCurves.getByName("Curve25519");
 		// byte[] seed = StringUtil.hex2ByteArray(
 		//  		"1122334455667788112233445566778811223344556677881122334455667788");
@@ -174,7 +186,6 @@ public class SharedSecretCalculation {
 			kpg.initialize(ecSpec);
 		} catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
 			System.err.println("Failed to generate Curve25519 key: " + e);
-			return null;
 		}
 
 		KeyPair keyPair = kpg.generateKeyPair();
@@ -411,7 +422,7 @@ public class SharedSecretCalculation {
 	 * 
 	 * @return a OneKey representing the input material
 	 */
-	static OneKey buildEcdsa256OneKey(byte[] privateKey, byte[] publicKeyX, boolean signY) {
+	public static OneKey buildEcdsa256OneKey(byte[] privateKey, byte[] publicKeyX, boolean signY) {
 		// Recalculate Y value
 		byte[] publicKeyY = null;
 		try {
@@ -814,19 +825,16 @@ public class SharedSecretCalculation {
 		// The private key
 		if (initialKey.AsPrivateKey() != null) {
 			EdDSAPrivateKey initialPrivKey = (EdDSAPrivateKey) initialKey.AsPrivateKey();
-			initialKey.get(KeyKeys.OKP_D).GetByteString();
 			byte[] privateHash = initialPrivKey.getH();
 			byte[] privateScalar = Arrays.copyOf(privateHash, 32);
 			byte[] rgbD = privateScalar;
-			
-			// System.out.println("D bad: " + StringUtil.byteArray2HexString(rgbD_bad));
+
 			// System.out.println("D good: " + StringUtil.byteArray2HexString(rgbD));
 			
 			key.add(KeyKeys.OKP_D, CBORObject.FromObject(rgbD));
 		}
 
 		// The X value is the value of the u coordinate
-		// FIXME: Compress
 		byte[] rgbX = u.toByteArray();
 
 		key.add(KeyKeys.KeyType, KeyKeys.KeyType_OKP);
@@ -881,6 +889,25 @@ public class SharedSecretCalculation {
 
 			sharedSecret = keyAgreement.generateSecret();
 		} catch (InvalidKeyException | NoSuchAlgorithmException | CoseException e) {
+			System.err.println("Could not generate the shared secret: " + e);
+		}
+
+		return sharedSecret;
+	}
+
+	/**
+	 * Generate a shared secret when using EdDSA.
+	 * 
+	 * @param senderPrivateKey the public/private key of the sender
+	 * @param recipientPublicKey the public key of the recipient
+	 * @return the shared secret
+	 */
+	private static byte[] generateSharedSecretEdDSA(OneKey senderPrivateKey, OneKey recipientPublicKey) {
+
+		byte[] sharedSecret = null;
+		try {
+			sharedSecret = SharedSecretCalculation.calculateSharedSecret(recipientPublicKey, senderPrivateKey);
+		} catch (CoseException e) {
 			System.err.println("Could not generate the shared secret: " + e);
 		}
 

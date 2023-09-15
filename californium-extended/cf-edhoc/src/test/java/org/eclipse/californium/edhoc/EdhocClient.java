@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 RISE and others.
+ * Copyright (c) 2023 RISE and others.
  * 
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -302,7 +302,7 @@ public class EdhocClient {
 		
 		if (OSCORE_EDHOC_COMBINED) {
 			CoapResponse appResponseToCombinedRequest = edhocExecutor.getAppResponseToCombinedRequest();
-			System.out.println("Application response to the EDHOC+OSCORE combined request:\n" +
+			System.out.println("\nApplication response to the EDHOC+OSCORE combined request:\n\n" +
 							   Utils.prettyPrint(appResponseToCombinedRequest) + "\n");
 		}
 		

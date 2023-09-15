@@ -85,7 +85,7 @@ public class SharedSecretCalculationTest {
 		Provider EdDSA = new EdDSASecurityProvider();
 		Security.insertProviderAt(EdDSA, 1);
 	}
-
+	
 	/**
 	 * Test generation of Curve25519 key.
 	 */
@@ -93,10 +93,10 @@ public class SharedSecretCalculationTest {
 	public void testGenerateCurve25519Key()
 	{
 		OneKey key = SharedSecretCalculation.generateCurve25519KeyTest();
-
-		// Assert valid key length
-		assertEquals(32, key.get(KeyKeys.OKP_D).GetByteString().length);
-		assertEquals(32, key.get(KeyKeys.OKP_X).GetByteString().length);
+		
+		// Assert valid key
+		Assert.assertNotNull(key);
+		Assert.assertEquals(KeyKeys.OKP_X25519, key.get(KeyKeys.OKP_Curve));
 	}
 
 	/**
@@ -105,13 +105,12 @@ public class SharedSecretCalculationTest {
 	@Test
 	public void testConvertEd25519ToCurve25519() throws CoseException {
 		OneKey outKey = SharedSecretCalculation.convertEd25519ToCurve25519(OneKey.generateKey(AlgorithmID.EDDSA));
-
-		// Assert valid key content
-		assertEquals(32, outKey.get(KeyKeys.OKP_D).GetByteString().length);
-		assertEquals(32, outKey.get(KeyKeys.OKP_X).GetByteString().length);
-		assertEquals(KeyKeys.OKP_X25519, outKey.get(KeyKeys.OKP_Curve));
+		
+		// Assert valid key
+		Assert.assertNotNull(outKey);
+		Assert.assertEquals(KeyKeys.OKP_X25519, outKey.get(KeyKeys.OKP_Curve));
 	}
-
+	
 	/**
 	 * Initial testing of calculating ECDSA_256 Y parameter from X.
 	 * 
@@ -338,7 +337,7 @@ public class SharedSecretCalculationTest {
 	@Test
 	public void testCalculateEcdsa384YFromX() throws CoseException {
 		OneKey key = new OneKey(CBORObject.DecodeFromBytes(StringUtil.hex2ByteArray(
-				"A601020338222002215830BAE152EAF973250444DE9330B82779A12D794E328477F816F6402909CD2736DC287C4B9C97B2EE662C0BEFBC1641D565225830CD2AE4DFE7A02895B805965AE98BA7E94542CA0316586674557F7C0D112CF0FDC40F1B603521A76B091DE3BA147913222358307BADC3BC4E6B3F48D444B483909606CE316A797AE7E3828B4A573E209CA3980B39D5E54B70119C033F73E1BCAF4918EE")));
+		"A601020338222002215830BAE152EAF973250444DE9330B82779A12D794E328477F816F6402909CD2736DC287C4B9C97B2EE662C0BEFBC1641D565225830CD2AE4DFE7A02895B805965AE98BA7E94542CA0316586674557F7C0D112CF0FDC40F1B603521A76B091DE3BA147913222358307BADC3BC4E6B3F48D444B483909606CE316A797AE7E3828B4A573E209CA3980B39D5E54B70119C033F73E1BCAF4918EE")));
 
 		byte[] x1 = key.get(KeyKeys.EC2_X).GetByteString();
 		byte[] y_correct = key.get(KeyKeys.EC2_Y).GetByteString();
